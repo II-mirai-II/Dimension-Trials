@@ -1,0 +1,45 @@
+{
+  "key.category.dimtr": "Dimension Trials",
+
+  "message.dimtr.nether_locked": "You have not yet completed the necessary challenges to access the Nether. Check the Progression HUD (Default: J).",
+  "message.dimtr.end_locked": "You have not yet completed the necessary challenges to access The End. Check the Progression HUD (Default: J).",
+  "message.dimtr.phase1_unlocked_global": "[DimTr] All players have met the requirements for Phase 1! The path to the Nether is open.",
+  "message.dimtr.phase2_unlocked_global": "[DimTr] All players have met the requirements for Phase 2! The End now awaits.",
+  "message.dimtr.phase1_unlocked_global_config_disabled": "[DimTr] Phase 1 progression is disabled by server config. Nether access is open.",
+  "message.dimtr.phase2_unlocked_global_config_disabled": "[DimTr] Phase 2 progression is disabled by server config. The End access is open (if Phase 1 is also complete/disabled).",
+
+
+  "hud.dimtr.title": "Progression Goals",
+  "hud.dimtr.tab_phase1": "Phase 1",
+  "hud.dimtr.tab_phase2": "Phase 2",
+  "hud.dimtr.msg_complete_phase1": "Complete Phase 1 to view these goals in detail.",
+  "hud.dimtr.msg_phase_disabled": "This phase is currently disabled by server configuration.",
+
+  "hud.dimtr.phase1_title": "PHASE 1: OVERWORLD -> NETHER",
+  "hud.dimtr.elder_guardian": "Defeat Elder Guardian",
+  "hud.dimtr.tooltip.elder_guardian": "Venture into an Ocean Monument and defeat one of its ancient protectors, the Elder Guardian.\nThis powerful foe guards valuable treasures and poses a significant underwater challenge.",
+  "hud.dimtr.raid_won": "Win a Raid (Hero of the Village)",
+  "hud.dimtr.tooltip.raid_won": "Successfully defend a village from a Pillager raid and earn the 'Hero of the Village' effect.\nThis involves multiple waves of enemies.",
+  "hud.dimtr.ravager_killed": "Defeat Ravager",
+  "hud.dimtr.tooltip.ravager_killed": "Slay a mighty Ravager, a fearsome beast that accompanies Pillagers during raids or patrols.",
+  "hud.dimtr.evoker_killed": "Defeat Evoker",
+  "hud.dimtr.tooltip.evoker_killed": "Find and defeat an Evoker, a powerful illager magic-user, typically located in a Woodland Mansion.\nThey drop the Totem of Undying.",
+  "hud.dimtr.trial_vaults": "Loot a Trial Vault",
+  "hud.dimtr.tooltip.trial_vaults": "Explore a Trial Chamber and use a Trial Key on a Vault to claim its treasures.\nThis will grant the 'Under Lock and Key' advancement.",
+
+  "hud.dimtr.phase2_title": "PHASE 2: NETHER -> THE END",
+  "hud.dimtr.wither_killed": "Defeat Wither",
+  "hud.dimtr.tooltip.wither_killed": "Summon and defeat the Wither, a formidable three-headed boss.\nGather Wither Skeleton Skulls and Soul Sand or Soul Soil to perform the ritual.",
+  "hud.dimtr.warden_killed": "Defeat Warden",
+  "hud.dimtr.tooltip.warden_killed": "Brave the perilous Deep Dark, awaken, and defeat the terrifying Warden, guardian of the Ancient Cities.\nThis is an extremely challenging foe.",
+
+  "config.dimtr.hudKeybind": "Progression HUD Key (Default: J)",
+  "config.dimtr.server.enablePhase1": "Enable Phase 1 Gating",
+  "config.dimtr.server.reqElderGuardian": "Require Elder Guardian (Phase 1)",
+  "config.dimtr.server.reqRaidAndRavager": "Require Raid Won & Ravager Kill (Phase 1)",
+  "config.dimtr.server.reqEvoker": "Require Evoker Kill (Phase 1)",
+  "config.dimtr.server.reqTrialVaultAdv": "Require Trial Vault Looted Advancement (Phase 1)",
+  "config.dimtr.server.enablePhase2": "Enable Phase 2 Gating",
+  "config.dimtr.server.reqWither": "Require Wither Kill (Phase 2)",
+  "config.dimtr.server.reqWarden": "Require Warden Kill (Phase 2)"
+}
