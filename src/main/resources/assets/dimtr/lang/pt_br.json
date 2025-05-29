@@ -1,20 +1,24 @@
 {
-  "key.category.dimtr": "Provas Dimensionais",
+  "item.dimtr.progression_book": "Livro de Progressão",
 
-  "message.dimtr.nether_locked": "Você ainda não completou os desafios necessários para acessar o Nether. Verifique a HUD de Progresso (Padrão: J).",
-  "message.dimtr.end_locked": "Você ainda não completou os desafios necessários para acessar o The End. Verifique a HUD de Progresso (Padrão: J).",
+  "message.dimtr.nether_locked": "Você ainda não completou os desafios necessários para acessar o Nether. Verifique o Livro de Progressão.",
+  "message.dimtr.end_locked": "Você ainda não completou os desafios necessários para acessar o The End. Verifique o Livro de Progressão.",
   "message.dimtr.phase1_unlocked_global": "[DimTr] Todos os jogadores cumpriram os requisitos para a Fase 1! O caminho para o Nether está aberto.",
   "message.dimtr.phase2_unlocked_global": "[DimTr] Todos os jogadores cumpriram os requisitos para a Fase 2! O The End agora aguarda.",
   "message.dimtr.phase1_unlocked_global_config_disabled": "[DimTr] A progressão da Fase 1 está desabilitada pela configuração do servidor. O acesso ao Nether está aberto.",
   "message.dimtr.phase2_unlocked_global_config_disabled": "[DimTr] A progressão da Fase 2 está desabilitada pela configuração do servidor. O acesso ao The End está aberto (se a Fase 1 também estiver completa/desabilitada).",
 
+  "gui.dimtr.progression_book.title": "Livro de Progressão",
+  "gui.dimtr.book.main_title": "Provas Dimensionais",
+  "gui.dimtr.book.intro1": "Este livro guia sua jornada através das dimensões, detalhando os desafios a serem superados.",
+  "gui.dimtr.book.intro2": "Conclua os objetivos de cada fase para desbloquear o acesso à próxima dimensão.",
+  "gui.dimtr.book.page_turn_instructions": "(Use Q e E para virar as páginas)",
+
   "hud.dimtr.title": "Metas de Progressão",
-  "hud.dimtr.tab_phase1": "Fase 1",
-  "hud.dimtr.tab_phase2": "Fase 2",
   "hud.dimtr.msg_complete_phase1": "Complete a Fase 1 para ver estas metas em detalhe.",
   "hud.dimtr.msg_phase_disabled": "Esta fase está atualmente desabilitada pela configuração do servidor.",
 
-  "hud.dimtr.phase1_title": "FASE 1: OVERWORLD -> NETHER",
+  "hud.dimtr.phase1_title": "FASE 1 - NETHER",
   "hud.dimtr.elder_guardian": "Derrotar Guardião Mestre",
   "hud.dimtr.tooltip.elder_guardian": "Aventure-se em um Monumento Oceânico e derrote um de seus protetores ancestrais, o Guardião Mestre.\nEste poderoso inimigo guarda tesouros valiosos e representa um desafio subaquático significativo.",
   "hud.dimtr.raid_won": "Vencer uma Invasão (Herói da Vila)",
@@ -26,7 +30,7 @@
   "hud.dimtr.trial_vaults": "Saquear uma Câmara de Julgamento",
   "hud.dimtr.tooltip.trial_vaults": "Explore uma Câmara de Julgamento e use uma Chave da Câmara em uma Cripta para clamar seus tesouros.\nIsso concederá a conquista 'Sob Chave'.",
 
-  "hud.dimtr.phase2_title": "FASE 2: NETHER -> THE END",
+  "hud.dimtr.phase2_title": "FASE 2 - THE END",
   "hud.dimtr.wither_killed": "Derrotar Wither",
   "hud.dimtr.tooltip.wither_killed": "Invoque e derrote o Wither, um formidável chefe de três cabeças.\nColete Crânios de Esqueleto Wither e Areia das Almas ou Terra das Almas para realizar o ritual.",
   "hud.dimtr.warden_killed": "Derrotar Warden",

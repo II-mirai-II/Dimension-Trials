@@ -5,17 +5,20 @@ import net.mirai.dimtr.client.ClientProgressionData;
 import net.mirai.dimtr.util.Constants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Renderable;
+// import net.minecraft.client.gui.components.Button; // Não é mais necessário se PageButton foi removido e não há outros Buttons diretos
+import net.minecraft.client.gui.components.Renderable; // Para o loop de renderables (se houver outros)
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.util.FormattedCharSequence;
+import org.lwjgl.glfw.GLFW; // Para navegação por teclado
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,82 +35,141 @@ public class ProgressionBookScreen extends Screen {
     private int currentPageIndex = 0;
     private int totalPages = 0;
 
-    private Button nextPageButton;
-    private Button previousPageButton;
-    private Button doneButton;
+    // Variáveis para nextPageButton e previousPageButton foram REMOVIDAS
+    // private PageButton nextPageButton;
+    // private PageButton previousPageButton;
 
     private int guiLeft;
     private int guiTop;
 
-    private final int PAGE_HORIZONTAL_TEXT_MARGIN = 38;
-    private final int PAGE_VERTICAL_TEXT_MARGIN_TOP = 30; // Usar este nome
-    private final int PAGE_VERTICAL_TEXT_MARGIN_BOTTOM = 30; // Usar este nome
+    // --- SEÇÃO DE CONSTANTES PARA AJUSTE MANUAL DE LAYOUT E ESPAÇAMENTO ---
+    // Edite os valores AQUI para ajustar o layout e espaçamento do livro.
+
+    // 1. Área de Texto Principal (Corpo do Texto) - Use os valores que funcionaram para você
+    private final int TEXT_AREA_TOP_Y_FROM_BOOK_TOP = 29;    // Y (pixels do topo da imagem do livro) onde o texto principal começa.
+    private final int TEXT_AREA_BOTTOM_Y_FROM_BOOK_TOP = 160; // Y (pixels do topo do livro) onde a área de texto principal termina.
+    private final int TEXT_AREA_LEFT_X_FROM_BOOK_LEFT = 39;   // X (pixels da esquerda do livro) onde o texto principal começa.
+    private final int TEXT_AREA_RIGHT_X_FROM_BOOK_LEFT = 150;  // X (pixels da esquerda do livro) onde o texto principal termina.
+
+    // 2. Setas de Navegação - Constantes de posicionamento não são mais usadas pois os botões foram removidos
+    // private final int ARROW_BUTTON_Y_FROM_BOOK_TOP = 172;
+    // private final int PREV_ARROW_BUTTON_X_FROM_BOOK_LEFT = 10;
+    // private final int NEXT_ARROW_BUTTON_X_FROM_BOOK_LEFT = 192 - 10 - 23;
+
+    // 3. Indicador de Número da Página ("Página X de Y")
+    private final int PAGE_INDICATOR_Y_FROM_BOOK_TOP = 15;
+    private final int PAGE_INDICATOR_X_ALIGNMENT_MODE = 2; // 0=Esq, 1=Centro, 2=Dir (da área de texto)
+    private final int PAGE_INDICATOR_X_FINE_OFFSET = 0;
+
+    // 4. Espaçamentos Verticais (Número de linhas em branco - "Enters")
+    private final int LINES_AFTER_MAIN_TITLE = 1;
+    private final int LINES_BETWEEN_INTRO_PARAGRAPHS = 0;
+    private final int LINES_AFTER_ALL_INTRO_BLOCK = 1;
+    private final int LINES_AFTER_PHASE_HEADER_BLOCK = 1;
+    private final int LINES_AFTER_EACH_REQUIREMENT_BLOCK = 1;
+
+    // 5. Separador dos Títulos de Fase
+    private final String PHASE_TITLE_SEPARATOR_TEXT = "-----------";
+
+    // 6. Fator de Escala para a Fonte do Conteúdo
+    private final float CONTENT_FONT_SCALE_FACTOR = 0.9f;
+    // --- FIM DA SEÇÃO DE CONSTANTES DE AJUSTE ---
 
     private int textAreaActualWidth;
     private int effectiveTextHeightPerPage;
     private int linesPerPage;
-    private int textStartX;
-
+    private int textStartX_absolute;
+    private int textStartY_absolute;
+    private int textEndY_absolute;
+    private Component pageIndicatorText;
 
     public ProgressionBookScreen(ItemStack bookStack) {
-        super(Component.translatable("gui.dimtr.progression_book.title"));
+        super(Component.translatable(Constants.HUD_TITLE));
         this.bookStack = bookStack;
     }
 
     @Override
     protected void init() {
-        super.init();
+        super.init(); // Limpa renderables da superclasse
         this.guiLeft = (this.width - BOOK_IMAGE_WIDTH) / 2;
         this.guiTop = (this.height - BOOK_IMAGE_HEIGHT) / 2;
 
-        this.textAreaActualWidth = BOOK_IMAGE_WIDTH - (2 * PAGE_HORIZONTAL_TEXT_MARGIN);
-        this.textStartX = this.guiLeft + PAGE_HORIZONTAL_TEXT_MARGIN;
+        this.textStartX_absolute = this.guiLeft + TEXT_AREA_LEFT_X_FROM_BOOK_LEFT;
+        this.textAreaActualWidth = TEXT_AREA_RIGHT_X_FROM_BOOK_LEFT - TEXT_AREA_LEFT_X_FROM_BOOK_LEFT;
+        this.textStartY_absolute = this.guiTop + TEXT_AREA_TOP_Y_FROM_BOOK_TOP;
+        this.textEndY_absolute = this.guiTop + TEXT_AREA_BOTTOM_Y_FROM_BOOK_TOP;
 
-        this.effectiveTextHeightPerPage = BOOK_IMAGE_HEIGHT - PAGE_VERTICAL_TEXT_MARGIN_TOP - PAGE_VERTICAL_TEXT_MARGIN_BOTTOM;
-        this.linesPerPage = Math.max(1, this.effectiveTextHeightPerPage / this.font.lineHeight);
+        float scaledLineHeight = this.font.lineHeight * CONTENT_FONT_SCALE_FACTOR;
+        if (scaledLineHeight <= 0) scaledLineHeight = this.font.lineHeight;
+        this.effectiveTextHeightPerPage = this.textEndY_absolute - this.textStartY_absolute;
+        this.linesPerPage = Math.max(1, (int)(this.effectiveTextHeightPerPage / scaledLineHeight));
 
         this.preparePageContents();
 
-        this.doneButton = Button.builder(Component.translatable("gui.done"), (button) -> {
-            this.minecraft.setScreen(null);
-        }).bounds(this.width / 2 - 50, this.guiTop + BOOK_IMAGE_HEIGHT - PAGE_VERTICAL_TEXT_MARGIN_BOTTOM + 7, 100, 20).build();
-        this.addRenderableWidget(this.doneButton);
+        // Botões de seta foram removidos, não são mais adicionados como addRenderableWidget
 
-        int navButtonY = this.guiTop + BOOK_IMAGE_HEIGHT - PAGE_VERTICAL_TEXT_MARGIN_BOTTOM + (PAGE_VERTICAL_TEXT_MARGIN_BOTTOM - 13 - 7) / 2 +1;
-        int navButtonXEdgeOffset = 28;
+        updatePageIndicator();
 
-        this.previousPageButton = new PageButton(
-                this.guiLeft + navButtonXEdgeOffset, navButtonY, false,
-                (button) -> turnPage(false), true);
-        this.addRenderableWidget(this.previousPageButton);
-
-        this.nextPageButton = new PageButton(
-                this.guiLeft + BOOK_IMAGE_WIDTH - navButtonXEdgeOffset - 23, navButtonY, true,
-                (button) -> turnPage(true), true);
-        this.addRenderableWidget(this.nextPageButton);
-
-        updateNavButtonVisibility();
-
-        System.out.println("BookScreen Init: textAreaActualWidth=" + this.textAreaActualWidth + ", linesPerPage=" + this.linesPerPage + ", textStartX=" + this.textStartX);
+        System.out.println("--- BookScreen Init ---");
+        System.out.println("textAreaActualWidth: " + this.textAreaActualWidth + ", linesPerPage: " + this.linesPerPage);
+        System.out.println("textStartX_absolute: " + this.textStartX_absolute + ", textStartY_absolute: " + this.textStartY_absolute);
+        System.out.println("Scaled Line Height for calc: " + scaledLineHeight);
+        System.out.println("Total Pages from init: " + this.totalPages);
+        System.out.println("---------------------");
     }
 
     private void turnPage(boolean forward) {
+        boolean pageTurned = false;
         if (forward) {
             if (this.currentPageIndex < this.totalPages - 1) {
                 this.currentPageIndex++;
+                pageTurned = true;
             }
         } else {
             if (this.currentPageIndex > 0) {
                 this.currentPageIndex--;
+                pageTurned = true;
             }
         }
-        updateNavButtonVisibility();
+        if (pageTurned && this.minecraft != null) {
+            playPageTurnSound();
+        }
+        updatePageIndicator();
     }
 
-    private void updateNavButtonVisibility() {
-        if (this.previousPageButton == null || this.nextPageButton == null) return;
-        this.previousPageButton.visible = this.currentPageIndex > 0;
-        this.nextPageButton.visible = this.currentPageIndex < this.totalPages - 1;
+    private void updatePageIndicator() {
+        if (this.totalPages > 0) {
+            this.pageIndicatorText = Component.translatable("book.pageIndicator", this.currentPageIndex + 1, Math.max(this.totalPages, 1));
+        } else {
+            this.pageIndicatorText = Component.empty();
+        }
+    }
+
+    private void playPageTurnSound() {
+        if (this.minecraft != null && this.minecraft.getSoundManager() != null) {
+            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
+        }
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (super.keyPressed(keyCode, scanCode, modifiers)) {
+            return true;
+        }
+        if (keyCode == GLFW.GLFW_KEY_E) {
+            this.turnPage(true);
+            return true;
+        } else if (keyCode == GLFW.GLFW_KEY_Q) {
+            this.turnPage(false);
+            return true;
+        }
+        return false;
+    }
+
+    private void addBlankLines(List<Component> list, int count) {
+        for (int i = 0; i < count; i++) {
+            list.add(Component.literal(" "));
+        }
     }
 
     private void preparePageContents() {
@@ -115,19 +177,24 @@ public class ProgressionBookScreen extends Screen {
         ClientProgressionData progress = ClientProgressionData.INSTANCE;
         List<Component> allBookComponents = new ArrayList<>();
 
-        allBookComponents.add(Component.literal("Provas Dimensionais")
+        allBookComponents.add(Component.translatable(Constants.BOOK_PAGE_TURN_INSTRUCTIONS).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+        addBlankLines(allBookComponents, 1);
+
+        allBookComponents.add(Component.translatable(Constants.BOOK_MAIN_TITLE)
                 .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD, ChatFormatting.UNDERLINE));
-        allBookComponents.add(Component.literal(""));
-        allBookComponents.add(Component.literal("Este livro guia sua jornada através das dimensões, detalhando os desafios a serem superados.")
+        addBlankLines(allBookComponents, LINES_AFTER_MAIN_TITLE);
+
+        allBookComponents.add(Component.translatable(Constants.BOOK_INTRO_1)
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
-        allBookComponents.add(Component.literal(""));
-        allBookComponents.add(Component.literal("Conclua os objetivos de cada fase para desbloquear o acesso à próxima dimensão.")
+        addBlankLines(allBookComponents, LINES_BETWEEN_INTRO_PARAGRAPHS);
+
+        allBookComponents.add(Component.translatable(Constants.BOOK_INTRO_2)
                 .withStyle(ChatFormatting.DARK_GRAY));
-        allBookComponents.add(Component.literal(""));
-        allBookComponents.add(Component.literal(""));
+        addBlankLines(allBookComponents, LINES_AFTER_ALL_INTRO_BLOCK);
 
         allBookComponents.add(Component.translatable(Constants.HUD_PHASE1_TITLE).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
-        allBookComponents.add(Component.literal("--------------------").withStyle(ChatFormatting.GOLD));
+        allBookComponents.add(Component.literal(PHASE_TITLE_SEPARATOR_TEXT).withStyle(ChatFormatting.GOLD));
+        addBlankLines(allBookComponents, LINES_AFTER_PHASE_HEADER_BLOCK);
 
         if (progress.isServerEnablePhase1()) {
             if (progress.isServerReqElderGuardian()) allBookComponents.addAll(formatGoal(Constants.HUD_ELDER_GUARDIAN, progress.isElderGuardianKilled(), Constants.HUD_TOOLTIP_ELDER_GUARDIAN));
@@ -139,16 +206,17 @@ public class ProgressionBookScreen extends Screen {
             if (progress.isServerReqTrialVaultAdv()) allBookComponents.addAll(formatGoal(Constants.HUD_TRIAL_VAULTS, progress.isTrialVaultAdvancementEarned(), Constants.HUD_TOOLTIP_TRIAL_VAULTS));
 
             if (progress.isPhase1Completed()) {
-                allBookComponents.add(Component.literal(""));
+                addBlankLines(allBookComponents, 1);
                 allBookComponents.add(Component.translatable(Constants.MSG_PHASE1_UNLOCKED_GLOBAL).withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
             }
         } else {
             allBookComponents.add(Component.translatable(Constants.HUD_MSG_PHASE_DISABLED).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         }
-        allBookComponents.add(Component.literal(""));
+        addBlankLines(allBookComponents, LINES_AFTER_ALL_INTRO_BLOCK);
 
         allBookComponents.add(Component.translatable(Constants.HUD_PHASE2_TITLE).withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD));
-        allBookComponents.add(Component.literal("--------------------").withStyle(ChatFormatting.DARK_PURPLE));
+        allBookComponents.add(Component.literal(PHASE_TITLE_SEPARATOR_TEXT).withStyle(ChatFormatting.DARK_PURPLE));
+        addBlankLines(allBookComponents, LINES_AFTER_PHASE_HEADER_BLOCK);
 
         if (!progress.isPhase1EffectivelyComplete()) {
             allBookComponents.add(Component.translatable(Constants.HUD_MSG_COMPLETE_PHASE1).withStyle(ChatFormatting.GRAY));
@@ -157,16 +225,16 @@ public class ProgressionBookScreen extends Screen {
             if (progress.isServerReqWarden()) allBookComponents.addAll(formatGoal(Constants.HUD_WARDEN_KILLED, progress.isWardenKilled(), Constants.HUD_TOOLTIP_WARDEN_KILLED));
 
             if (progress.isPhase2Completed()) {
-                allBookComponents.add(Component.literal(""));
+                addBlankLines(allBookComponents, 1);
                 allBookComponents.add(Component.translatable(Constants.MSG_PHASE2_UNLOCKED_GLOBAL).withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
             }
         } else {
             allBookComponents.add(Component.translatable(Constants.HUD_MSG_PHASE_DISABLED).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         }
-        allBookComponents.add(Component.literal(""));
+        addBlankLines(allBookComponents, 1);
 
         paginateComponents(allBookComponents);
-        System.out.println("Content Prepared (Single Page): Total Pages = " + this.totalPages + ", Lines per page = " + this.linesPerPage);
+        System.out.println("Content Prepared: Total Pages = " + this.totalPages + ", Lines per page = " + this.linesPerPage);
     }
 
     private List<Component> formatGoal(String titleKey, boolean completed, String descriptionKey) {
@@ -181,7 +249,7 @@ public class ProgressionBookScreen extends Screen {
 
         Component descriptionText = Component.translatable(descriptionKey).withStyle(descriptionStyle);
         goalComponents.add(Component.literal("  ").append(descriptionText));
-        goalComponents.add(Component.literal(""));
+        addBlankLines(goalComponents, LINES_AFTER_EACH_REQUIREMENT_BLOCK);
 
         return goalComponents;
     }
@@ -189,7 +257,6 @@ public class ProgressionBookScreen extends Screen {
     private void paginateComponents(List<Component> components) {
         this.pages.clear();
         List<FormattedCharSequence> currentSinglePageLines = new ArrayList<>();
-
         for (Component component : components) {
             List<FormattedCharSequence> wrappedLines = this.font.split(component, this.textAreaActualWidth);
             for (FormattedCharSequence line : wrappedLines) {
@@ -200,11 +267,9 @@ public class ProgressionBookScreen extends Screen {
                 currentSinglePageLines.add(line);
             }
         }
-
         if (!currentSinglePageLines.isEmpty()) {
             this.pages.add(currentSinglePageLines);
         }
-
         this.totalPages = this.pages.size();
         if (this.totalPages == 0) {
             this.pages.add(new ArrayList<>());
@@ -212,7 +277,6 @@ public class ProgressionBookScreen extends Screen {
         }
         this.currentPageIndex = Math.min(this.currentPageIndex, Math.max(0, this.totalPages - 1));
     }
-
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
@@ -225,65 +289,61 @@ public class ProgressionBookScreen extends Screen {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         guiGraphics.blit(BOOK_TEXTURE, this.guiLeft, this.guiTop, 0, 0, BOOK_IMAGE_WIDTH, BOOK_IMAGE_HEIGHT);
 
-        if (this.totalPages > 0 && this.currentPageIndex < this.totalPages) {
-            List<FormattedCharSequence> linesOfCurrentPage = this.pages.get(this.currentPageIndex);
+        int contentRenderStartY = this.textStartY_absolute;
 
-            // USA AS CONSTANTES CORRETAS AQUI:
-            int currentLineY = this.guiTop + PAGE_VERTICAL_TEXT_MARGIN_TOP;
-            for (FormattedCharSequence line : linesOfCurrentPage) {
-                if (currentLineY + this.font.lineHeight > this.guiTop + BOOK_IMAGE_HEIGHT - PAGE_VERTICAL_TEXT_MARGIN_BOTTOM + 5) { // E AQUI
+        if (this.pageIndicatorText != null && this.totalPages > 0) {
+            int indicatorWidth = this.font.width(this.pageIndicatorText);
+            int indicatorX;
+            switch (PAGE_INDICATOR_X_ALIGNMENT_MODE) {
+                case 0:
+                    indicatorX = this.textStartX_absolute + PAGE_INDICATOR_X_FINE_OFFSET;
                     break;
-                }
-                guiGraphics.drawString(this.font, line, this.textStartX, currentLineY, ChatFormatting.BLACK.getColor(), false);
-                currentLineY += this.font.lineHeight;
+                case 2:
+                    indicatorX = this.textStartX_absolute + this.textAreaActualWidth - indicatorWidth - PAGE_INDICATOR_X_FINE_OFFSET;
+                    break;
+                case 1:
+                default:
+                    indicatorX = this.textStartX_absolute + (this.textAreaActualWidth / 2) - (indicatorWidth / 2) + PAGE_INDICATOR_X_FINE_OFFSET;
+                    break;
+            }
+            int indicatorY = this.guiTop + PAGE_INDICATOR_Y_FROM_BOOK_TOP;
+
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate(indicatorX, indicatorY, 0);
+            guiGraphics.pose().scale(CONTENT_FONT_SCALE_FACTOR, CONTENT_FONT_SCALE_FACTOR, 1.0f);
+            guiGraphics.drawString(this.font, this.pageIndicatorText, 0, 0, ChatFormatting.BLACK.getColor(), false);
+            guiGraphics.pose().popPose();
+
+            if (indicatorY >= this.textStartY_absolute && indicatorY < this.textStartY_absolute + (this.font.lineHeight * CONTENT_FONT_SCALE_FACTOR) ) {
+                contentRenderStartY = Math.max(contentRenderStartY, indicatorY + (int)(this.font.lineHeight * CONTENT_FONT_SCALE_FACTOR) + 2);
             }
         }
 
-        String pageNumText = String.format("Página %d / %d (LPP: %d, LAW: %d)", this.currentPageIndex + 1, this.totalPages, this.linesPerPage, this.textAreaActualWidth);
-        guiGraphics.drawString(this.font, pageNumText, this.guiLeft + 5, this.guiTop + 5, 0xFFFFFF, true);
+        if (this.totalPages > 0 && this.currentPageIndex < this.totalPages) {
+            List<FormattedCharSequence> linesOfCurrentPage = this.pages.get(this.currentPageIndex);
 
+            int currentLineY = contentRenderStartY;
+            for (FormattedCharSequence line : linesOfCurrentPage) {
+                if (currentLineY + (this.font.lineHeight * CONTENT_FONT_SCALE_FACTOR) -1 > this.textEndY_absolute) {
+                    break;
+                }
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().translate(this.textStartX_absolute, currentLineY, 0);
+                guiGraphics.pose().scale(CONTENT_FONT_SCALE_FACTOR, CONTENT_FONT_SCALE_FACTOR, 1.0f);
+                guiGraphics.drawString(this.font, line, 0, 0, ChatFormatting.BLACK.getColor(), false);
+                guiGraphics.pose().popPose();
+                currentLineY += (int)(this.font.lineHeight * CONTENT_FONT_SCALE_FACTOR);
+            }
+        }
 
+        // Renderiza outros 'Renderable' se houver (nenhum por padrão agora que os botões de seta foram removidos)
         for (Renderable renderable : this.renderables) {
             renderable.render(guiGraphics, mouseX, mouseY, partialTick);
         }
     }
 
     @Override
-    public boolean isPauseScreen() {
-        return false;
-    }
+    public boolean isPauseScreen() { return false; }
 
-    public static class PageButton extends Button {
-        private final boolean isForward;
-        private final boolean playTurnSound;
-
-        public PageButton(int x, int y, boolean isForward, OnPress onPress, boolean playTurnSound) {
-            super(x, y, 23, 13, Component.empty(), onPress, DEFAULT_NARRATION);
-            this.isForward = isForward;
-            this.playTurnSound = playTurnSound;
-        }
-
-        @Override
-        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            if (this.visible) {
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                int u = 0;
-                int v = 192;
-                if (this.isHoveredOrFocused()) {
-                    u += 23;
-                }
-                if (!this.isForward) {
-                    v += 13;
-                }
-                guiGraphics.blit(ProgressionBookScreen.BOOK_TEXTURE, this.getX(), this.getY(), u, v, 23, 13);
-            }
-        }
-
-        @Override
-        public void playDownSound(net.minecraft.client.sounds.SoundManager soundManager) {
-            if (this.playTurnSound) {
-                soundManager.play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.BOOK_PAGE_TURN, 1.0F));
-            }
-        }
-    }
+    // A classe interna PageButton foi removida ou comentada, pois não é mais usada.
 }

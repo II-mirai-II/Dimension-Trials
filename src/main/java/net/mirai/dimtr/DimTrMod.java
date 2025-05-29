@@ -25,13 +25,14 @@ public class DimTrMod {
         modContainer.registerConfig(ModConfig.Type.SERVER, DimTrConfig.SERVER_SPEC, DimTrMod.MODID + "-server.toml");
 
         // Registra os itens
-        ModItems.register(modEventBus); // NOVO
+        ModItems.register(modEventBus);
 
+        // Adiciona listeners de evento do mod
         modEventBus.addListener(NetworkManager::registerPayloads);
-        modEventBus.addListener(ClientEventHandlers::onRegisterKeyMappings); // Mantido caso haja outras key mappings
-        modEventBus.addListener(ModItems::onBuildCreativeModeTabContents); // NOVO - Para adicionar o item à aba criativa
+        modEventBus.addListener(ClientEventHandlers::onRegisterKeyMappings); // Mantido caso haja outras key mappings futuras
+        modEventBus.addListener(ModItems::onBuildCreativeModeTabContents); // Para adicionar o item à aba criativa
 
+        // Registra handlers de evento do Forge/NeoForge
         NeoForge.EVENT_BUS.register(ModEventHandlers.class);
-        // NeoForge.EVENT_BUS.register(ClientEventHandlers.GameEventHandlers.class); // Removido se a classe foi removida
     }
 }

@@ -1,21 +1,24 @@
 {
-  "key.category.dimtr": "Dimension Trials",
+  "item.dimtr.progression_book": "Progression Book",
 
-  "message.dimtr.nether_locked": "You have not yet completed the necessary challenges to access the Nether. Check the Progression HUD (Default: J).",
-  "message.dimtr.end_locked": "You have not yet completed the necessary challenges to access The End. Check the Progression HUD (Default: J).",
+  "message.dimtr.nether_locked": "You have not yet completed the necessary challenges to access the Nether. Check the Progression Book.",
+  "message.dimtr.end_locked": "You have not yet completed the necessary challenges to access The End. Check the Progression Book.",
   "message.dimtr.phase1_unlocked_global": "[DimTr] All players have met the requirements for Phase 1! The path to the Nether is open.",
   "message.dimtr.phase2_unlocked_global": "[DimTr] All players have met the requirements for Phase 2! The End now awaits.",
   "message.dimtr.phase1_unlocked_global_config_disabled": "[DimTr] Phase 1 progression is disabled by server config. Nether access is open.",
   "message.dimtr.phase2_unlocked_global_config_disabled": "[DimTr] Phase 2 progression is disabled by server config. The End access is open (if Phase 1 is also complete/disabled).",
 
+  "gui.dimtr.progression_book.title": "Progression Book",
+  "gui.dimtr.book.main_title": "Dimensional Trials",
+  "gui.dimtr.book.intro1": "This book guides your journey through the dimensions, detailing the challenges to overcome.",
+  "gui.dimtr.book.intro2": "Complete the objectives of each phase to unlock access to the next dimension.",
+  "gui.dimtr.book.page_turn_instructions": "(Use Q and E to turn pages)",
 
   "hud.dimtr.title": "Progression Goals",
-  "hud.dimtr.tab_phase1": "Phase 1",
-  "hud.dimtr.tab_phase2": "Phase 2",
   "hud.dimtr.msg_complete_phase1": "Complete Phase 1 to view these goals in detail.",
   "hud.dimtr.msg_phase_disabled": "This phase is currently disabled by server configuration.",
 
-  "hud.dimtr.phase1_title": "PHASE 1: OVERWORLD -> NETHER",
+  "hud.dimtr.phase1_title": "PHASE 1 - NETHER",
   "hud.dimtr.elder_guardian": "Defeat Elder Guardian",
   "hud.dimtr.tooltip.elder_guardian": "Venture into an Ocean Monument and defeat one of its ancient protectors, the Elder Guardian.\nThis powerful foe guards valuable treasures and poses a significant underwater challenge.",
   "hud.dimtr.raid_won": "Win a Raid (Hero of the Village)",
@@ -27,7 +30,7 @@
   "hud.dimtr.trial_vaults": "Loot a Trial Vault",
   "hud.dimtr.tooltip.trial_vaults": "Explore a Trial Chamber and use a Trial Key on a Vault to claim its treasures.\nThis will grant the 'Under Lock and Key' advancement.",
 
-  "hud.dimtr.phase2_title": "PHASE 2: NETHER -> THE END",
+  "hud.dimtr.phase2_title": "PHASE 2 - THE END",
   "hud.dimtr.wither_killed": "Defeat Wither",
   "hud.dimtr.tooltip.wither_killed": "Summon and defeat the Wither, a formidable three-headed boss.\nGather Wither Skeleton Skulls and Soul Sand or Soul Soil to perform the ritual.",
   "hud.dimtr.warden_killed": "Defeat Warden",
