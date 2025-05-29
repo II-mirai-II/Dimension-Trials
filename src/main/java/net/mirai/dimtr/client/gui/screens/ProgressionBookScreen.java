@@ -4,7 +4,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.mirai.dimtr.client.ClientProgressionData;
 import net.mirai.dimtr.util.Constants;
 import net.minecraft.client.Minecraft;
-// Removido Font já que this.font é herdado de Screen
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Renderable;
@@ -24,31 +23,30 @@ import java.util.List;
 public class ProgressionBookScreen extends Screen {
 
     public static final ResourceLocation BOOK_TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/book.png");
-    protected static final int BOOK_IMAGE_WIDTH = 192; // Largura da imagem do livro (ainda útil para centralizar)
-    protected static final int BOOK_IMAGE_HEIGHT = 192; // Altura da imagem do livro
+    protected static final int BOOK_IMAGE_WIDTH = 192;
+    protected static final int BOOK_IMAGE_HEIGHT = 192;
 
     private final ItemStack bookStack;
 
-    private List<List<FormattedCharSequence>> pages = new ArrayList<>(); // Alterado de pageSpreads
-    private int currentPageIndex = 0; // Alterado de currentPageSpreadIndex
-    private int totalPages = 0;       // Alterado de totalPageSpreads
+    private List<List<FormattedCharSequence>> pages = new ArrayList<>();
+    private int currentPageIndex = 0;
+    private int totalPages = 0;
 
     private Button nextPageButton;
     private Button previousPageButton;
     private Button doneButton;
 
-    private int guiLeft; // X da borda esquerda da GUI do livro
-    private int guiTop;  // Y da borda superior da GUI do livro
+    private int guiLeft;
+    private int guiTop;
 
-    // Constantes de Layout para UMA PÁGINA
-    private final int PAGE_CONTENT_TOP_MARGIN = 28;    // Margem do topo da textura do livro até o início do texto
-    private final int PAGE_CONTENT_BOTTOM_MARGIN = 32; // Margem da base da textura do livro até o fim do texto (para botões etc)
-    private final int STANDARD_TEXT_WIDTH = 116;       // Largura padrão para texto em livros vanilla
+    private final int PAGE_HORIZONTAL_TEXT_MARGIN = 38;
+    private final int PAGE_VERTICAL_TEXT_MARGIN_TOP = 30; // Usar este nome
+    private final int PAGE_VERTICAL_TEXT_MARGIN_BOTTOM = 30; // Usar este nome
 
-    private int textAreaActualWidth;            // Largura efetiva para texto (será STANDARD_TEXT_WIDTH)
-    private int effectiveTextHeightPerPage;     // Altura efetiva para texto
-    private int linesPerPage;                   // Linhas que cabem em uma página
-    private int textStartX;                     // X para iniciar o texto (centralizado)
+    private int textAreaActualWidth;
+    private int effectiveTextHeightPerPage;
+    private int linesPerPage;
+    private int textStartX;
 
 
     public ProgressionBookScreen(ItemStack bookStack) {
@@ -62,40 +60,35 @@ public class ProgressionBookScreen extends Screen {
         this.guiLeft = (this.width - BOOK_IMAGE_WIDTH) / 2;
         this.guiTop = (this.height - BOOK_IMAGE_HEIGHT) / 2;
 
-        this.textAreaActualWidth = STANDARD_TEXT_WIDTH;
-        // O X inicial para o texto ser centralizado dentro da largura da imagem do livro
-        this.textStartX = this.guiLeft + (BOOK_IMAGE_WIDTH - this.textAreaActualWidth) / 2;
+        this.textAreaActualWidth = BOOK_IMAGE_WIDTH - (2 * PAGE_HORIZONTAL_TEXT_MARGIN);
+        this.textStartX = this.guiLeft + PAGE_HORIZONTAL_TEXT_MARGIN;
 
-        this.effectiveTextHeightPerPage = BOOK_IMAGE_HEIGHT - PAGE_CONTENT_TOP_MARGIN - PAGE_CONTENT_BOTTOM_MARGIN;
+        this.effectiveTextHeightPerPage = BOOK_IMAGE_HEIGHT - PAGE_VERTICAL_TEXT_MARGIN_TOP - PAGE_VERTICAL_TEXT_MARGIN_BOTTOM;
         this.linesPerPage = Math.max(1, this.effectiveTextHeightPerPage / this.font.lineHeight);
 
-        this.preparePageContents(); // Prepara o conteúdo e o pagina
+        this.preparePageContents();
 
-        // Botão "Feito"
         this.doneButton = Button.builder(Component.translatable("gui.done"), (button) -> {
             this.minecraft.setScreen(null);
-        }).bounds(this.width / 2 - 50, this.guiTop + BOOK_IMAGE_HEIGHT - PAGE_CONTENT_BOTTOM_MARGIN + 8, 100, 20).build();
+        }).bounds(this.width / 2 - 50, this.guiTop + BOOK_IMAGE_HEIGHT - PAGE_VERTICAL_TEXT_MARGIN_BOTTOM + 7, 100, 20).build();
         this.addRenderableWidget(this.doneButton);
 
-        // Botões de Navegação de Página
-        int navButtonY = this.guiTop + BOOK_IMAGE_HEIGHT - PAGE_CONTENT_BOTTOM_MARGIN + (PAGE_CONTENT_BOTTOM_MARGIN - 13 - 8) / 2 +2;
-        int navButtonXEdgeOffset = 28; // Um pouco mais para dentro para uma página única
+        int navButtonY = this.guiTop + BOOK_IMAGE_HEIGHT - PAGE_VERTICAL_TEXT_MARGIN_BOTTOM + (PAGE_VERTICAL_TEXT_MARGIN_BOTTOM - 13 - 7) / 2 +1;
+        int navButtonXEdgeOffset = 28;
+
         this.previousPageButton = new PageButton(
                 this.guiLeft + navButtonXEdgeOffset, navButtonY, false,
                 (button) -> turnPage(false), true);
         this.addRenderableWidget(this.previousPageButton);
 
         this.nextPageButton = new PageButton(
-                this.guiLeft + BOOK_IMAGE_WIDTH - navButtonXEdgeOffset - 23, navButtonY, true, // 23 é a largura do botão
+                this.guiLeft + BOOK_IMAGE_WIDTH - navButtonXEdgeOffset - 23, navButtonY, true,
                 (button) -> turnPage(true), true);
         this.addRenderableWidget(this.nextPageButton);
 
         updateNavButtonVisibility();
 
-        // Debug:
-        System.out.println("BookScreen Init: textAreaWidth=" + this.textAreaActualWidth + ", linesPerPage=" + this.linesPerPage + ", textStartX=" + this.textStartX);
-        System.out.println("Total Pages after init: " + this.totalPages);
-
+        System.out.println("BookScreen Init: textAreaActualWidth=" + this.textAreaActualWidth + ", linesPerPage=" + this.linesPerPage + ", textStartX=" + this.textStartX);
     }
 
     private void turnPage(boolean forward) {
@@ -112,6 +105,7 @@ public class ProgressionBookScreen extends Screen {
     }
 
     private void updateNavButtonVisibility() {
+        if (this.previousPageButton == null || this.nextPageButton == null) return;
         this.previousPageButton.visible = this.currentPageIndex > 0;
         this.nextPageButton.visible = this.currentPageIndex < this.totalPages - 1;
     }
@@ -121,10 +115,8 @@ public class ProgressionBookScreen extends Screen {
         ClientProgressionData progress = ClientProgressionData.INSTANCE;
         List<Component> allBookComponents = new ArrayList<>();
 
-        // --- Conteúdo --- (igual ao anterior)
         allBookComponents.add(Component.literal("Provas Dimensionais")
-                .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD, ChatFormatting.UNDERLINE)
-                .withStyle(style -> style.withFont(ResourceLocation.withDefaultNamespace("uniform"))));
+                .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD, ChatFormatting.UNDERLINE));
         allBookComponents.add(Component.literal(""));
         allBookComponents.add(Component.literal("Este livro guia sua jornada através das dimensões, detalhando os desafios a serem superados.")
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
@@ -175,7 +167,6 @@ public class ProgressionBookScreen extends Screen {
 
         paginateComponents(allBookComponents);
         System.out.println("Content Prepared (Single Page): Total Pages = " + this.totalPages + ", Lines per page = " + this.linesPerPage);
-
     }
 
     private List<Component> formatGoal(String titleKey, boolean completed, String descriptionKey) {
@@ -200,27 +191,23 @@ public class ProgressionBookScreen extends Screen {
         List<FormattedCharSequence> currentSinglePageLines = new ArrayList<>();
 
         for (Component component : components) {
-            // Usa this.textAreaActualWidth para quebrar as linhas
             List<FormattedCharSequence> wrappedLines = this.font.split(component, this.textAreaActualWidth);
             for (FormattedCharSequence line : wrappedLines) {
-                if (currentSinglePageLines.size() >= this.linesPerPage) { // Se a página atual está cheia
-                    this.pages.add(new ArrayList<>(currentSinglePageLines)); // Adiciona a página completa
-                    currentSinglePageLines.clear(); // Começa uma nova página
+                if (currentSinglePageLines.size() >= this.linesPerPage) {
+                    this.pages.add(new ArrayList<>(currentSinglePageLines));
+                    currentSinglePageLines.clear();
                 }
                 currentSinglePageLines.add(line);
             }
         }
 
-        if (!currentSinglePageLines.isEmpty()) { // Adiciona a última página se houver conteúdo restante
+        if (!currentSinglePageLines.isEmpty()) {
             this.pages.add(currentSinglePageLines);
         }
 
         this.totalPages = this.pages.size();
-        if (this.totalPages == 0 && !components.isEmpty()) { // Se havia componentes mas nenhuma linha coube (improvável)
-            this.pages.add(new ArrayList<>()); // Garante pelo menos uma página
-            this.totalPages = 1;
-        } else if (components.isEmpty()){ // Se não havia componentes de todo
-            this.pages.add(new ArrayList<>()); // Garante uma página vazia
+        if (this.totalPages == 0) {
+            this.pages.add(new ArrayList<>());
             this.totalPages = 1;
         }
         this.currentPageIndex = Math.min(this.currentPageIndex, Math.max(0, this.totalPages - 1));
@@ -238,14 +225,13 @@ public class ProgressionBookScreen extends Screen {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         guiGraphics.blit(BOOK_TEXTURE, this.guiLeft, this.guiTop, 0, 0, BOOK_IMAGE_WIDTH, BOOK_IMAGE_HEIGHT);
 
-        // Renderiza conteúdo para UMA PÁGINA CENTRALIZADA
         if (this.totalPages > 0 && this.currentPageIndex < this.totalPages) {
             List<FormattedCharSequence> linesOfCurrentPage = this.pages.get(this.currentPageIndex);
 
-            int currentLineY = this.guiTop + PAGE_CONTENT_TOP_MARGIN;
+            // USA AS CONSTANTES CORRETAS AQUI:
+            int currentLineY = this.guiTop + PAGE_VERTICAL_TEXT_MARGIN_TOP;
             for (FormattedCharSequence line : linesOfCurrentPage) {
-                // Para parar de desenhar se exceder a altura útil da página
-                if (currentLineY + this.font.lineHeight > this.guiTop + BOOK_IMAGE_HEIGHT - PAGE_CONTENT_BOTTOM_MARGIN +5) { // +5 de tolerância
+                if (currentLineY + this.font.lineHeight > this.guiTop + BOOK_IMAGE_HEIGHT - PAGE_VERTICAL_TEXT_MARGIN_BOTTOM + 5) { // E AQUI
                     break;
                 }
                 guiGraphics.drawString(this.font, line, this.textStartX, currentLineY, ChatFormatting.BLACK.getColor(), false);
@@ -253,9 +239,9 @@ public class ProgressionBookScreen extends Screen {
             }
         }
 
-        // Debugging page numbers
-        // String pageNumText = String.format("Página %d / %d", this.currentPageIndex + 1, this.totalPages);
-        // guiGraphics.drawString(this.font, pageNumText, this.guiLeft + 5, this.guiTop + 5, 0xFFFFFF, true);
+        String pageNumText = String.format("Página %d / %d (LPP: %d, LAW: %d)", this.currentPageIndex + 1, this.totalPages, this.linesPerPage, this.textAreaActualWidth);
+        guiGraphics.drawString(this.font, pageNumText, this.guiLeft + 5, this.guiTop + 5, 0xFFFFFF, true);
+
 
         for (Renderable renderable : this.renderables) {
             renderable.render(guiGraphics, mouseX, mouseY, partialTick);
