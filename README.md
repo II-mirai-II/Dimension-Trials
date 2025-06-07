@@ -1,118 +1,155 @@
 # Dimension Trials 💀
 
 [![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)](https://www.minecraft.net)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![img_1.png](img_1.png)
-**Dimension Trials** is a Minecraft mod that introduces a new layer of challenge and progression 📜 to your survival experience. Instead of having immediate access to all dimensions, players must now meet specific requirements to unlock the Nether and The End, making dimensional travel feel more like an RPG-style achievement 🧭.
 
-## 🌟 Features
+![HUD Preview](img_1.png)
 
-* **Progressive Dimension Access:** The Nether 🔥 and The End 🌌 are locked until specific server-wide objectives are met.
-* **Phased Progression:** Unlock dimensions in stages 📊:
-    * **Phase 1:** Focuses on Overworld and early-game challenges to unlock the Nether.
-    * **Phase 2:** Involves Nether and advanced challenges to unlock The End.
-* **The Progression Book 📖:** An in-game guide that details all requirements for each phase, showing what's completed and what's still pending.
-    * Automatically given to players on their first join 🎁.
-    * Craftable if lost 🛠️.
-    * Easy navigation using **Q** (previous page) and **E** (next page) keys ⌨️.
-* **Server-Wide Progression 🌍:** All progression is global to the world/server. When one group of players achieves a milestone, it benefits all players 🤝.
-* **Configurable Challenges ⚙️:** Server administrators can enable/disable entire phases or individual requirements within each phase via a server-side configuration file.
-* **Multiplayer Friendly 👥:** Designed to work seamlessly on dedicated servers.
-* **Localized 🌐:** Currently available in English, Portuguese (Português do Brasil), Mandarin Chinese (简体中文), Hindi (हिन्दी), Spanish (Español), French (Français), and Arabic (العربية).
-* **Custom Sounds 🔊:** Unique sound cues for attempting to access locked portals and for opening the Progression Book.
-* **Admin Commands 💻:** For managing or testing progression.
+## **A challenging Minecraft mod that gates access to other dimensions behind specific achievements and mob elimination goals, forcing players to fully explore and master each dimension before progressing further.**
 
-## 🎮 Gameplay: How to Play
+## 🌟 Key Features
 
-1.  **Begin Your Journey:** When you first join a world with Dimension Trials, your access to the Nether and The End will be restricted.
-2.  **The Progression Book:** You will receive a "Progression Book". This book is your primary guide. Open it (right-click while holding) to see the current phase and the objectives you need to complete.
-3.  **Complete Objectives:** Work with other players on the server to tackle the challenges listed in the book for Phase 1. These might include defeating specific bosses or achieving certain advancements. The book will update to reflect server-wide progress.
-4.  **Unlock the Nether:** Once all server-configured requirements for Phase 1 are met, access to the Nether will be unlocked for everyone on the server 🔥.
-5.  **Advance to Phase 2:** With the Nether unlocked, the Progression Book will now show the objectives for Phase 2. These typically involve challenges within the Nether and against tougher foes.
-6.  **Conquer The End:** Upon completing all server-configured Phase 2 requirements, The End dimension will become accessible, allowing players to face the Ender Dragon 🐉.
+### 🚪 **Dimensional Gating System**
+- **Phase 1 - THE NETHER:** Blocks Nether access until Overworld challenges are completed
+- **Phase 2 - THE END:** Requires Phase 1 completion plus high-level Nether objectives
+- **Progressive Difficulty:** Each phase builds upon the previous one
 
-## 📖 The Progression Book
+### 📊 **HUD System**
+- **Press `J`** to open an elegant real-time progression HUD
+- **Multi-tab Interface:** Organized sections for each phase and objective type
+- **Live Progress Tracking:** Visual indicators (✔ completed, ❌ pending) with counters
+- **Mob Kill Tracking:** Detailed counters for all required mob eliminations
+- **Sound Effects:** Immersive audio feedback for all interactions
 
-* **Obtaining ✋:** Automatically given to players on their first join. If lost, it can be crafted.
-    * **Crafting Recipe 🛠️:** 1 Book + 1 Amethyst Shard (shaped recipe: Amethyst Shard to the left of a Book in the middle row of a 3x3 crafting grid).
-        ```
-        . . .
-        A B .  (A=Amethyst Shard, B=Book)
-        . . .
-        ```
-* **Usage 👆:** Hold the book and right-click to open it. Use the **Q** key to go to the previous page and the **E** key to go to the next page. Press **ESC** to close the book.
-* **Content 🔍:** The book details:
-    * Instructions on how to use the book.
-    * An overview of the mod's purpose.
-    * **Phase 1 - NETHER:** Lists all objectives required to unlock the Nether.
-    * **Phase 2 - THE END:** Lists all objectives required to unlock The End (visible after Phase 1 is complete or its requirements are met).
-    * Each objective shows its status (✔ completed or ❌ pending) and a brief description.
+### ⚔️ **Comprehensive Mob Elimination Goals**
+- **Phase 1:** 17 different Overworld mob types to defeat
+- **Phase 2:** 8 new Nether mob types + increased Overworld requirements
+- **Smart Reset System:** Phase 2 requires 125% of Phase 1 Overworld mobs
+- **Fully Configurable:** Every mob count can be adjusted via server config
+
+### ⚙️ **Highly Configurable**
+- **Individual Toggles:** Enable/disable any requirement independently
+- **Scalable Difficulty:** Adjust mob kill requirements from 0 to 500+ per type
+- **Phase Control:** Each phase can be completely disabled if desired
+- **Multiplier System:** Optional mob health/damage increases after phase completion
+
+### 🎮 **Enhanced User Experience**
+- **Dual Interface:** Modern HUD + classic Progression Book for compatibility
+- **Pagination Support:** Navigate through extensive requirements easily
+- **Real-time Updates:** Progress syncs instantly across all players
+- **Global Announcements:** Server-wide notifications when phases unlock
 
 ## 🎯 Progression Phases & Requirements
 
-Progression is global. Once a requirement is met by any player or group, it's marked completed for the entire server.
+### Phase 1 - THE NETHER 🔥 (Unlock access to the Nether)
+*All requirements below can be individually enabled/disabled in the server config*
 
-### Phase 1 - NETHER 🔥 (Unlock access to the Nether)
-*(All requirements below can be individually enabled/disabled in the server config)*
-* ⚔️ **Defeat Elder Guardian:** Vanquish an Elder Guardian in an Ocean Monument.
-* 🏘️ **Win a Raid (Hero of the Village):** Successfully defend a village and earn the "Hero of the Village" effect.
-* 🐂 **Defeat Ravager:** Slay a Ravager.
-* 🧙 **Defeat Evoker:** Defeat an Evoker, typically found in Woodland Mansions.
-* 🗝️ **Loot a Trial Vault:** Obtain the "Under Lock and Key" advancement by looting a Trial Vault in a Trial Chamber.
+#### 🎖️ Special Objectives:
+* 🌊 **Defeat Elder Guardian:** Find and defeat an Elder Guardian in an Ocean Monument
+* 🏆 **Win a Raid:** Successfully defend a village from a Pillager raid
+* 🔑 **Trial Vault Advancement:** Complete a Trial Chamber and earn the "Under Lock and Key" advancement
+
+#### ⚔️ Mob Elimination Goals (DEFAULT):
+
+**👥 Common Mobs:**
+* 🧟 **Zombies:** 50 kills
+* 🧟 **Zombie Villagers:** 10 kills
+* 💀 **Skeletons:** 40 kills
+* 🏹 **Strays:** 15 kills
+* 🏜 **Husks:** 15 kills
+* 🕷 **Spiders:** 30 kills
+* 💥 **Creepers:** 25 kills
+* 🌊 **Drowned:** 20 kills
+
+**⭐ Special Mobs:**
+* 👤 **Endermen:** 10 kills
+* 🧙 **Witches:** 8 kills
+* 🏹 **Pillagers:** 15 kills
+* 🚩 **Pillager Captains:** 3 kills
+* ⚔ **Vindicators:** 5 kills
+* 🏹 **Bogged:** 10 kills
+* 💨 **Breezes:** 5 kills
+
+**🎯 Goal Kills (Rare & Powerful):**
+* 🐗 **Ravagers:** 3 kills
+* 🔮 **Evokers:** 2 kills
+
+---
 
 ### Phase 2 - THE END 🌌 (Unlock access to The End)
-*(Requires Phase 1 to be effectively complete. All requirements below can be individually enabled/disabled in the server config)*
-* 💀 **Defeat Wither:** Summon and defeat the Wither.
-* 🔊 **Defeat Warden:** Awaken and defeat the Warden in the Deep Dark.
+*Requires Phase 1 completion. All requirements below can be individually enabled/disabled*
 
-## 👥 Multiplayer
+#### 🎖️ Special Objectives:
+* 💀 **Defeat Wither:** Summon and defeat the Wither boss
+* 🌑 **Defeat Warden:** Awaken and defeat the Warden in the Deep Dark
 
-Dimension Trials is designed for multiplayer. All progression towards unlocking dimensions is shared server-wide. When a requirement is met, it is reflected for all online players, and players joining later will also see the updated global progression status.
+#### ⚔️ Mob Elimination Goals (DEFAULT):
 
-## ⚙️ Configuration (Server-Side)
+**🔥 Nether Mobs:**
+* 🔥 **Blazes:** 20 kills
+* 💀 **Wither Skeletons:** 15 kills
+* 🐷 **Piglin Brutes:** 5 kills
+* 🐗 **Hoglins:** 10 kills
+* 💀 **Zoglins:** 5 kills
+* 👻 **Ghasts:** 10 kills
+* 🐛 **Endermites:** 5 kills
+* 🐷 **Hostile Piglins:** 30 kills
 
-Dimension Trials offers a server-side configuration file (`dimtr-server.toml`) located in the `serverconfig` folder of your world save (for single-player) or in the main `config` folder of your dedicated server (if not overridden by world-specific server configs).
+## 🔧 Configuration
 
-You can customize the mod's behavior by editing this file. The following options are available:
+The mod creates detailed configuration files in your `config/` folder:
 
-* `enablePhase1` (default: `true`): Enable/Disable Phase 1 (Overworld -> Nether) progression gating.
-* `reqElderGuardian` (default: `true`): Require Elder Guardian to be defeated for Phase 1.
-* `reqRaidAndRavager` (default: `true`): Require a Raid to be won AND a Ravager to be defeated for Phase 1.
-* `reqEvoker` (default: `true`): Require an Evoker to be defeated for Phase 1.
-* `reqTrialVaultAdv` (default: `true`): Require the 'Under Lock and Key' (loot a Trial Vault) advancement for Phase 1.
-* `enablePhase2` (default: `true`): Enable/Disable Phase 2 (Nether -> The End) progression gating.
-* `reqWither` (default: `true`): Require the Wither to be defeated for Phase 2.
-* `reqWarden` (default: `true`): Require the Warden to be defeated for Phase 2.
+### Server Configuration (`dimtr-server.toml`)
+- **Phase Toggles:** Enable/disable each phase independently
+- **Special Objectives:** Toggle individual requirements (Elder Guardian, Raid, etc.)
+- **Mob Kill Requirements:** Customize kill counts for every mob type (0-500+ range)
+- **Multiplier System:** Optional mob health/damage increases after phase completion
 
-## 💻 Admin Commands
+### Client Configuration (`dimtr-client.toml`)
+- **HUD Keybind:** Customize the progression HUD key (default: J)
+- **Interface Settings:** Future client-side customization options
 
-For server administrators (permission level 2+), the following commands are available:
+### Configuration Examples:
+```toml
+# Disable Phase 1 entirely (open Nether access)
+enablePhase1 = false
 
-* `/dimtr completephase1`: Marks all Phase 1 requirements as complete.
-* `/dimtr completephase2`: Marks all Phase 1 and Phase 2 requirements as complete.
-* `/dimtr resetprogress`: Resets all progression for all phases and requirements.
-* `/dimtr setgoal <goal_name> <true|false>`: Sets the specified goal to completed or not.
-    * Available `goal_name`s: `elder_guardian`, `raid_won`, `ravager_killed`, `evoker_killed`, `trial_vault_adv`, `wither_killed`, `warden_killed`.
+# Reduce Zombie requirement to 25 kills
+reqZombieKills = 25
 
-## 🐛 Bug Reports & Issues
+# Disable Wither requirement for Phase 2
+reqWither = false
 
-Found a bug or have an issue to report? Please submit it to our [GitHub Issues Page](https://github.com/YOUR_USERNAME/Dimension-Trials/issues) (Replace with your actual link).
-When reporting, please include:
-* 📝 Your Minecraft version.
-* 📝 Your NeoForge version.
-* 📝 The Dimension Trials mod version.
-* 📝 A clear description of the bug.
-* 📝 Steps to reproduce the bug.
-* 📝 Any relevant logs or screenshots.
+# Enable 1.5x mob multiplier after Phase 1
+enableMultipliers = true
+phase1Multiplier = 1.5
+```
 
-## 🌐 Supported Languages
+## 🎮 How to Play
 
-* English (US)
-* Português (Brasil)
-* 简体中文 (Mandarin Chinese - Simplified)
-* हिन्दी (Hindi)
-* Español (Spanish)
-* Français (French)
-* العربية (Arabic)
+1. **Start Your World:** Begin normally in the Overworld
+2. **Check Progress:** Press `J` to open the progression HUD
+3. **Complete Phase 1:** Work through Overworld objectives and mob elimination
+4. **Access Nether:** Becomes available once Phase 1 requirements are met
+5. **Tackle Phase 2:** New Nether objectives plus increased Overworld requirements
+6. **Unlock The End:** Complete Phase 2 to access the End dimension
+7. **Enhanced Challenge:** Optional multipliers make mobs stronger after each phase
 
-*(Community translations are welcome! 🤗)*
+### Pro Tips:
+- **Use the HUD:** The `J` key opens a comprehensive progress tracker
+- **Plan Ahead:** Some mobs are rare - prepare accordingly
+- **Server Config:** Admins can adjust difficulty for their community
+- **Multiplayer Friendly:** Progress is global - work together!
+
+## 🤝 Contributing
+
+We welcome contributions! Feel free to:
+- **Report bugs or suggest**: [GitHub Issues](https://github.com/II-mirai-II/Dimension-Trials/issues)
+- Submit pull requests for improvements
+- Share configuration presets for different server types
+- Create community content or tutorials
+
+---
+
+**Made with ❤️ for the Minecraft community**
+
+*Perfect for survival servers looking to add meaningful progression challenges and extend gameplay time in each dimension!*

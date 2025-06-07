@@ -1,38 +1,38 @@
 package net.mirai.dimtr;
 
-import com.mojang.logging.LogUtils;
-import net.mirai.dimtr.client.ClientEventHandlers;
+import net.mirai.dimtr.command.DimTrCommands;
 import net.mirai.dimtr.config.DimTrConfig;
-import net.mirai.dimtr.event.ModEventHandlers;
-import net.mirai.dimtr.init.ModItems; // Import ModItems
 import net.mirai.dimtr.network.NetworkManager;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
-import org.slf4j.Logger;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @Mod(DimTrMod.MODID)
 public class DimTrMod {
     public static final String MODID = "dimtr";
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger();
 
     public DimTrMod(IEventBus modEventBus, ModContainer modContainer) {
-        LOGGER.info("Dimension Trials - Initializing");
-
-        modContainer.registerConfig(ModConfig.Type.CLIENT, DimTrConfig.CLIENT_SPEC, DimTrMod.MODID + "-client.toml");
+        // Configurações
         modContainer.registerConfig(ModConfig.Type.SERVER, DimTrConfig.SERVER_SPEC, DimTrMod.MODID + "-server.toml");
+        modContainer.registerConfig(ModConfig.Type.CLIENT, DimTrConfig.CLIENT_SPEC, DimTrMod.MODID + "-client.toml");
 
-        // Registra os itens
-        ModItems.register(modEventBus);
+        // CORREÇÃO: Registrar NetworkManager no mod event bus
+        modEventBus.addListener(NetworkManager::register);
 
-        // Adiciona listeners de evento do mod
-        modEventBus.addListener(NetworkManager::registerPayloads);
-        modEventBus.addListener(ClientEventHandlers::onRegisterKeyMappings); // Mantido caso haja outras key mappings futuras
-        modEventBus.addListener(ModItems::onBuildCreativeModeTabContents); // Para adicionar o item à aba criativa
+        // Registrar eventos de comandos
+        NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
 
-        // Registra handlers de evento do Forge/NeoForge
-        NeoForge.EVENT_BUS.register(ModEventHandlers.class);
+        LOGGER.info("Dimension Trials mod initialized successfully!");
+    }
+
+    private void onRegisterCommands(RegisterCommandsEvent event) {
+        DimTrCommands.register(event.getDispatcher());
+        LOGGER.info("Commands registered successfully!");
     }
 }
