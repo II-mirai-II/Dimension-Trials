@@ -1,5 +1,6 @@
 package net.mirai.dimtr.client;
 
+import net.mirai.dimtr.config.DimTrConfig;
 import net.mirai.dimtr.network.UpdateProgressionToClientPayload;
 
 public class ClientProgressionData {
@@ -49,7 +50,6 @@ public class ClientProgressionData {
     private int piglinKills = 0;
 
     private ClientProgressionData() {
-        // Singleton
     }
 
     public void updateData(UpdateProgressionToClientPayload payload) {
@@ -85,7 +85,7 @@ public class ClientProgressionData {
         this.ravagerKills = payload.ravagerKills();
         this.evokerKills = payload.evokerKills();
 
-        // Novos contadores de mobs - Fase 2
+        // Contadores de mobs - Fase 2
         this.blazeKills = payload.blazeKills();
         this.witherSkeletonKills = payload.witherSkeletonKills();
         this.piglinBruteKills = payload.piglinBruteKills();
@@ -141,6 +141,7 @@ public class ClientProgressionData {
     // Método auxiliar para obter contagem de um mob específico
     public int getMobKillCount(String mobType) {
         return switch (mobType.toLowerCase()) {
+            // Fase 1 mobs
             case "zombie" -> zombieKills;
             case "zombie_villager" -> zombieVillagerKills;
             case "skeleton" -> skeletonKills;
@@ -157,10 +158,11 @@ public class ClientProgressionData {
             case "bogged" -> boggedKills;
             case "breeze" -> breezeKills;
 
-            // NOVO: Ravager e Evoker
+            // NOVO: Ravager e Evoker Goal Kills
             case "ravager" -> ravagerKills;
             case "evoker" -> evokerKills;
 
+            // Fase 2 mobs
             case "blaze" -> blazeKills;
             case "wither_skeleton" -> witherSkeletonKills;
             case "piglin_brute" -> piglinBruteKills;
@@ -169,6 +171,7 @@ public class ClientProgressionData {
             case "ghast" -> ghastKills;
             case "endermite" -> endermiteKills;
             case "piglin" -> piglinKills;
+
             default -> 0;
         };
     }
@@ -176,38 +179,33 @@ public class ClientProgressionData {
     // Método auxiliar para obter requisito de um mob específico baseado na fase
     public int getMobKillRequirement(String mobType, int phase) {
         if (phase == 1) {
+            // Fase 1 - Valores padrão
             return switch (mobType.toLowerCase()) {
-                case "zombie" -> 50;
-                case "zombie_villager" -> 3;
-                case "skeleton" -> 40;
-                case "stray" -> 10;
-                case "husk" -> 10;
-                case "spider" -> 30;
-                case "creeper" -> 30;
-                case "drowned" -> 20;
-                case "enderman" -> 5;
-                case "witch" -> 5;
-                case "pillager" -> 20;
-                case "captain" -> 1;
-                case "vindicator" -> 10;
-                case "bogged" -> 10;
-                case "breeze" -> 5;
-                case "ravager" -> 3; // NOVO: Goal Kill
-                case "evoker" -> 2; // NOVO: Goal Kill
+                case "zombie" -> DimTrConfig.SERVER.reqZombieKills.get();
+                case "zombie_villager" -> DimTrConfig.SERVER.reqZombieVillagerKills.get();
+                case "skeleton" -> DimTrConfig.SERVER.reqSkeletonKills.get();
+                case "stray" -> DimTrConfig.SERVER.reqStrayKills.get();
+                case "husk" -> DimTrConfig.SERVER.reqHuskKills.get();
+                case "spider" -> DimTrConfig.SERVER.reqSpiderKills.get();
+                case "creeper" -> DimTrConfig.SERVER.reqCreeperKills.get();
+                case "drowned" -> DimTrConfig.SERVER.reqDrownedKills.get();
+                case "enderman" -> DimTrConfig.SERVER.reqEndermanKills.get();
+                case "witch" -> DimTrConfig.SERVER.reqWitchKills.get();
+                case "pillager" -> DimTrConfig.SERVER.reqPillagerKills.get();
+                case "captain" -> DimTrConfig.SERVER.reqCaptainKills.get();
+                case "vindicator" -> DimTrConfig.SERVER.reqVindicatorKills.get();
+                case "bogged" -> DimTrConfig.SERVER.reqBoggedKills.get();
+                case "breeze" -> DimTrConfig.SERVER.reqBreezeKills.get();
+
+                // CORREÇÃO 5: Ravager e Evoker com valores atualizados
+                case "ravager" -> DimTrConfig.SERVER.reqRavagerKills.get(); // Agora 1
+                case "evoker" -> DimTrConfig.SERVER.reqEvokerKills.get(); // Agora 5
+
                 default -> 0;
             };
         } else if (phase == 2) {
+            // Fase 2 - Valores aumentados para mobs do Overworld (125%)
             return switch (mobType.toLowerCase()) {
-                // Fase 2 mobs
-                case "blaze" -> 20;
-                case "wither_skeleton" -> 15;
-                case "piglin_brute" -> 5;
-                case "hoglin" -> 10;
-                case "zoglin" -> 5;
-                case "ghast" -> 10;
-                case "endermite" -> 5;
-                case "piglin" -> 30;
-
                 // ATUALIZADO: Requisitos aumentados da Fase 1 (125% do original)
                 case "zombie" -> getPhase2OverworldRequirement(50);
                 case "zombie_villager" -> getPhase2OverworldRequirement(3);
@@ -225,12 +223,25 @@ public class ClientProgressionData {
                 case "bogged" -> getPhase2OverworldRequirement(10);
                 case "breeze" -> getPhase2OverworldRequirement(5);
 
-                // NOVO: Ravager e Evoker com 125% para Fase 2
-                case "ravager" -> getPhase2OverworldRequirement(3);
-                case "evoker" -> getPhase2OverworldRequirement(2);
+                // CORREÇÃO 5: Ravager e Evoker com 125% para Fase 2
+                case "ravager" -> getPhase2OverworldRequirement(1); // 1 * 1.25 = 1.25 -> 2
+                case "evoker" -> getPhase2OverworldRequirement(5); // 5 * 1.25 = 6.25 -> 7
+
+                // Mobs exclusivos da Fase 2
+                case "blaze" -> DimTrConfig.SERVER.reqBlazeKills.get();
+                case "wither_skeleton" -> DimTrConfig.SERVER.reqWitherSkeletonKills.get();
+                case "piglin_brute" -> DimTrConfig.SERVER.reqPiglinBruteKills.get();
+                case "hoglin" -> DimTrConfig.SERVER.reqHoglinKills.get(); // CORREÇÃO 4: Agora 1
+                case "zoglin" -> DimTrConfig.SERVER.reqZoglinKills.get(); // CORREÇÃO 4: Agora 1
+                case "ghast" -> DimTrConfig.SERVER.reqGhastKills.get();
+                // CORREÇÃO 3: REMOVER ENDERMITE COMPLETAMENTE
+                // case "endermite" -> DimTrConfig.SERVER.reqEndermiteKills.get();
+                case "piglin" -> DimTrConfig.SERVER.reqPiglinKills.get();
+
                 default -> 0;
             };
         }
+
         return 0;
     }
 
@@ -252,13 +263,15 @@ public class ClientProgressionData {
     public boolean isServerReqWither() { return true; }
     public boolean isServerReqWarden() { return true; }
 
-    // Método auxiliar para verificar se a Fase 1 está efetivamente completa
+    // CORREÇÃO PRINCIPAL: Adicionar método que estava faltando
     public boolean isPhase1EffectivelyComplete() {
-        return phase1Completed || !isServerEnablePhase1();
-    }
+        // Simular a lógica do servidor no lado do cliente
+        // Se a configuração da Fase 1 está desabilitada, considera completa
+        if (!isServerEnablePhase1()) {
+            return true;
+        }
 
-    // Método auxiliar para verificar se a Fase 2 está efetivamente completa
-    public boolean isPhase2EffectivelyComplete() {
-        return phase2Completed || !isServerEnablePhase2();
+        // Caso contrário, verifica se a Fase 1 foi marcada como completa
+        return isPhase1Completed();
     }
 }

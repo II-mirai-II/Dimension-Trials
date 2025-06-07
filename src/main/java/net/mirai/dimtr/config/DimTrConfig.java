@@ -1,10 +1,26 @@
 package net.mirai.dimtr.config;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class DimTrConfig {
 
-    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    public static final ModConfigSpec SERVER_SPEC;
+    public static final Server SERVER;
+
+    // ADICIONADO: Cliente config spec
+    public static final ModConfigSpec CLIENT_SPEC;
+    public static final Client CLIENT;
+
+    static {
+        final Pair<Server, ModConfigSpec> serverSpecPair = new ModConfigSpec.Builder().configure(Server::new);
+        SERVER_SPEC = serverSpecPair.getRight();
+        SERVER = serverSpecPair.getLeft();
+
+        final Pair<Client, ModConfigSpec> clientSpecPair = new ModConfigSpec.Builder().configure(Client::new);
+        CLIENT_SPEC = clientSpecPair.getRight();
+        CLIENT = clientSpecPair.getLeft();
+    }
 
     // Configurações do servidor
     public static class Server {
@@ -173,14 +189,14 @@ public class DimTrConfig {
                     .comment("Number of Breezes to kill for Phase 1")
                     .defineInRange("reqBreezeKills", 5, 0, 50);
 
-            // NOVO: Ravager e Evoker como Goal Kills
+            // CORREÇÃO 5: Ravager e Evoker como Goal Kills com valores ajustados
             reqRavagerKills = builder
                     .comment("Number of Ravagers to kill for Phase 1 (Goal Kill)")
-                    .defineInRange("reqRavagerKills", 3, 0, 20); // Valor balanceado: 3 (mais baixo pois são raros e fortes)
+                    .defineInRange("reqRavagerKills", 1, 0, 20); // MUDANÇA: 3 -> 1
 
             reqEvokerKills = builder
                     .comment("Number of Evokers to kill for Phase 1 (Goal Kill)")
-                    .defineInRange("reqEvokerKills", 2, 0, 10); // Valor balanceado: 2 (mais baixo pois são raros e fortes)
+                    .defineInRange("reqEvokerKills", 5, 0, 10); // MUDANÇA: 2 -> 5
 
             builder.pop();
 
@@ -200,11 +216,11 @@ public class DimTrConfig {
 
             reqHoglinKills = builder
                     .comment("Number of Hoglins to kill for Phase 2")
-                    .defineInRange("reqHoglinKills", 10, 0, 100);
+                    .defineInRange("reqHoglinKills", 1, 0, 100); // CORREÇÃO 4: 10 -> 1
 
             reqZoglinKills = builder
                     .comment("Number of Zoglins to kill for Phase 2")
-                    .defineInRange("reqZoglinKills", 5, 0, 50);
+                    .defineInRange("reqZoglinKills", 1, 0, 50); // CORREÇÃO 4: 5 -> 1
 
             reqGhastKills = builder
                     .comment("Number of Ghasts to kill for Phase 2")
@@ -234,18 +250,70 @@ public class DimTrConfig {
         }
     }
 
-    // Configurações do cliente (vazio por enquanto)
+    // ADICIONADO: Configurações do cliente
     public static class Client {
+
+        // Configurações de interface
+        public final ModConfigSpec.BooleanValue enableHUD;
+        public final ModConfigSpec.BooleanValue enableProgressionBook;
+        public final ModConfigSpec.BooleanValue enableSounds;
+        public final ModConfigSpec.BooleanValue enableParticles;
+
+        // Configurações de exibição
+        public final ModConfigSpec.EnumValue<HUDPosition> hudPosition;
+        public final ModConfigSpec.DoubleValue hudScale;
+        public final ModConfigSpec.IntValue hudXOffset;
+        public final ModConfigSpec.IntValue hudYOffset;
+
         Client(ModConfigSpec.Builder builder) {
-            // Configurações do cliente podem ser adicionadas aqui no futuro
+            builder.push("Interface Configuration");
+
+            enableHUD = builder
+                    .comment("Enable progression HUD display")
+                    .define("enableHUD", true);
+
+            enableProgressionBook = builder
+                    .comment("Enable progression book item")
+                    .define("enableProgressionBook", true);
+
+            enableSounds = builder
+                    .comment("Enable mod sound effects")
+                    .define("enableSounds", true);
+
+            enableParticles = builder
+                    .comment("Enable mod particle effects")
+                    .define("enableParticles", true);
+
+            builder.pop();
+
+            builder.push("HUD Configuration");
+
+            hudPosition = builder
+                    .comment("HUD position on screen")
+                    .defineEnum("hudPosition", HUDPosition.TOP_LEFT);
+
+            hudScale = builder
+                    .comment("HUD scale factor")
+                    .defineInRange("hudScale", 1.0, 0.5, 2.0);
+
+            hudXOffset = builder
+                    .comment("HUD horizontal offset")
+                    .defineInRange("hudXOffset", 10, -1000, 1000);
+
+            hudYOffset = builder
+                    .comment("HUD vertical offset")
+                    .defineInRange("hudYOffset", 10, -1000, 1000);
+
+            builder.pop();
         }
     }
 
-    public static final Server SERVER = new Server(BUILDER);
-    public static final ModConfigSpec SERVER_SPEC = BUILDER.build();
-
-    // Criar client config separado
-    private static final ModConfigSpec.Builder CLIENT_BUILDER = new ModConfigSpec.Builder();
-    public static final Client CLIENT = new Client(CLIENT_BUILDER);
-    public static final ModConfigSpec CLIENT_SPEC = CLIENT_BUILDER.build();
+    // Enum para posição do HUD
+    public enum HUDPosition {
+        TOP_LEFT,
+        TOP_RIGHT,
+        BOTTOM_LEFT,
+        BOTTOM_RIGHT,
+        CENTER
+    }
 }

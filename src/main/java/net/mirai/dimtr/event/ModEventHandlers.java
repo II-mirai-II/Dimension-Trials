@@ -112,6 +112,12 @@ public class ModEventHandlers {
 
     // CORRIGIDO: Método para mapear entidades para strings usadas no sistema
     private static String getMobType(LivingEntity entity) {
+        // CORREÇÃO 1: DROWNED DEVE VIR ANTES DE ZOMBIE
+        // Verificar Drowned PRIMEIRO para evitar que seja classificado como Zombie
+        if (entity instanceof Drowned) {
+            return "drowned";
+        }
+
         // Fase 1 - Mobs Comuns do Overworld
         if (entity instanceof Zombie && !(entity instanceof ZombieVillager) && !(entity instanceof Husk)) {
             return "zombie";
@@ -127,15 +133,54 @@ public class ModEventHandlers {
             return "spider";
         } else if (entity instanceof Creeper) {
             return "creeper";
-        } else if (entity instanceof Drowned) {
-            return "drowned";
         } else if (entity instanceof EnderMan) {
             return "enderman";
         } else if (entity instanceof Witch) {
             return "witch";
         } else if (entity instanceof Pillager pillager) {
-            // IMPORTANTE: Verificar Captain PRIMEIRO
-            if (pillager.canBeLeader()) {
+            // CORREÇÃO 2: MELHOR IDENTIFICAÇÃO DE CAPTAIN PILLAGER
+            // Captain Pillager carrega uma bandeira na mão principal ou offhand
+            ItemStack mainHand = pillager.getMainHandItem();
+            ItemStack offHand = pillager.getOffhandItem();
+
+            // Verificar se está segurando uma bandeira (qualquer tipo de banner)
+            boolean isCarryingBanner = mainHand.getItem() == Items.WHITE_BANNER ||
+                    mainHand.getItem() == Items.BLACK_BANNER ||
+                    mainHand.getItem() == Items.BLUE_BANNER ||
+                    mainHand.getItem() == Items.BROWN_BANNER ||
+                    mainHand.getItem() == Items.CYAN_BANNER ||
+                    mainHand.getItem() == Items.GRAY_BANNER ||
+                    mainHand.getItem() == Items.GREEN_BANNER ||
+                    mainHand.getItem() == Items.LIGHT_BLUE_BANNER ||
+                    mainHand.getItem() == Items.LIGHT_GRAY_BANNER ||
+                    mainHand.getItem() == Items.LIME_BANNER ||
+                    mainHand.getItem() == Items.MAGENTA_BANNER ||
+                    mainHand.getItem() == Items.ORANGE_BANNER ||
+                    mainHand.getItem() == Items.PINK_BANNER ||
+                    mainHand.getItem() == Items.PURPLE_BANNER ||
+                    mainHand.getItem() == Items.RED_BANNER ||
+                    mainHand.getItem() == Items.YELLOW_BANNER ||
+                    offHand.getItem() == Items.WHITE_BANNER ||
+                    offHand.getItem() == Items.BLACK_BANNER ||
+                    offHand.getItem() == Items.BLUE_BANNER ||
+                    offHand.getItem() == Items.BROWN_BANNER ||
+                    offHand.getItem() == Items.CYAN_BANNER ||
+                    offHand.getItem() == Items.GRAY_BANNER ||
+                    offHand.getItem() == Items.GREEN_BANNER ||
+                    offHand.getItem() == Items.LIGHT_BLUE_BANNER ||
+                    offHand.getItem() == Items.LIGHT_GRAY_BANNER ||
+                    offHand.getItem() == Items.LIME_BANNER ||
+                    offHand.getItem() == Items.MAGENTA_BANNER ||
+                    offHand.getItem() == Items.ORANGE_BANNER ||
+                    offHand.getItem() == Items.PINK_BANNER ||
+                    offHand.getItem() == Items.PURPLE_BANNER ||
+                    offHand.getItem() == Items.RED_BANNER ||
+                    offHand.getItem() == Items.YELLOW_BANNER;
+
+            // ALTERNATIVA: Verificar se o Pillager tem o efeito "Bad Omen" que indica que é um Captain
+            boolean hasBadOmen = pillager.hasEffect(net.minecraft.world.effect.MobEffects.BAD_OMEN);
+
+            if (isCarryingBanner || hasBadOmen) {
                 return "captain";
             }
             return "pillager";
@@ -160,9 +205,12 @@ public class ModEventHandlers {
             return "zoglin";
         } else if (entity instanceof Ghast) {
             return "ghast";
-        } else if (entity instanceof Endermite) {
-            return "endermite";
-        } else if (entity instanceof Piglin piglin) {
+        }
+        // CORREÇÃO 3: REMOVER ENDERMITE COMPLETAMENTE
+        // else if (entity instanceof Endermite) {
+        //     return "endermite";
+        // }
+        else if (entity instanceof Piglin piglin) {
             // CORRIGIDO: Usar apenas getTarget() para verificar se Piglin é hostil
             // Um Piglin é considerado hostil se ele tem um alvo de ataque
             if (piglin.getTarget() != null) {
