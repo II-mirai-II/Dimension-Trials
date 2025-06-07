@@ -21,13 +21,13 @@ public class ProgressionHUDScreen extends Screen {
     private int activeWindowIndex = 0;
 
     // Constantes do HUD - otimizadas para duas colunas
-    private static final int HUD_WIDTH = 400;  // Largura ajustada para duas colunas
-    private static final int HUD_HEIGHT = 270; // Altura otimizada
-    private static final int HUD_MARGIN = 15;   // Margem interna
+    private static final int HUD_WIDTH = 525;  // Largura ajustada para duas colunas
+    private static final int HUD_HEIGHT = 300; // Altura otimizada
+    private static final int HUD_MARGIN = 20;   // Margem interna
 
     // Posições dos elementos
-    private static final int TITLE_Y_OFFSET = 15;        // Título no topo
-    private static final int TABS_Y_OFFSET = 40;         // Tabs abaixo do título
+    private static final int TITLE_Y_OFFSET = 10;        // Título no topo
+    private static final int TABS_Y_OFFSET = 25;         // Tabs abaixo do título
     private static final int CONTENT_Y_OFFSET = 85;      // Conteúdo principal
     private static final int INSTRUCTIONS_Y_OFFSET = -25; // Instruções na parte inferior
 
@@ -41,8 +41,8 @@ public class ProgressionHUDScreen extends Screen {
     private static final int TAB_PADDING = 8;
 
     // Constantes do conteúdo
-    private static final int LINE_HEIGHT = 10;
-    private static final int MAX_LINES_PER_COLUMN = 15;   // Linhas por coluna
+    private static final int LINE_HEIGHT = 12;
+    private static final int MAX_LINES_PER_COLUMN = 13;   // Linhas por coluna
     private static final int MAX_TOTAL_LINES = MAX_LINES_PER_COLUMN * 2; // Total (2 colunas)
 
     // Sistema de páginas por janela
@@ -50,9 +50,9 @@ public class ProgressionHUDScreen extends Screen {
 
     // Cores
     private static final int WINDOW_BACKGROUND = 0xE0000000;
-    private static final int WINDOW_BORDER = 0xFF555555;
+    private static final int WINDOW_BORDER = 0xFF444444;
     private static final int TITLE_COLOR = 0xFFFFD700;
-    private static final int PAGE_INDICATOR_COLOR = 0xFFCCCCCC;
+    private static final int PAGE_INDICATOR_COLOR = 0xFFFFFFFF;
 
     public ProgressionHUDScreen() {
         super(Component.translatable(Constants.HUD_TITLE));
@@ -63,13 +63,30 @@ public class ProgressionHUDScreen extends Screen {
         }
     }
 
+    // CORREÇÃO: Usar Component.translatable() para as tabs
     private List<WindowTab> initializeWindowTabs() {
         List<WindowTab> tabs = new ArrayList<>();
 
-        tabs.add(new WindowTab("🎯 Fase 1", "Objetivos Especiais", this::generatePhase1MainContent));
-        tabs.add(new WindowTab("⚔ Fase 1", "Eliminação de Mobs", this::generatePhase1MobsContent));
-        tabs.add(new WindowTab("🌟 Fase 2", "Objetivos Especiais", this::generatePhase2MainContent));
-        tabs.add(new WindowTab("🔥 Fase 2", "Mobs + Reset", this::generatePhase2MobsContent));
+        // CORRIGIDO: Usar chaves de tradução em vez de strings literais
+        tabs.add(new WindowTab(
+                Component.translatable(Constants.WINDOW_PHASE1_MAIN_TITLE).getString(),
+                Component.translatable("gui.dimtr.window.phase1_main.subtitle").getString(),
+                this::generatePhase1MainContent));
+
+        tabs.add(new WindowTab(
+                Component.translatable(Constants.WINDOW_PHASE1_GOALS_TITLE).getString(),
+                Component.translatable("gui.dimtr.window.phase1_goals.subtitle").getString(),
+                this::generatePhase1MobsContent));
+
+        tabs.add(new WindowTab(
+                Component.translatable(Constants.WINDOW_PHASE2_MAIN_TITLE).getString(),
+                Component.translatable("gui.dimtr.window.phase2_main.subtitle").getString(),
+                this::generatePhase2MainContent));
+
+        tabs.add(new WindowTab(
+                Component.translatable(Constants.WINDOW_PHASE2_GOALS_TITLE).getString(),
+                Component.translatable("gui.dimtr.window.phase2_goals.subtitle").getString(),
+                this::generatePhase2MobsContent));
 
         return tabs;
     }
@@ -222,7 +239,7 @@ public class ProgressionHUDScreen extends Screen {
         List<Component> allContent = activeTab.contentGenerator.generate(progress);
 
         if (allContent.isEmpty()) {
-            Component emptyMsg = Component.literal("Nenhum conteúdo disponível").withStyle(ChatFormatting.GRAY);
+            Component emptyMsg = Component.translatable("gui.dimtr.no.content").withStyle(ChatFormatting.GRAY);
             int emptyX = hudX + (HUD_WIDTH - this.font.width(emptyMsg)) / 2;
             int emptyY = hudY + CONTENT_Y_OFFSET + 50;
             guiGraphics.drawString(this.font, emptyMsg, emptyX, emptyY, 0xFF888888);
@@ -298,7 +315,7 @@ public class ProgressionHUDScreen extends Screen {
         if (totalPages <= 1) return; // Não mostrar indicador se só há uma página
 
         int currentPage = currentPagePerTab[activeWindowIndex];
-        Component pageIndicator = Component.literal("Página " + (currentPage + 1) + " de " + totalPages)
+        Component pageIndicator = Component.translatable("gui.dimtr.page.indicator", currentPage + 1, totalPages)
                 .withStyle(ChatFormatting.GRAY);
 
         int indicatorX = hudX + HUD_WIDTH - HUD_MARGIN - this.font.width(pageIndicator);
@@ -307,6 +324,7 @@ public class ProgressionHUDScreen extends Screen {
         guiGraphics.drawString(this.font, pageIndicator, indicatorX, indicatorY, PAGE_INDICATOR_COLOR);
     }
 
+    // CORREÇÃO: Usar chaves de tradução nas instruções
     private void renderInstructions(GuiGraphics guiGraphics, int hudX, int hudY) {
         List<Component> instructions = new ArrayList<>();
 
@@ -320,16 +338,13 @@ public class ProgressionHUDScreen extends Screen {
             hasPages = totalPages > 1;
         }
 
-        // ATUALIZADO: Instruções simplificadas - apenas clique e Q/E
-        instructions.add(Component.literal("Clique nas abas para navegar entre janelas")
-                .withStyle(ChatFormatting.YELLOW));
+        // CORRIGIDO: Usar chaves de tradução
+        instructions.add(Component.translatable(Constants.GUI_WINDOW_INSTRUCTIONS));
 
         if (hasPages) {
-            instructions.add(Component.literal("Q/E para páginas • J/ESC para fechar")
-                    .withStyle(ChatFormatting.GRAY));
+            instructions.add(Component.translatable(Constants.GUI_PAGE_INSTRUCTIONS));
         } else {
-            instructions.add(Component.literal("J/ESC para fechar")
-                    .withStyle(ChatFormatting.GRAY));
+            instructions.add(Component.translatable(Constants.GUI_CLOSE_INSTRUCTIONS));
         }
 
         // Renderizar instruções centralizadas na parte inferior da janela
@@ -452,7 +467,7 @@ public class ProgressionHUDScreen extends Screen {
     }
 
     // ============================================================================
-    // GERADORES DE CONTEÚDO OTIMIZADOS PARA DUAS COLUNAS
+    // CORREÇÃO PRINCIPAL: Métodos de geração de conteúdo usando traduções
     // ============================================================================
 
     private List<Component> generatePhase1MainContent(ClientProgressionData progress) {
@@ -460,44 +475,44 @@ public class ProgressionHUDScreen extends Screen {
 
         // Verificar se a Fase 1 está habilitada
         if (!progress.isServerEnablePhase1()) {
-            content.add(Component.literal("Fase 1 desabilitada").withStyle(ChatFormatting.GRAY));
+            content.add(Component.translatable("gui.dimtr.phase1.disabled").withStyle(ChatFormatting.GRAY));
             return content;
         }
 
         // Status da fase
         if (progress.isPhase1Completed()) {
-            content.add(Component.literal("✅ FASE COMPLETA!").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
+            content.add(Component.translatable("gui.dimtr.phase.complete").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
             content.add(Component.empty());
         }
 
         // Objetivos Especiais
-        content.add(Component.literal("🎯 Objetivos Especiais").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        content.add(Component.translatable(Constants.HUD_SECTION_SPECIAL_OBJECTIVES).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
 
         if (progress.isServerReqElderGuardian()) {
-            content.add(createGoalLine("🌊 Elder Guardian", progress.isElderGuardianKilled()));
+            content.add(createGoalLine(Component.translatable(Constants.HUD_ELDER_GUARDIAN), progress.isElderGuardianKilled()));
         }
 
         if (progress.isServerReqRaid()) {
-            content.add(createGoalLine("🏆 Raid Vencido", progress.isRaidWon()));
+            content.add(createGoalLine(Component.translatable(Constants.HUD_RAID_WON), progress.isRaidWon()));
         }
 
         if (progress.isServerReqTrialVaultAdv()) {
-            content.add(createGoalLine("🔑 Trial Vault", progress.isTrialVaultAdvancementEarned()));
+            content.add(createGoalLine(Component.translatable(Constants.HUD_TRIAL_VAULT_ADV), progress.isTrialVaultAdvancementEarned()));
         }
 
         // Status de progresso geral
         content.add(Component.empty());
         if (progress.isPhase1Completed()) {
-            content.add(Component.literal("✅ Nether liberado!").withStyle(ChatFormatting.GREEN));
+            content.add(Component.translatable("gui.dimtr.nether.unlocked").withStyle(ChatFormatting.GREEN));
         } else {
-            content.add(Component.literal("⏳ Complete os objetivos").withStyle(ChatFormatting.YELLOW));
-            content.add(Component.literal("para liberar o Nether").withStyle(ChatFormatting.YELLOW));
+            content.add(Component.translatable("gui.dimtr.complete.objectives").withStyle(ChatFormatting.YELLOW));
+            content.add(Component.translatable("gui.dimtr.unlock.nether").withStyle(ChatFormatting.YELLOW));
         }
 
         // Adicionar informações de progresso de mobs se habilitado
         if (progress.isServerEnableMobKillsPhase1()) {
             content.add(Component.empty());
-            content.add(Component.literal("⚔ Progresso de Eliminação:").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
+            content.add(Component.translatable("gui.dimtr.mob.progress").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
 
             // Calcular progresso geral dos mobs
             int totalMobsCompleted = 0;
@@ -509,15 +524,18 @@ public class ProgressionHUDScreen extends Screen {
                 int required = progress.getMobKillRequirement(mobType, 1);
                 if (required > 0) {
                     totalMobsRequired++;
-                    if (current >= required) totalMobsCompleted++;
+                    if (current >= required) {
+                        totalMobsCompleted++;
+                    }
                 }
             }
 
-            ChatFormatting progressColor = totalMobsCompleted == totalMobsRequired ?
-                    ChatFormatting.GREEN : ChatFormatting.YELLOW;
-
-            content.add(Component.literal("📊 " + totalMobsCompleted + "/" + totalMobsRequired + " tipos completos")
-                    .withStyle(progressColor));
+            if (totalMobsRequired > 0) {
+                content.add(Component.translatable("gui.dimtr.mobs.completed",
+                                totalMobsCompleted, totalMobsRequired)
+                        .withStyle(totalMobsCompleted == totalMobsRequired ?
+                                ChatFormatting.GREEN : ChatFormatting.YELLOW));
+            }
         }
 
         return content;
@@ -527,50 +545,48 @@ public class ProgressionHUDScreen extends Screen {
         List<Component> content = new ArrayList<>();
 
         if (!progress.isServerEnablePhase1()) {
-            content.add(Component.literal("Fase 1 desabilitada").withStyle(ChatFormatting.GRAY));
+            content.add(Component.translatable("gui.dimtr.phase1.disabled").withStyle(ChatFormatting.GRAY));
             return content;
         }
 
         if (!progress.isServerEnableMobKillsPhase1()) {
-            content.add(Component.literal("Eliminação de Mobs desabilitada").withStyle(ChatFormatting.GRAY));
+            content.add(Component.translatable("gui.dimtr.mob.elimination.disabled").withStyle(ChatFormatting.GRAY));
             return content;
         }
 
         // Mobs Comuns
-        content.add(Component.literal("👥 Mobs Comuns").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
-        addMobCounterLine(content, progress, "🧟 Zumbis", "zombie", 1);
-        // CORREÇÃO: Emojis limpos sem caracteres especiais
-        addMobCounterLine(content, progress, "🧟 Zombie Villagers", "zombie_villager", 1);
-        addMobCounterLine(content, progress, "💀 Esqueletos", "skeleton", 1);
-        addMobCounterLine(content, progress, "🏹 Strays", "stray", 1);
-        addMobCounterLine(content, progress, "🏜 Husks", "husk", 1);
-        addMobCounterLine(content, progress, "🕷 Aranhas", "spider", 1);
-        addMobCounterLine(content, progress, "💥 Creepers", "creeper", 1);
-        addMobCounterLine(content, progress, "🌊 Drowneds", "drowned", 1);
+        content.add(Component.translatable("gui.dimtr.section.common.mobs").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
+        addMobCounterLine(content, progress, Constants.HUD_MOB_ZOMBIE, "zombie", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_ZOMBIE_VILLAGER, "zombie_villager", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_SKELETON, "skeleton", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_STRAY, "stray", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_HUSK, "husk", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_SPIDER, "spider", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_CREEPER, "creeper", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_DROWNED, "drowned", 1);
 
         content.add(Component.empty());
 
         // Mobs Especiais
-        content.add(Component.literal("⭐ Mobs Especiais").withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD));
-        addMobCounterLine(content, progress, "👤 Endermen", "enderman", 1);
-        // CORREÇÃO: Emojis limpos sem caracteres especiais
-        addMobCounterLine(content, progress, "🧙 Bruxas", "witch", 1);
-        addMobCounterLine(content, progress, "🏹 Pillagers", "pillager", 1);
-        addMobCounterLine(content, progress, "🚩 Captains", "captain", 1);
-        addMobCounterLine(content, progress, "⚔ Vindicators", "vindicator", 1);
-        addMobCounterLine(content, progress, "🏹 Boggeds", "bogged", 1);
-        addMobCounterLine(content, progress, "💨 Breezes", "breeze", 1);
+        content.add(Component.translatable("gui.dimtr.section.special.mobs").withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD));
+        addMobCounterLine(content, progress, Constants.HUD_MOB_ENDERMAN, "enderman", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_WITCH, "witch", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_PILLAGER, "pillager", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_CAPTAIN, "captain", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_VINDICATOR, "vindicator", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_BOGGED, "bogged", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_BREEZE, "breeze", 1);
 
         content.add(Component.empty());
 
         // Goal Kills
-        content.add(Component.literal("🎯 Goal Kills").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
-        addMobCounterLine(content, progress, "🐗 Ravagers", "ravager", 1);
-        addMobCounterLine(content, progress, "🔮 Evokers", "evoker", 1);
+        content.add(Component.translatable("gui.dimtr.section.goal.kills").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+        addMobCounterLine(content, progress, Constants.HUD_MOB_RAVAGER, "ravager", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_EVOKER, "evoker", 1);
 
         // Resumo de progresso
         content.add(Component.empty());
-        content.add(Component.literal("📈 Resumo:").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
+        content.add(Component.translatable("gui.dimtr.summary").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
 
         // Calcular estatísticas
         int totalKills = 0;
@@ -596,9 +612,9 @@ public class ProgressionHUDScreen extends Screen {
         ChatFormatting summaryColor = completedTypes == totalTypes ?
                 ChatFormatting.GREEN : ChatFormatting.YELLOW;
 
-        content.add(Component.literal("🔢 Total: " + totalKills + "/" + totalRequired + " kills")
+        content.add(Component.translatable("gui.dimtr.total.kills", totalKills, totalRequired)
                 .withStyle(summaryColor));
-        content.add(Component.literal("✅ Tipos: " + completedTypes + "/" + totalTypes + " completos")
+        content.add(Component.translatable("gui.dimtr.types.completed", completedTypes, totalTypes)
                 .withStyle(summaryColor));
 
         return content;
@@ -608,52 +624,52 @@ public class ProgressionHUDScreen extends Screen {
         List<Component> content = new ArrayList<>();
 
         if (!progress.isPhase1EffectivelyComplete()) {
-            content.add(Component.literal("❌ Complete a Fase 1 primeiro").withStyle(ChatFormatting.RED));
+            content.add(Component.translatable("gui.dimtr.complete.phase1.first").withStyle(ChatFormatting.RED));
             content.add(Component.empty());
-            content.add(Component.literal("⚠ A Fase 2 só será").withStyle(ChatFormatting.GRAY));
-            content.add(Component.literal("desbloqueada após").withStyle(ChatFormatting.GRAY));
-            content.add(Component.literal("completar a Fase 1").withStyle(ChatFormatting.GRAY));
+            content.add(Component.translatable("gui.dimtr.phase2.locked.line1").withStyle(ChatFormatting.GRAY));
+            content.add(Component.translatable("gui.dimtr.phase2.locked.line2").withStyle(ChatFormatting.GRAY));
+            content.add(Component.translatable("gui.dimtr.phase2.locked.line3").withStyle(ChatFormatting.GRAY));
             return content;
         }
 
         if (!progress.isServerEnablePhase2()) {
-            content.add(Component.literal("Fase 2 desabilitada").withStyle(ChatFormatting.GRAY));
+            content.add(Component.translatable("gui.dimtr.phase2.disabled").withStyle(ChatFormatting.GRAY));
             return content;
         }
 
         // Status da fase
         if (progress.isPhase2Completed()) {
-            content.add(Component.literal("✅ FASE COMPLETA!").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
+            content.add(Component.translatable("gui.dimtr.phase.complete").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
             content.add(Component.empty());
         }
 
         // Objetivos Especiais
-        content.add(Component.literal("🎯 Objetivos Especiais").withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
+        content.add(Component.translatable(Constants.HUD_SECTION_SPECIAL_OBJECTIVES).withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
 
         if (progress.isServerReqWither()) {
-            content.add(createGoalLine("💀 Wither", progress.isWitherKilled()));
+            content.add(createGoalLine(Component.translatable(Constants.HUD_WITHER_KILLED), progress.isWitherKilled()));
         }
 
         if (progress.isServerReqWarden()) {
-            content.add(createGoalLine("🌑 Warden", progress.isWardenKilled()));
+            content.add(createGoalLine(Component.translatable(Constants.HUD_WARDEN_KILLED), progress.isWardenKilled()));
         }
 
         // Status de progresso geral
         content.add(Component.empty());
         if (progress.isPhase2Completed()) {
-            content.add(Component.literal("✅ The End liberado!").withStyle(ChatFormatting.GREEN));
+            content.add(Component.translatable("gui.dimtr.end.unlocked").withStyle(ChatFormatting.GREEN));
         } else {
-            content.add(Component.literal("⏳ Complete os objetivos").withStyle(ChatFormatting.YELLOW));
-            content.add(Component.literal("para liberar o The End").withStyle(ChatFormatting.YELLOW));
+            content.add(Component.translatable("gui.dimtr.complete.objectives").withStyle(ChatFormatting.YELLOW));
+            content.add(Component.translatable("gui.dimtr.unlock.end").withStyle(ChatFormatting.YELLOW));
         }
 
         // Informações sobre os desafios únicos
         content.add(Component.empty());
-        content.add(Component.literal("⚡ Desafios Únicos:").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
-        content.add(Component.literal("• Enfrente o Wither").withStyle(ChatFormatting.GRAY));
-        content.add(Component.literal("• Sobreviva ao Warden").withStyle(ChatFormatting.GRAY));
-        content.add(Component.literal("• Conquiste o Nether").withStyle(ChatFormatting.GRAY));
-        content.add(Component.literal("• Domine novos mobs").withStyle(ChatFormatting.GRAY));
+        content.add(Component.translatable("gui.dimtr.unique.challenges").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        content.add(Component.translatable("gui.dimtr.challenge.wither").withStyle(ChatFormatting.GRAY));
+        content.add(Component.translatable("gui.dimtr.challenge.warden").withStyle(ChatFormatting.GRAY));
+        content.add(Component.translatable("gui.dimtr.challenge.nether").withStyle(ChatFormatting.GRAY));
+        content.add(Component.translatable("gui.dimtr.challenge.new.mobs").withStyle(ChatFormatting.GRAY));
 
         return content;
     }
@@ -662,50 +678,49 @@ public class ProgressionHUDScreen extends Screen {
         List<Component> content = new ArrayList<>();
 
         if (!progress.isPhase1EffectivelyComplete()) {
-            content.add(Component.literal("❌ Complete a Fase 1 primeiro").withStyle(ChatFormatting.RED));
+            content.add(Component.translatable("gui.dimtr.complete.phase1.first").withStyle(ChatFormatting.RED));
             return content;
         }
 
         if (!progress.isServerEnableMobKillsPhase2()) {
-            content.add(Component.literal("Eliminação de Mobs desabilitada").withStyle(ChatFormatting.GRAY));
+            content.add(Component.translatable("gui.dimtr.mob.elimination.disabled").withStyle(ChatFormatting.GRAY));
             return content;
         }
 
         // Mobs do Nether
-        content.add(Component.literal("🔥 Mobs do Nether").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
-        addMobCounterLine(content, progress, "🔥 Blazes", "blaze", 2);
-        addMobCounterLine(content, progress, "💀 Wither Skeletons", "wither_skeleton", 2);
-        addMobCounterLine(content, progress, "🐷 Piglin Brutes", "piglin_brute", 2);
-        addMobCounterLine(content, progress, "🐗 Hoglins", "hoglin", 2);
-        addMobCounterLine(content, progress, "💀 Zoglins", "zoglin", 2);
-        addMobCounterLine(content, progress, "👻 Ghasts", "ghast", 2);
-        addMobCounterLine(content, progress, "🐛 Endermites", "endermite", 2);
-        addMobCounterLine(content, progress, "🐷 Piglins", "piglin", 2);
+        content.add(Component.translatable(Constants.HUD_SECTION_NETHER_MOBS).withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+        addMobCounterLine(content, progress, Constants.HUD_MOB_BLAZE, "blaze", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_WITHER_SKELETON, "wither_skeleton", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_PIGLIN_BRUTE, "piglin_brute", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_HOGLIN, "hoglin", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_ZOGLIN, "zoglin", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_GHAST, "ghast", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_ENDERMITE, "endermite", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_PIGLIN, "piglin", 2);
 
         content.add(Component.empty());
 
         // Reset Overworld (125%)
-        content.add(Component.literal("🔄 Reset Overworld (+25%)").withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD));
-        content.add(Component.literal("Requisitos aumentados:").withStyle(ChatFormatting.GRAY));
-        addMobCounterLine(content, progress, "🧟 Zumbis", "zombie", 2);
-        addMobCounterLine(content, progress, "💀 Esqueletos", "skeleton", 2);
-        addMobCounterLine(content, progress, "💥 Creepers", "creeper", 2);
-        addMobCounterLine(content, progress, "🕷 Aranhas", "spider", 2);
-        addMobCounterLine(content, progress, "👤 Endermen", "enderman", 2);
-        // CORREÇÃO: Emoji limpo sem caracteres especiais
-        addMobCounterLine(content, progress, "🧙 Bruxas", "witch", 2);
-        addMobCounterLine(content, progress, "🏹 Pillagers", "pillager", 2);
+        content.add(Component.translatable(Constants.HUD_SECTION_REPEAT_OVERWORLD).withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD));
+        content.add(Component.translatable("gui.dimtr.requirements.increased").withStyle(ChatFormatting.GRAY));
+        addMobCounterLine(content, progress, Constants.HUD_MOB_ZOMBIE, "zombie", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_SKELETON, "skeleton", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_CREEPER, "creeper", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_SPIDER, "spider", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_ENDERMAN, "enderman", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_WITCH, "witch", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_PILLAGER, "pillager", 2);
 
         content.add(Component.empty());
 
         // Goal Kills Reset (125%)
-        content.add(Component.literal("🎯 Goal Kills (+25%)").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
-        addMobCounterLine(content, progress, "🐗 Ravagers", "ravager", 2);
-        addMobCounterLine(content, progress, "🔮 Evokers", "evoker", 2);
+        content.add(Component.translatable("gui.dimtr.section.goal.kills.reset").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        addMobCounterLine(content, progress, Constants.HUD_MOB_RAVAGER, "ravager", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_EVOKER, "evoker", 2);
 
         // Estatísticas detalhadas
         content.add(Component.empty());
-        content.add(Component.literal("📊 Estatísticas:").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
+        content.add(Component.translatable("gui.dimtr.summary").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
 
         // Calcular progresso Nether vs Overworld
         int netherCompleted = 0;
@@ -737,46 +752,46 @@ public class ProgressionHUDScreen extends Screen {
         ChatFormatting netherColor = netherCompleted == netherTotal ? ChatFormatting.GREEN : ChatFormatting.RED;
         ChatFormatting overworldColor = overworldCompleted == overworldTotal ? ChatFormatting.GREEN : ChatFormatting.YELLOW;
 
-        content.add(Component.literal("🔥 Nether: " + netherCompleted + "/" + netherTotal)
+        content.add(Component.translatable("gui.dimtr.nether.progress", netherCompleted, netherTotal)
                 .withStyle(netherColor));
-        content.add(Component.literal("🌍 Overworld: " + overworldCompleted + "/" + overworldTotal)
+        content.add(Component.translatable("gui.dimtr.overworld.progress", overworldCompleted, overworldTotal)
                 .withStyle(overworldColor));
 
         return content;
     }
 
     // ============================================================================
-    // MÉTODOS AUXILIARES
+    // MÉTODOS AUXILIARES CORRIGIDOS
     // ============================================================================
 
-    private Component createGoalLine(String text, boolean completed) {
+    private Component createGoalLine(Component text, boolean completed) {
         ChatFormatting statusColor = completed ? ChatFormatting.DARK_GREEN : ChatFormatting.RED;
         String statusIcon = completed ? "✔" : "❌";
 
         return Component.literal(statusIcon + " ").withStyle(statusColor)
-                .append(Component.literal(text).withStyle(ChatFormatting.WHITE));
+                .append(text.copy().withStyle(ChatFormatting.WHITE));
     }
 
-    private Component createMobCounterLine(String text, String mobType, int current, int required) {
+    private Component createMobCounterLine(String translationKey, String mobType, int current, int required) {
         boolean completed = current >= required;
         ChatFormatting countColor = completed ? ChatFormatting.GREEN :
                 (current > 0 ? ChatFormatting.YELLOW : ChatFormatting.RED);
         String statusIcon = completed ? "✔" : "⚔";
 
         return Component.literal(statusIcon + " ").withStyle(completed ? ChatFormatting.DARK_GREEN : ChatFormatting.RED)
-                .append(Component.literal(text).withStyle(ChatFormatting.WHITE))
+                .append(Component.translatable(translationKey).withStyle(ChatFormatting.WHITE))
                 .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
                 .append(Component.literal(current + "/" + required).withStyle(countColor));
     }
 
     private void addMobCounterLine(List<Component> contentList, ClientProgressionData progress,
-                                   String text, String mobType, int phase) {
+                                   String translationKey, String mobType, int phase) {
         int current = progress.getMobKillCount(mobType);
         int required = progress.getMobKillRequirement(mobType, phase);
 
         if (required <= 0) return; // Não mostrar se não é necessário
 
-        contentList.add(createMobCounterLine(text, mobType, current, required));
+        contentList.add(createMobCounterLine(translationKey, mobType, current, required));
     }
 
     // Classe interna para representar uma tab de janela

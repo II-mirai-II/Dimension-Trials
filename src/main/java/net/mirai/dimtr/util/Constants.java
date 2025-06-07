@@ -98,4 +98,38 @@ public class Constants {
     public static final String WINDOW_PHASE1_GOALS_TITLE = "gui.dimtr.window.phase1_goals.title";
     public static final String WINDOW_PHASE2_MAIN_TITLE = "gui.dimtr.window.phase2_main.title";
     public static final String WINDOW_PHASE2_GOALS_TITLE = "gui.dimtr.window.phase2_goals.title";
+
+    // NOVO: Chaves para o HUD traduzível
+    public static final String GUI_NO_CONTENT = "gui.dimtr.no.content";
+    public static final String GUI_PAGE_INDICATOR = "gui.dimtr.page.indicator";
+    public static final String GUI_PHASE1_DISABLED = "gui.dimtr.phase1.disabled";
+    public static final String GUI_PHASE2_DISABLED = "gui.dimtr.phase2.disabled";
+    public static final String GUI_PHASE_COMPLETE = "gui.dimtr.phase.complete";
+    public static final String GUI_NETHER_UNLOCKED = "gui.dimtr.nether.unlocked";
+    public static final String GUI_END_UNLOCKED = "gui.dimtr.end.unlocked";
+    public static final String GUI_COMPLETE_OBJECTIVES = "gui.dimtr.complete.objectives";
+    public static final String GUI_UNLOCK_NETHER = "gui.dimtr.unlock.nether";
+    public static final String GUI_UNLOCK_END = "gui.dimtr.unlock.end";
+    public static final String GUI_MOB_PROGRESS = "gui.dimtr.mob.progress";
+    public static final String GUI_MOB_ELIMINATION_DISABLED = "gui.dimtr.mob.elimination.disabled";
+    public static final String GUI_COMPLETE_PHASE1_FIRST = "gui.dimtr.complete.phase1.first";
+    public static final String GUI_SECTION_COMMON_MOBS = "gui.dimtr.section.common.mobs";
+    public static final String GUI_SECTION_SPECIAL_MOBS = "gui.dimtr.section.special.mobs";
+    public static final String GUI_SECTION_GOAL_KILLS = "gui.dimtr.section.goal.kills";
+    public static final String GUI_SECTION_GOAL_KILLS_RESET = "gui.dimtr.section.goal.kills.reset";
+    public static final String GUI_SUMMARY = "gui.dimtr.summary";
+    public static final String GUI_UNIQUE_CHALLENGES = "gui.dimtr.unique.challenges";
+    public static final String GUI_REQUIREMENTS_INCREASED = "gui.dimtr.requirements.increased";
+    public static final String GUI_MOBS_COMPLETED = "gui.dimtr.mobs.completed";
+    public static final String GUI_TOTAL_KILLS = "gui.dimtr.total.kills";
+    public static final String GUI_TYPES_COMPLETED = "gui.dimtr.types.completed";
+    public static final String GUI_NETHER_PROGRESS = "gui.dimtr.nether.progress";
+    public static final String GUI_OVERWORLD_PROGRESS = "gui.dimtr.overworld.progress";
+    public static final String GUI_PHASE2_LOCKED_LINE1 = "gui.dimtr.phase2.locked.line1";
+    public static final String GUI_PHASE2_LOCKED_LINE2 = "gui.dimtr.phase2.locked.line2";
+    public static final String GUI_PHASE2_LOCKED_LINE3 = "gui.dimtr.phase2.locked.line3";
+    public static final String GUI_CHALLENGE_WITHER = "gui.dimtr.challenge.wither";
+    public static final String GUI_CHALLENGE_WARDEN = "gui.dimtr.challenge.warden";
+    public static final String GUI_CHALLENGE_NETHER = "gui.dimtr.challenge.nether";
+    public static final String GUI_CHALLENGE_NEW_MOBS = "gui.dimtr.challenge.new.mobs";
 }
