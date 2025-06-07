@@ -117,13 +117,6 @@
   "config.dimtr.server.phase1Multiplier": "Phase 1 Completion Multiplier",
   "config.dimtr.server.phase2Multiplier": "Phase 2 Completion Multiplier",
 
-  "msg.dimtr.phase1_unlocked_global": "Phase 1 complete! The Nether is now accessible for all players.",
-  "msg.dimtr.phase2_unlocked_global": "Phase 2 complete! The End is now accessible for all players.",
-  "msg.dimtr.phase1_unlocked_global_config_disabled": "Phase 1 progression is disabled by server config. Nether access is open.",
-  "msg.dimtr.phase2_unlocked_global_config_disabled": "Phase 2 progression is disabled by server config. The End access is open (if Phase 1 is also complete/disabled).",
-  "msg.dimtr.nether_locked": "Nether access blocked! Complete Phase 1 requirements first.",
-  "msg.dimtr.end_locked": "End access blocked! Complete Phase 2 requirements first.",
-
   "cmd.dimtr.reset_success": "All progress has been reset.",
   "cmd.dimtr.phase1_complete": "All Phase 1 requirements completed via command.",
   "cmd.dimtr.phase2_complete": "All Phase 2 requirements completed via command.",
