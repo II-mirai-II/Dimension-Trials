@@ -17,6 +17,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.*;
+import net.minecraft.world.entity.monster.piglin.Piglin;
+import net.minecraft.world.entity.monster.piglin.PiglinBrute;
+import net.minecraft.world.entity.monster.hoglin.Hoglin;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.FlintAndSteelItem;
 import net.minecraft.world.item.ItemStack;
@@ -65,8 +69,14 @@ public class ModEventHandlers {
             return;
         }
 
+        // Verificar se foi morto por um jogador
+        if (!(event.getSource().getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+
         ProgressionData progressionData = ProgressionData.get(serverLevel);
 
+        // MANTIDO: Objetivos especiais (bosses únicos)
         if (entity.getType() == EntityType.ELDER_GUARDIAN) {
             if (progressionData.updateElderGuardianKilled(true)) {
                 DimTrMod.LOGGER.info("Elder Guardian killed! Phase 1 progress updated.");
@@ -88,6 +98,93 @@ public class ModEventHandlers {
                 DimTrMod.LOGGER.info("Warden killed! Phase 2 progress updated.");
             }
         }
+
+        // CORRIGIDO: Sistema de contagem de mobs comuns
+        String mobType = getMobType(entity);
+        if (mobType != null) {
+            boolean updated = progressionData.incrementMobKill(mobType);
+            if (updated) {
+                DimTrMod.LOGGER.debug("Player {} killed a {} (count incremented)",
+                        player.getDisplayName().getString(), mobType);
+            }
+        }
+    }
+
+    // CORRIGIDO: Método para mapear entidades para strings usadas no sistema
+    private static String getMobType(LivingEntity entity) {
+        // Fase 1 - Mobs Comuns do Overworld
+        if (entity instanceof Zombie && !(entity instanceof ZombieVillager) && !(entity instanceof Husk)) {
+            return "zombie";
+        } else if (entity instanceof ZombieVillager) {
+            return "zombie_villager";
+        } else if (entity instanceof Skeleton && !(entity instanceof Stray) && !(entity instanceof WitherSkeleton)) {
+            return "skeleton";
+        } else if (entity instanceof Stray) {
+            return "stray";
+        } else if (entity instanceof Husk) {
+            return "husk";
+        } else if (entity instanceof Spider) {
+            return "spider";
+        } else if (entity instanceof Creeper) {
+            return "creeper";
+        } else if (entity instanceof Drowned) {
+            return "drowned";
+        } else if (entity instanceof EnderMan) {
+            return "enderman";
+        } else if (entity instanceof Witch) {
+            return "witch";
+        } else if (entity instanceof Pillager pillager) {
+            // IMPORTANTE: Verificar Captain PRIMEIRO
+            if (pillager.canBeLeader()) {
+                return "captain";
+            }
+            return "pillager";
+        } else if (entity instanceof Vindicator) {
+            return "vindicator";
+        } else if (entity instanceof Evoker) {
+            return "evoker";
+        } else if (entity instanceof Ravager) {
+            return "ravager";
+        }
+
+        // Fase 2 - Mobs do Nether/End
+        else if (entity instanceof Blaze) {
+            return "blaze";
+        } else if (entity instanceof WitherSkeleton) {
+            return "wither_skeleton";
+        } else if (entity instanceof PiglinBrute) {
+            return "piglin_brute";
+        } else if (entity instanceof Hoglin) {
+            return "hoglin";
+        } else if (entity instanceof Zoglin) {
+            return "zoglin";
+        } else if (entity instanceof Ghast) {
+            return "ghast";
+        } else if (entity instanceof Endermite) {
+            return "endermite";
+        } else if (entity instanceof Piglin piglin) {
+            // CORRIGIDO: Usar apenas getTarget() para verificar se Piglin é hostil
+            // Um Piglin é considerado hostil se ele tem um alvo de ataque
+            if (piglin.getTarget() != null) {
+                return "piglin";
+            }
+            // ALTERNATIVA: Verificar se está em modo de ataque
+            // Também podemos verificar se não está "calmo" (isAdult e não tem item de ouro)
+            if (piglin.isAdult() && !piglin.isHolding(Items.GOLD_INGOT)) {
+                // Considera como hostil se é adulto e não está segurando ouro
+                return "piglin";
+            }
+        }
+
+        // ADICIONADO: Mobs mais novos que podem não estar disponíveis em todas as versões
+        String entityName = entity.getType().toString().toLowerCase();
+        if (entityName.contains("bogged")) {
+            return "bogged";
+        } else if (entityName.contains("breeze")) {
+            return "breeze";
+        }
+
+        return null;
     }
 
     @SubscribeEvent

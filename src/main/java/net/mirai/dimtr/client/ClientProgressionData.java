@@ -228,7 +228,6 @@ public class ClientProgressionData {
                 // NOVO: Ravager e Evoker com 125% para Fase 2
                 case "ravager" -> getPhase2OverworldRequirement(3);
                 case "evoker" -> getPhase2OverworldRequirement(2);
-
                 default -> 0;
             };
         }
