@@ -29,6 +29,8 @@
   "hud.dimtr.tooltip.raid_won": "Difendi con successo un villaggio contro un'incursione",
   "hud.dimtr.trial_vault_adv": "🗝 Camera di Prova",
   "hud.dimtr.tooltip.trial_vault_adv": "Ottieni il progresso 'Sotto Chiave'",
+  "hud.dimtr.voluntaire_exile": "🏴 Esilio Volontario",
+  "hud.dimtr.tooltip.voluntaire_exile": "Sconfiggi un Capitano Saccheggiatore per ottenere questo progresso",
   "hud.dimtr.wither_killed": "💀 Wither",
   "hud.dimtr.tooltip.wither_killed": "Sconfiggi il potente Wither",
   "hud.dimtr.warden_killed": "🌑 Custode",
@@ -161,5 +163,16 @@
   "cmd.dimtr.invalid_goal": "Nome obiettivo non valido.",
   "cmd.dimtr.mob_kills_set": "Contatori eliminazione mob impostati con successo.",
   "cmd.dimtr.invalid_mob": "Nome mob non valido.",
-  "cmd.dimtr.invalid_boolean": "Valore booleano non valido. Usa 'true' o 'false'."
+  "cmd.dimtr.invalid_boolean": "Valore booleano non valido. Usa 'true' o 'false'.",
+
+  "itemGroup.dimtr.main": "Dimension Trials",
+
+  "advancement.dimtr.phase1_complete": "Nether Sbloccato",
+  "advancement.dimtr.phase1_complete.description": "Completa la Fase 1 per sbloccare l'accesso al Nether",
+  "advancement.dimtr.phase2_complete": "The End Sbloccato",
+  "advancement.dimtr.phase2_complete.description": "Completa la Fase 2 per sbloccare l'accesso all'End",
+
+  "tooltip.dimtr.progression_book": "Traccia la tua progressione dimensionale",
+  "tooltip.dimtr.phase_locked": "Completa i requisiti per sbloccare",
+  "tooltip.dimtr.phase_unlocked": "Requisiti della fase completati"
 }

@@ -29,6 +29,8 @@
   "hud.dimtr.tooltip.raid_won": "Successfully defend a village against a raid",
   "hud.dimtr.trial_vault_adv": "🗝 Trial Vault",
   "hud.dimtr.tooltip.trial_vault_adv": "Earn the 'Under Lock and Key' advancement",
+  "hud.dimtr.voluntaire_exile": "🏴 Voluntaire Exile",
+  "hud.dimtr.tooltip.voluntaire_exile": "Defeat a Pillager Captain to earn this advancement",
   "hud.dimtr.wither_killed": "💀 Wither",
   "hud.dimtr.tooltip.wither_killed": "Defeat the mighty Wither",
   "hud.dimtr.warden_killed": "🌑 Warden",
@@ -162,6 +164,15 @@
   "cmd.dimtr.mob_kills_set": "Mob kill counters successfully set.",
   "cmd.dimtr.invalid_mob": "Invalid mob name.",
   "cmd.dimtr.invalid_boolean": "Invalid boolean value. Use 'true' or 'false'.",
-  "gui.dimtr.voluntaire.exile": "Voluntaire Exile",
-  "hud.dimtr.voluntaire.exile": "Voluntaire Exile"
+
+  "itemGroup.dimtr.main": "Dimension Trials",
+
+  "advancement.dimtr.phase1_complete": "Nether Unlocked",
+  "advancement.dimtr.phase1_complete.description": "Complete Phase 1 to unlock Nether access",
+  "advancement.dimtr.phase2_complete": "The End Unlocked",
+  "advancement.dimtr.phase2_complete.description": "Complete Phase 2 to unlock End access",
+
+  "tooltip.dimtr.progression_book": "Track your dimensional progression",
+  "tooltip.dimtr.phase_locked": "Complete requirements to unlock",
+  "tooltip.dimtr.phase_unlocked": "Phase requirements completed"
 }

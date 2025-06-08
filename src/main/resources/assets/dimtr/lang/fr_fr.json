@@ -29,6 +29,8 @@
   "hud.dimtr.tooltip.raid_won": "Défendez avec succès un village contre un raid",
   "hud.dimtr.trial_vault_adv": "🗝 Coffre d'Épreuve",
   "hud.dimtr.tooltip.trial_vault_adv": "Obtenez le progrès 'Sous Clé et Cadenas'",
+  "hud.dimtr.voluntaire_exile": "🏴 Exil Volontaire",
+  "hud.dimtr.tooltip.voluntaire_exile": "Battez un Capitaine Pillard pour obtenir ce progrès",
   "hud.dimtr.wither_killed": "💀 Wither",
   "hud.dimtr.tooltip.wither_killed": "Battez le puissant Wither",
   "hud.dimtr.warden_killed": "🌑 Gardien",
@@ -161,5 +163,16 @@
   "cmd.dimtr.invalid_goal": "Nom d'objectif invalide.",
   "cmd.dimtr.mob_kills_set": "Compteurs d'élimination de mobs définis avec succès.",
   "cmd.dimtr.invalid_mob": "Nom de mob invalide.",
-  "cmd.dimtr.invalid_boolean": "Valeur booléenne invalide. Utilisez 'true' ou 'false'."
+  "cmd.dimtr.invalid_boolean": "Valeur booléenne invalide. Utilisez 'true' ou 'false'.",
+
+  "itemGroup.dimtr.main": "Dimension Trials",
+
+  "advancement.dimtr.phase1_complete": "Nether Débloqué",
+  "advancement.dimtr.phase1_complete.description": "Complétez la Phase 1 pour débloquer l'accès au Nether",
+  "advancement.dimtr.phase2_complete": "The End Débloqué",
+  "advancement.dimtr.phase2_complete.description": "Complétez la Phase 2 pour débloquer l'accès à l'End",
+
+  "tooltip.dimtr.progression_book": "Suivez votre progression dimensionnelle",
+  "tooltip.dimtr.phase_locked": "Complétez les prérequis pour débloquer",
+  "tooltip.dimtr.phase_unlocked": "Prérequis de la phase complétés"
 }

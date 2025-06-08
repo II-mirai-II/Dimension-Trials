@@ -17,7 +17,7 @@
   "gui.dimtr.book.page_turn_instructions": "（使用Q和E翻页）",
 
   "key.dimtr.open_hud": "打开进度HUD",
-  "key.categories.dimtr": "Dimension Trials",
+  "key.categories.dimtr": "维度试炼",
 
   "hud.dimtr.title": "维度进度",
   "hud.dimtr.phase1_title": "第一阶段：下界准备",
@@ -29,6 +29,8 @@
   "hud.dimtr.tooltip.raid_won": "成功保卫村庄免受袭击",
   "hud.dimtr.trial_vault_adv": "🗝 试炼宝库",
   "hud.dimtr.tooltip.trial_vault_adv": "获得"锁定保管"进度",
+  "hud.dimtr.voluntaire_exile": "🏴 自愿流放",
+  "hud.dimtr.tooltip.voluntaire_exile": "击败掠夺者队长以获得此进度",
   "hud.dimtr.wither_killed": "💀 凋灵",
   "hud.dimtr.tooltip.wither_killed": "击败强大的凋灵",
   "hud.dimtr.warden_killed": "🌑 监守者",
@@ -161,5 +163,16 @@
   "cmd.dimtr.invalid_goal": "无效目标名称。",
   "cmd.dimtr.mob_kills_set": "生物击杀计数器设置成功。",
   "cmd.dimtr.invalid_mob": "无效生物名称。",
-  "cmd.dimtr.invalid_boolean": "无效布尔值。使用'true'或'false'。"
+  "cmd.dimtr.invalid_boolean": "无效布尔值。使用'true'或'false'。",
+
+  "itemGroup.dimtr.main": "维度试炼",
+
+  "advancement.dimtr.phase1_complete": "下界已解锁",
+  "advancement.dimtr.phase1_complete.description": "完成第一阶段以解锁下界访问",
+  "advancement.dimtr.phase2_complete": "末地已解锁",
+  "advancement.dimtr.phase2_complete.description": "完成第二阶段以解锁末地访问",
+
+  "tooltip.dimtr.progression_book": "追踪您的维度进度",
+  "tooltip.dimtr.phase_locked": "完成要求以解锁",
+  "tooltip.dimtr.phase_unlocked": "阶段要求已完成"
 }
