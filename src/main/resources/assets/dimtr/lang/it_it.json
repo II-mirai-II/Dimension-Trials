@@ -42,7 +42,6 @@
   "hud.dimtr.section.repeat_overworld": "🔄 Reset Overworld",
 
   "hud.dimtr.mob.zombie": "🧟 Zombie",
-  "hud.dimtr.mob.zombie_villager": "🧟 Paesani Zombie",
   "hud.dimtr.mob.skeleton": "💀 Scheletri",
   "hud.dimtr.mob.stray": "🏔 Randagi",
   "hud.dimtr.mob.husk": "🏜 Mummie",
@@ -122,11 +121,11 @@
   "config.dimtr.server.reqElderGuardian": "Richiedi Morte del Guardiano Antico",
   "config.dimtr.server.reqRaid": "Richiedi Vittoria in Incursione",
   "config.dimtr.server.reqTrialVaultAdv": "Richiedi Progresso Camera di Prova",
+  "config.dimtr.server.reqVoluntaryExile": "Richiedi Progresso Esilio Volontario",
   "config.dimtr.server.reqWither": "Richiedi Morte del Wither",
   "config.dimtr.server.reqWarden": "Richiedi Morte del Custode",
 
   "config.dimtr.server.reqZombieKills": "Morti di Zombie Necessarie",
-  "config.dimtr.server.reqZombieVillagerKills": "Morti di Paesani Zombie Necessarie",
   "config.dimtr.server.reqSkeletonKills": "Morti di Scheletri Necessarie",
   "config.dimtr.server.reqStrayKills": "Morti di Randagi Necessarie",
   "config.dimtr.server.reqHuskKills": "Morti di Mummie Necessarie",
@@ -153,10 +152,11 @@
   "config.dimtr.server.reqPiglinKills": "Morti di Piglin Ostili Necessarie",
 
   "config.dimtr.server.enableMultipliers": "Abilita Moltiplicatori Mob Dopo le Fasi",
+  "config.dimtr.server.enableXpMultiplier": "Abilita Moltiplicatore XP Dopo le Fasi",
   "config.dimtr.server.phase1Multiplier": "Moltiplicatore Completamento Fase 1",
   "config.dimtr.server.phase2Multiplier": "Moltiplicatore Completamento Fase 2",
 
-  "cmd.dimtr.reset_success": "Tutto il progresso è stato azzerato.",
+  "cmd.dimtr.reset_success": "Tutti i progressi sono stati reimpostati.",
   "cmd.dimtr.phase1_complete": "Tutti i requisiti della Fase 1 sono stati completati tramite comando.",
   "cmd.dimtr.phase2_complete": "Tutti i requisiti della Fase 2 sono stati completati tramite comando.",
   "cmd.dimtr.goal_set": "Obiettivo impostato con successo.",

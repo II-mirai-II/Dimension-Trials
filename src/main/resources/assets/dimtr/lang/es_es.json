@@ -11,7 +11,7 @@
   "message.dimtr.phase2_unlocked_global_config_disabled": "La progresión de la Fase 2 está deshabilitada por la configuración del servidor. El acceso al End está abierto (si la Fase 1 también está completa/deshabilitada).",
 
   "gui.dimtr.progression_book.title": "Libro de Progreso",
-  "gui.dimtr.book.main_title": "Pruebas Dimensionales",
+  "gui.dimtr.book.main_title": "Dimension Trials",
   "gui.dimtr.book.intro1": "Este libro guía tu viaje a través de las dimensiones, detallando los desafíos a superar.",
   "gui.dimtr.book.intro2": "Completa los objetivos de cada fase para desbloquear el acceso a la siguiente dimensión.",
   "gui.dimtr.book.page_turn_instructions": "(Usa Q y E para pasar páginas)",
@@ -42,7 +42,6 @@
   "hud.dimtr.section.repeat_overworld": "🔄 Reset Superficie",
 
   "hud.dimtr.mob.zombie": "🧟 Zombis",
-  "hud.dimtr.mob.zombie_villager": "🧟 Aldeanos Zombi",
   "hud.dimtr.mob.skeleton": "💀 Esqueletos",
   "hud.dimtr.mob.stray": "🏔 Vagabundos",
   "hud.dimtr.mob.husk": "🏜 Momias",
@@ -122,11 +121,11 @@
   "config.dimtr.server.reqElderGuardian": "Requerir Muerte del Guardián Anciano",
   "config.dimtr.server.reqRaid": "Requerir Victoria en Incursión",
   "config.dimtr.server.reqTrialVaultAdv": "Requerir Logro de la Cámara de Prueba",
+  "config.dimtr.server.reqVoluntaryExile": "Requerir Logro de Exilio Voluntario",
   "config.dimtr.server.reqWither": "Requerir Muerte del Wither",
   "config.dimtr.server.reqWarden": "Requerir Muerte del Warden",
 
   "config.dimtr.server.reqZombieKills": "Muertes de Zombis Necesarias",
-  "config.dimtr.server.reqZombieVillagerKills": "Muertes de Aldeanos Zombi Necesarias",
   "config.dimtr.server.reqSkeletonKills": "Muertes de Esqueletos Necesarias",
   "config.dimtr.server.reqStrayKills": "Muertes de Vagabundos Necesarias",
   "config.dimtr.server.reqHuskKills": "Muertes de Momias Necesarias",
@@ -153,6 +152,7 @@
   "config.dimtr.server.reqPiglinKills": "Muertes de Piglins Hostiles Necesarias",
 
   "config.dimtr.server.enableMultipliers": "Habilitar Multiplicadores de Mobs Después de las Fases",
+  "config.dimtr.server.enableXpMultiplier": "Habilitar Multiplicador de XP Después de las Fases",
   "config.dimtr.server.phase1Multiplier": "Multiplicador de Finalización de la Fase 1",
   "config.dimtr.server.phase2Multiplier": "Multiplicador de Finalización de la Fase 2",
 

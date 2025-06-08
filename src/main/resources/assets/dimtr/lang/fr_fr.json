@@ -42,7 +42,6 @@
   "hud.dimtr.section.repeat_overworld": "🔄 Reset Overworld",
 
   "hud.dimtr.mob.zombie": "🧟 Zombies",
-  "hud.dimtr.mob.zombie_villager": "🧟 Villageois Zombies",
   "hud.dimtr.mob.skeleton": "💀 Squelettes",
   "hud.dimtr.mob.stray": "🏔 Vagabonds",
   "hud.dimtr.mob.husk": "🏜 Momies",
@@ -122,11 +121,11 @@
   "config.dimtr.server.reqElderGuardian": "Exiger la Mort du Gardien de l'Elder",
   "config.dimtr.server.reqRaid": "Exiger la Victoire en Raid",
   "config.dimtr.server.reqTrialVaultAdv": "Exiger le Progrès du Coffre d'Épreuve",
+  "config.dimtr.server.reqVoluntaryExile": "Exiger le Progrès d'Exil Volontaire",
   "config.dimtr.server.reqWither": "Exiger la Mort du Wither",
   "config.dimtr.server.reqWarden": "Exiger la Mort du Gardien",
 
   "config.dimtr.server.reqZombieKills": "Morts de Zombies Nécessaires",
-  "config.dimtr.server.reqZombieVillagerKills": "Morts de Villageois Zombies Nécessaires",
   "config.dimtr.server.reqSkeletonKills": "Morts de Squelettes Nécessaires",
   "config.dimtr.server.reqStrayKills": "Morts de Vagabonds Nécessaires",
   "config.dimtr.server.reqHuskKills": "Morts de Momies Nécessaires",
@@ -153,6 +152,7 @@
   "config.dimtr.server.reqPiglinKills": "Morts de Piglins Hostiles Nécessaires",
 
   "config.dimtr.server.enableMultipliers": "Activer les Multiplicateurs de Mobs Après les Phases",
+  "config.dimtr.server.enableXpMultiplier": "Activer le Multiplicateur d'XP Après les Phases",
   "config.dimtr.server.phase1Multiplier": "Multiplicateur d'Achèvement de la Phase 1",
   "config.dimtr.server.phase2Multiplier": "Multiplicateur d'Achèvement de la Phase 2",
 
