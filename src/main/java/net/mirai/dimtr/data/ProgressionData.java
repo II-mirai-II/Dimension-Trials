@@ -33,7 +33,7 @@ public class ProgressionData extends SavedData {
 
     // Novos contadores de mobs - Fase 1 (Overworld)
     public int zombieKills = 0;
-    public int zombieVillagerKills = 0;
+    // REMOVIDO: zombieVillagerKills - não é mais necessário
     public int skeletonKills = 0;
     public int strayKills = 0;
     public int huskKills = 0;
@@ -84,7 +84,7 @@ public class ProgressionData extends SavedData {
 
         // Carregar contadores de mobs - Fase 1
         zombieKills = tag.getInt("zombieKills");
-        zombieVillagerKills = tag.getInt("zombieVillagerKills");
+        // REMOVIDO: zombieVillagerKills - não carregar mais
         skeletonKills = tag.getInt("skeletonKills");
         strayKills = tag.getInt("strayKills");
         huskKills = tag.getInt("huskKills");
@@ -139,7 +139,7 @@ public class ProgressionData extends SavedData {
 
         // Salvar contadores de mobs - Fase 1
         compoundTag.putInt("zombieKills", zombieKills);
-        compoundTag.putInt("zombieVillagerKills", zombieVillagerKills);
+        // REMOVIDO: zombieVillagerKills - não salvar mais
         compoundTag.putInt("skeletonKills", skeletonKills);
         compoundTag.putInt("strayKills", strayKills);
         compoundTag.putInt("huskKills", huskKills);
@@ -242,7 +242,7 @@ public class ProgressionData extends SavedData {
 
         switch (mobType) {
             case "zombie" -> { zombieKills++; updated = true; }
-            case "zombie_villager" -> { zombieVillagerKills++; updated = true; }
+            // REMOVIDO: case "zombie_villager" - não incrementar mais
             case "skeleton" -> { skeletonKills++; updated = true; }
             case "stray" -> { strayKills++; updated = true; }
             case "husk" -> { huskKills++; updated = true; }
@@ -287,7 +287,7 @@ public class ProgressionData extends SavedData {
     public int getMobKillCount(String mobType) {
         return switch (mobType) {
             case "zombie" -> zombieKills;
-            case "zombie_villager" -> zombieVillagerKills;
+            // REMOVIDO: case "zombie_villager" - retornar 0
             case "skeleton" -> skeletonKills;
             case "stray" -> strayKills;
             case "husk" -> huskKills;
@@ -344,14 +344,15 @@ public class ProgressionData extends SavedData {
         return new UpdateProgressionToClientPayload(
                 elderGuardianKilled, raidWon, ravagerKilled, evokerKilled, trialVaultAdvancementEarned,
                 voluntaireExileAdvancementEarned, phase1Completed, witherKilled, wardenKilled, phase2Completed,
-                zombieKills, zombieVillagerKills, skeletonKills, strayKills, huskKills, spiderKills,
+                zombieKills, 0, // NOVO: zombieVillagerKills sempre 0
+                skeletonKills, strayKills, huskKills, spiderKills,
                 creeperKills, drownedKills, endermanKills, witchKills, pillagerKills, captainKills,
                 vindicatorKills, boggedKills, breezeKills, ravagerKills, evokerKills,
                 blazeKills, witherSkeletonKills, piglinBruteKills, hoglinKills, zoglinKills,
                 ghastKills, endermiteKills, piglinKills,
                 // NOVO: Sincronizar configurações do servidor para o cliente
                 DimTrConfig.SERVER.reqZombieKills.get(),
-                DimTrConfig.SERVER.reqZombieVillagerKills.get(),
+                0, // NOVO: reqZombieVillagerKills sempre 0
                 DimTrConfig.SERVER.reqSkeletonKills.get(),
                 DimTrConfig.SERVER.reqStrayKills.get(),
                 DimTrConfig.SERVER.reqHuskKills.get(),
@@ -520,7 +521,7 @@ public class ProgressionData extends SavedData {
 
         // Verificar cada tipo de mob e sua quantidade exigida
         boolean zombiesMet = zombieKills >= DimTrConfig.SERVER.reqZombieKills.get();
-        boolean zombieVillagersMet = zombieVillagerKills >= DimTrConfig.SERVER.reqZombieVillagerKills.get();
+        // REMOVIDO: zombieVillagersMet - não verificar mais
         boolean skeletonsMet = skeletonKills >= DimTrConfig.SERVER.reqSkeletonKills.get();
         boolean straysMet = strayKills >= DimTrConfig.SERVER.reqStrayKills.get();
         boolean husksMet = huskKills >= DimTrConfig.SERVER.reqHuskKills.get();
@@ -539,7 +540,8 @@ public class ProgressionData extends SavedData {
         boolean ravagersMet = ravagerKills >= DimTrConfig.SERVER.reqRavagerKills.get();
         boolean evokersMet = evokerKills >= DimTrConfig.SERVER.reqEvokerKills.get();
 
-        boolean allMet = zombiesMet && zombieVillagersMet && skeletonsMet && straysMet && husksMet &&
+        // ATUALIZADO: Remover zombieVillagersMet da verificação
+        boolean allMet = zombiesMet && skeletonsMet && straysMet && husksMet &&
                 spidersMet && creepersMet && drownedMet && endermenMet && witchesMet &&
                 // REMOVIDO: captainsMet da verificação
                 pillagersMet && vindicatorsMet && boggedMet && breezeMet &&
@@ -588,6 +590,7 @@ public class ProgressionData extends SavedData {
     }
 
     private boolean checkPhase2OverworldRequirements() {
+        // ATUALIZADO: Remover zombieVillagersMet da verificação
         // Verificar mobs do Overworld com 125% dos valores da Fase 1
         boolean zombiesMet = zombieKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqZombieKills.get());
         boolean skeletonsMet = skeletonKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqSkeletonKills.get());

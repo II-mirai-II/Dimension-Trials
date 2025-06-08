@@ -31,6 +31,8 @@ public class DimTrConfig {
         public final ModConfigSpec.BooleanValue enableMobKillsPhase1;
         public final ModConfigSpec.BooleanValue enableMobKillsPhase2;
         public final ModConfigSpec.BooleanValue enableMultipliers;
+        // NOVO: Configuração para multiplicador de XP
+        public final ModConfigSpec.BooleanValue enableXpMultiplier;
 
         // Requisitos de objetivos especiais
         public final ModConfigSpec.BooleanValue reqElderGuardian;
@@ -43,7 +45,7 @@ public class DimTrConfig {
 
         // Requisitos de quantidade de mobs - Fase 1
         public final ModConfigSpec.IntValue reqZombieKills;
-        public final ModConfigSpec.IntValue reqZombieVillagerKills;
+        // REMOVIDO: reqZombieVillagerKills
         public final ModConfigSpec.IntValue reqSkeletonKills;
         public final ModConfigSpec.IntValue reqStrayKills;
         public final ModConfigSpec.IntValue reqHuskKills;
@@ -99,6 +101,11 @@ public class DimTrConfig {
                     .comment("Enable mob health/damage multipliers after phase completion")
                     .define("enableMultipliers", true);
 
+            // NOVO: Configuração para multiplicador de XP
+            enableXpMultiplier = builder
+                    .comment("Enable XP multiplier from mobs based on phase progression (same as health/damage multiplier)")
+                    .define("enableXpMultiplier", true);
+
             builder.pop();
 
             builder.push("Phase 1 Special Objectives");
@@ -140,9 +147,7 @@ public class DimTrConfig {
                     .comment("Number of Zombies to kill for Phase 1")
                     .defineInRange("reqZombieKills", 50, 0, 1000);
 
-            reqZombieVillagerKills = builder
-                    .comment("Number of Zombie Villagers to kill for Phase 1")
-                    .defineInRange("reqZombieVillagerKills", 3, 0, 100);
+            // REMOVIDO: reqZombieVillagerKills - não é mais necessário
 
             reqSkeletonKills = builder
                     .comment("Number of Skeletons to kill for Phase 1")

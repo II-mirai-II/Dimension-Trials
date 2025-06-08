@@ -519,7 +519,7 @@ public class ProgressionHUDScreen extends Screen {
             content.add(Component.empty());
             content.add(Component.translatable("gui.dimtr.mob.progress").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
 
-            // Calcular progresso geral dos mobs (removendo captain da lista)
+            // ATUALIZADO: Calcular progresso geral dos mobs (removendo zombie_villager e captain da lista)
             int totalMobsCompleted = 0;
             int totalMobsRequired = 0;
 
@@ -562,7 +562,7 @@ public class ProgressionHUDScreen extends Screen {
         // Mobs Comuns
         content.add(Component.translatable("gui.dimtr.section.common.mobs").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
         addMobCounterLine(content, progress, Constants.HUD_MOB_ZOMBIE, "zombie", 1);
-        addMobCounterLine(content, progress, Constants.HUD_MOB_ZOMBIE_VILLAGER, "zombie_villager", 1);
+        // REMOVIDO: addMobCounterLine(content, progress, Constants.HUD_MOB_ZOMBIE_VILLAGER, "zombie_villager", 1);
         addMobCounterLine(content, progress, Constants.HUD_MOB_SKELETON, "skeleton", 1);
         addMobCounterLine(content, progress, Constants.HUD_MOB_STRAY, "stray", 1);
         addMobCounterLine(content, progress, Constants.HUD_MOB_HUSK, "husk", 1);
@@ -593,15 +593,15 @@ public class ProgressionHUDScreen extends Screen {
         content.add(Component.empty());
         content.add(Component.translatable("gui.dimtr.summary").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
 
-        // Calcular estatísticas (removendo captain da lista)
+        // ATUALIZADO: Calcular estatísticas (removendo zombie_villager e captain da lista)
         int totalKills = 0;
         int totalRequired = 0;
         int completedTypes = 0;
         int totalTypes = 0;
 
-        String[] allMobs = {"zombie", "zombie_villager", "skeleton", "stray", "husk", "spider",
+        String[] allMobs = {"zombie", "skeleton", "stray", "husk", "spider",
                 "creeper", "drowned", "enderman", "witch", "pillager",
-                "vindicator", "bogged", "breeze", "ravager", "evoker"}; // REMOVIDO: captain
+                "vindicator", "bogged", "breeze", "ravager", "evoker"}; // REMOVIDO: zombie_villager, captain
 
         for (String mobType : allMobs) {
             int current = progress.getMobKillCount(mobType);
@@ -705,7 +705,7 @@ public class ProgressionHUDScreen extends Screen {
 
         content.add(Component.empty());
 
-        // Reset Overworld (125%)
+        // Reset Overworld (125%) - ATUALIZADO: Removendo zombie_villager
         content.add(Component.translatable(Constants.HUD_SECTION_REPEAT_OVERWORLD).withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD));
         content.add(Component.translatable("gui.dimtr.requirements.increased").withStyle(ChatFormatting.GRAY));
         addMobCounterLine(content, progress, Constants.HUD_MOB_ZOMBIE, "zombie", 2);
@@ -723,7 +723,7 @@ public class ProgressionHUDScreen extends Screen {
         addMobCounterLine(content, progress, Constants.HUD_MOB_RAVAGER, "ravager", 2);
         addMobCounterLine(content, progress, Constants.HUD_MOB_EVOKER, "evoker", 2);
 
-        // Estatísticas detalhadas
+        // ATUALIZADO: Estatísticas detalhadas (removendo zombie_villager)
         content.add(Component.empty());
         content.add(Component.translatable("gui.dimtr.summary").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
 
@@ -734,7 +734,7 @@ public class ProgressionHUDScreen extends Screen {
         int overworldTotal = 0;
 
         String[] netherMobs = {"blaze", "wither_skeleton", "piglin_brute", "hoglin", "zoglin", "ghast", "endermite", "piglin"};
-        String[] overworldMobs = {"zombie", "skeleton", "creeper", "spider", "enderman", "witch", "pillager", "ravager", "evoker"};
+        String[] overworldMobs = {"zombie", "skeleton", "creeper", "spider", "enderman", "witch", "pillager", "ravager", "evoker"}; // REMOVIDO: zombie_villager
 
         for (String mobType : netherMobs) {
             int current = progress.getMobKillCount(mobType);

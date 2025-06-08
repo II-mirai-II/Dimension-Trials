@@ -4,8 +4,8 @@ import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.config.DimTrConfig;
 import net.mirai.dimtr.data.ProgressionData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.entity.monster.piglin.PiglinBrute;
@@ -15,33 +15,44 @@ import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 
 @EventBusSubscriber(modid = DimTrMod.MODID, bus = EventBusSubscriber.Bus.GAME)
-public class MobMultiplierHandler {
+public class XpMultiplierHandler {
 
     @SubscribeEvent
-    public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
+    public static void onMobDropExperience(LivingExperienceDropEvent event) {
+        LivingEntity entity = event.getEntity();
+
         // Só aplicar no servidor
-        if (!(event.getLevel() instanceof ServerLevel serverLevel)) {
+        if (!(entity.level() instanceof ServerLevel serverLevel)) {
             return;
         }
 
-        // Verificar se os multiplicadores estão habilitados
-        if (!DimTrConfig.SERVER.enableMultipliers.get()) {
+        // Verificar se os multiplicadores de XP estão habilitados
+        if (!DimTrConfig.SERVER.enableXpMultiplier.get()) {
             return;
         }
 
         // Só aplicar em mobs hostis específicos
-        if (!(event.getEntity() instanceof LivingEntity livingEntity) || !isHostileMob(livingEntity)) {
+        if (!isHostileMob(entity)) {
             return;
         }
 
         ProgressionData progressionData = ProgressionData.get(serverLevel);
-        double multiplier = calculateMultiplier(progressionData);
+        double multiplier = calculateXpMultiplier(progressionData);
 
         if (multiplier > 1.0) {
-            applyMultiplier(livingEntity, multiplier);
+            int originalXp = event.getDroppedExperience();
+            int newXp = (int) Math.ceil(originalXp * multiplier);
+            event.setDroppedExperience(newXp);
+
+            DimTrMod.LOGGER.debug("Applied {}x XP multiplier to {} (Original: {}, New: {})",
+                    multiplier,
+                    entity.getType().getDescriptionId(),
+                    originalXp,
+                    newXp
+            );
         }
     }
 
@@ -54,7 +65,7 @@ public class MobMultiplierHandler {
                 entity instanceof Spider ||
                 entity instanceof Creeper ||
                 entity instanceof Drowned ||
-                entity instanceof EnderMan ||  // Correto: EnderMan (não Enderman)
+                entity instanceof EnderMan ||
                 entity instanceof Witch ||
                 entity instanceof Pillager ||
                 entity instanceof Vindicator ||
@@ -70,12 +81,13 @@ public class MobMultiplierHandler {
                 entity instanceof Ghast ||
                 entity instanceof Endermite ||
                 entity instanceof Piglin ||
-                entity instanceof WitherBoss ||  // Correto: WitherBoss
+                entity instanceof WitherBoss ||
                 entity instanceof Warden ||
-                entity instanceof EnderDragon;  // Correto: EnderDragon
+                entity instanceof EnderDragon;
     }
 
-    private static double calculateMultiplier(ProgressionData progressionData) {
+    private static double calculateXpMultiplier(ProgressionData progressionData) {
+        // Usar os mesmos multiplicadores das fases como HP/Damage
         // Fase 2 completa tem prioridade máxima
         if (progressionData.phase2Completed) {
             return DimTrConfig.SERVER.phase2Multiplier.get();
@@ -86,37 +98,5 @@ public class MobMultiplierHandler {
         }
         // Nenhuma fase completa
         return 1.0;
-    }
-
-    private static void applyMultiplier(LivingEntity entity, double multiplier) {
-        try {
-            // Aplicar multiplicador de vida
-            if (entity.getAttribute(Attributes.MAX_HEALTH) != null) {
-                double originalHealth = entity.getAttribute(Attributes.MAX_HEALTH).getBaseValue();
-                double newHealth = originalHealth * multiplier;
-                entity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newHealth);
-                entity.setHealth((float) newHealth); // Setar vida atual para o máximo
-            }
-
-            // Aplicar multiplicador de dano de ataque
-            if (entity.getAttribute(Attributes.ATTACK_DAMAGE) != null) {
-                double originalDamage = entity.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue();
-                double newDamage = originalDamage * multiplier;
-                entity.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(newDamage);
-            }
-
-            DimTrMod.LOGGER.debug("Applied {}x multiplier to {} (HP: {}, DMG: {})",
-                    multiplier,
-                    entity.getType().getDescriptionId(),
-                    entity.getAttribute(Attributes.MAX_HEALTH) != null ?
-                            entity.getAttribute(Attributes.MAX_HEALTH).getBaseValue() : "N/A",
-                    entity.getAttribute(Attributes.ATTACK_DAMAGE) != null ?
-                            entity.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue() : "N/A"
-            );
-
-        } catch (Exception e) {
-            DimTrMod.LOGGER.warn("Failed to apply multiplier to {}: {}",
-                    entity.getType().getDescriptionId(), e.getMessage());
-        }
     }
 }
