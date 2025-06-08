@@ -34,7 +34,7 @@ public class DimTrConfig {
 
         // Requisitos de objetivos especiais
         public final ModConfigSpec.BooleanValue reqElderGuardian;
-        public final ModConfigSpec.BooleanValue reqRaid; // ATUALIZADO: Removido "AndRavager"
+        public final ModConfigSpec.BooleanValue reqRaid;
         public final ModConfigSpec.BooleanValue reqTrialVaultAdv;
         public final ModConfigSpec.BooleanValue reqWither;
         public final ModConfigSpec.BooleanValue reqWarden;
@@ -56,7 +56,7 @@ public class DimTrConfig {
         public final ModConfigSpec.IntValue reqBoggedKills;
         public final ModConfigSpec.IntValue reqBreezeKills;
 
-        // NOVO: Ravager e Evoker como Goal Kills
+        // CORREÇÃO: Ravager e Evoker como Goal Kills com valores corretos
         public final ModConfigSpec.IntValue reqRavagerKills;
         public final ModConfigSpec.IntValue reqEvokerKills;
 
@@ -105,7 +105,7 @@ public class DimTrConfig {
                     .comment("Require Elder Guardian kill for Phase 1")
                     .define("reqElderGuardian", true);
 
-            reqRaid = builder // ATUALIZADO: Apenas Raid
+            reqRaid = builder
                     .comment("Require winning a raid for Phase 1")
                     .define("reqRaid", true);
 
@@ -189,14 +189,14 @@ public class DimTrConfig {
                     .comment("Number of Breezes to kill for Phase 1")
                     .defineInRange("reqBreezeKills", 5, 0, 50);
 
-            // CORREÇÃO 5: Ravager e Evoker como Goal Kills com valores ajustados
+            // CORREÇÃO: Ravager e Evoker como Goal Kills com valores corretos
             reqRavagerKills = builder
                     .comment("Number of Ravagers to kill for Phase 1 (Goal Kill)")
-                    .defineInRange("reqRavagerKills", 1, 0, 20); // MUDANÇA: 3 -> 1
+                    .defineInRange("reqRavagerKills", 1, 0, 20); // VALOR CORRETO: 1
 
             reqEvokerKills = builder
                     .comment("Number of Evokers to kill for Phase 1 (Goal Kill)")
-                    .defineInRange("reqEvokerKills", 5, 0, 10); // MUDANÇA: 2 -> 5
+                    .defineInRange("reqEvokerKills", 5, 0, 50); // VALOR CORRETO: 5
 
             builder.pop();
 
@@ -216,11 +216,11 @@ public class DimTrConfig {
 
             reqHoglinKills = builder
                     .comment("Number of Hoglins to kill for Phase 2")
-                    .defineInRange("reqHoglinKills", 1, 0, 100); // CORREÇÃO 4: 10 -> 1
+                    .defineInRange("reqHoglinKills", 1, 0, 100); // VALOR CORRETO: 1
 
             reqZoglinKills = builder
                     .comment("Number of Zoglins to kill for Phase 2")
-                    .defineInRange("reqZoglinKills", 1, 0, 50); // CORREÇÃO 4: 5 -> 1
+                    .defineInRange("reqZoglinKills", 1, 0, 50); // VALOR CORRETO: 1
 
             reqGhastKills = builder
                     .comment("Number of Ghasts to kill for Phase 2")
@@ -310,10 +310,6 @@ public class DimTrConfig {
 
     // Enum para posição do HUD
     public enum HUDPosition {
-        TOP_LEFT,
-        TOP_RIGHT,
-        BOTTOM_LEFT,
-        BOTTOM_RIGHT,
-        CENTER
+        TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT, CENTER
     }
 }

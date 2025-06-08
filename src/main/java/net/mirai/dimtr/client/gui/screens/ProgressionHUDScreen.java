@@ -467,7 +467,7 @@ public class ProgressionHUDScreen extends Screen {
     }
 
     // ============================================================================
-    // CORREÇÃO PRINCIPAL: Métodos de geração de conteúdo usando traduções
+    // MÉTODOS DE GERAÇÃO DE CONTEÚDO CORRIGIDOS COM AS ALTERAÇÕES SOLICITADAS
     // ============================================================================
 
     private List<Component> generatePhase1MainContent(ClientProgressionData progress) {
@@ -500,6 +500,11 @@ public class ProgressionHUDScreen extends Screen {
             content.add(createGoalLine(Component.translatable(Constants.HUD_TRIAL_VAULT_ADV), progress.isTrialVaultAdvancementEarned()));
         }
 
+        // NOVO: Adicionar conquista Voluntaire Exile para capitães (movido para Main)
+        if (progress.getMobKillRequirement("captain", 1) > 0) {
+            content.add(createGoalLine(Component.translatable(Constants.HUD_VOLUNTAIRE_EXILE), progress.isVoluntaireExileAdvancementEarned()));
+        }
+
         // Status de progresso geral
         content.add(Component.empty());
         if (progress.isPhase1Completed()) {
@@ -514,7 +519,7 @@ public class ProgressionHUDScreen extends Screen {
             content.add(Component.empty());
             content.add(Component.translatable("gui.dimtr.mob.progress").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
 
-            // Calcular progresso geral dos mobs
+            // Calcular progresso geral dos mobs (removendo captain da lista)
             int totalMobsCompleted = 0;
             int totalMobsRequired = 0;
 
@@ -572,31 +577,31 @@ public class ProgressionHUDScreen extends Screen {
         addMobCounterLine(content, progress, Constants.HUD_MOB_ENDERMAN, "enderman", 1);
         addMobCounterLine(content, progress, Constants.HUD_MOB_WITCH, "witch", 1);
         addMobCounterLine(content, progress, Constants.HUD_MOB_PILLAGER, "pillager", 1);
-        addMobCounterLine(content, progress, Constants.HUD_MOB_CAPTAIN, "captain", 1);
+        // REMOVIDO: captain da lista de goal kills (agora é conquista na Main)
         addMobCounterLine(content, progress, Constants.HUD_MOB_VINDICATOR, "vindicator", 1);
         addMobCounterLine(content, progress, Constants.HUD_MOB_BOGGED, "bogged", 1);
         addMobCounterLine(content, progress, Constants.HUD_MOB_BREEZE, "breeze", 1);
 
         content.add(Component.empty());
 
-        // Goal Kills
+        // Goal Kills - ATUALIZADO: Com requisitos corretos
         content.add(Component.translatable("gui.dimtr.section.goal.kills").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
-        addMobCounterLine(content, progress, Constants.HUD_MOB_RAVAGER, "ravager", 1);
-        addMobCounterLine(content, progress, Constants.HUD_MOB_EVOKER, "evoker", 1);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_RAVAGER, "ravager", 1); // Deve mostrar 1
+        addMobCounterLine(content, progress, Constants.HUD_MOB_EVOKER, "evoker", 1);   // Deve mostrar 5
 
         // Resumo de progresso
         content.add(Component.empty());
         content.add(Component.translatable("gui.dimtr.summary").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
 
-        // Calcular estatísticas
+        // Calcular estatísticas (removendo captain da lista)
         int totalKills = 0;
         int totalRequired = 0;
         int completedTypes = 0;
         int totalTypes = 0;
 
         String[] allMobs = {"zombie", "zombie_villager", "skeleton", "stray", "husk", "spider",
-                "creeper", "drowned", "enderman", "witch", "pillager", "captain",
-                "vindicator", "bogged", "breeze", "ravager", "evoker"};
+                "creeper", "drowned", "enderman", "witch", "pillager",
+                "vindicator", "bogged", "breeze", "ravager", "evoker"}; // REMOVIDO: captain
 
         for (String mobType : allMobs) {
             int current = progress.getMobKillCount(mobType);
@@ -687,13 +692,13 @@ public class ProgressionHUDScreen extends Screen {
             return content;
         }
 
-        // Mobs do Nether
+        // Mobs do Nether - ATUALIZADO: Com requisitos corretos para Hoglin e Zoglin
         content.add(Component.translatable(Constants.HUD_SECTION_NETHER_MOBS).withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
         addMobCounterLine(content, progress, Constants.HUD_MOB_BLAZE, "blaze", 2);
         addMobCounterLine(content, progress, Constants.HUD_MOB_WITHER_SKELETON, "wither_skeleton", 2);
         addMobCounterLine(content, progress, Constants.HUD_MOB_PIGLIN_BRUTE, "piglin_brute", 2);
-        addMobCounterLine(content, progress, Constants.HUD_MOB_HOGLIN, "hoglin", 2);
-        addMobCounterLine(content, progress, Constants.HUD_MOB_ZOGLIN, "zoglin", 2);
+        addMobCounterLine(content, progress, Constants.HUD_MOB_HOGLIN, "hoglin", 2);   // Deve mostrar 1
+        addMobCounterLine(content, progress, Constants.HUD_MOB_ZOGLIN, "zoglin", 2);   // Deve mostrar 1
         addMobCounterLine(content, progress, Constants.HUD_MOB_GHAST, "ghast", 2);
         addMobCounterLine(content, progress, Constants.HUD_MOB_ENDERMITE, "endermite", 2);
         addMobCounterLine(content, progress, Constants.HUD_MOB_PIGLIN, "piglin", 2);

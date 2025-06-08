@@ -161,5 +161,7 @@
   "cmd.dimtr.invalid_goal": "Invalid goal name.",
   "cmd.dimtr.mob_kills_set": "Mob kill counters successfully set.",
   "cmd.dimtr.invalid_mob": "Invalid mob name.",
-  "cmd.dimtr.invalid_boolean": "Invalid boolean value. Use 'true' or 'false'."
+  "cmd.dimtr.invalid_boolean": "Invalid boolean value. Use 'true' or 'false'.",
+  "gui.dimtr.voluntaire.exile": "Voluntaire Exile",
+  "hud.dimtr.voluntaire.exile": "Voluntaire Exile"
 }

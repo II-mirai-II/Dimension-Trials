@@ -1,7 +1,9 @@
 package net.mirai.dimtr.util;
 
 public class Constants {
-    public static final String MODID = "dimtr";
+    // CORREÇÃO: MOD_ID em vez de MODID para consistência
+    public static final String MOD_ID = "dimtr";
+    public static final String MODID = "dimtr"; // Manter para compatibilidade
 
     // CORREÇÃO: Nome da chave de dados
     public static final String PROGRESSION_DATA_NAME = "dimtr_progression";
@@ -19,6 +21,8 @@ public class Constants {
     // CORREÇÃO: Mensagens de bloqueio de portal
     public static final String MSG_NETHER_LOCKED = "message.dimtr.nether_locked";
     public static final String MSG_END_LOCKED = "message.dimtr.end_locked";
+    public static final String MSG_NETHER_PORTAL_BLOCKED = "message.dimtr.nether_portal_blocked";
+    public static final String MSG_END_PORTAL_BLOCKED = "message.dimtr.end_portal_blocked";
 
     // NOVO: Mensagens de teleporte para spawn
     public static final String MSG_NETHER_LOCKED_TELEPORT = "message.dimtr.nether_locked_teleport";
@@ -35,6 +39,11 @@ public class Constants {
     public static final String HUD_TOOLTIP_RAID_WON = "hud.dimtr.tooltip.raid_won";
     public static final String HUD_TRIAL_VAULT_ADV = "hud.dimtr.trial_vault_adv";
     public static final String HUD_TOOLTIP_TRIAL_VAULT_ADV = "hud.dimtr.tooltip.trial_vault_adv";
+
+    // NOVO: Conquista Voluntaire Exile
+    public static final String HUD_VOLUNTAIRE_EXILE = "hud.dimtr.voluntaire_exile";
+    public static final String HUD_TOOLTIP_VOLUNTAIRE_EXILE = "hud.dimtr.tooltip.voluntaire_exile";
+
     public static final String HUD_WITHER_KILLED = "hud.dimtr.wither_killed";
     public static final String HUD_TOOLTIP_WITHER_KILLED = "hud.dimtr.tooltip.wither_killed";
     public static final String HUD_WARDEN_KILLED = "hud.dimtr.warden_killed";
@@ -45,8 +54,9 @@ public class Constants {
     public static final String HUD_SECTION_MOB_ELIMINATION = "hud.dimtr.section.mob_elimination";
     public static final String HUD_SECTION_NETHER_MOBS = "hud.dimtr.section.nether_mobs";
     public static final String HUD_SECTION_REPEAT_OVERWORLD = "hud.dimtr.section.repeat_overworld";
+    public static final String HUD_SECTION_SPECIAL_MOBS = "hud.dimtr.section.special.mobs";
 
-    // Mob Names - COM EMOJIS
+    // Mob Names - COM EMOJIS - Fase 1 (Overworld)
     public static final String HUD_MOB_ZOMBIE = "hud.dimtr.mob.zombie";
     public static final String HUD_MOB_ZOMBIE_VILLAGER = "hud.dimtr.mob.zombie_villager";
     public static final String HUD_MOB_SKELETON = "hud.dimtr.mob.skeleton";
@@ -67,7 +77,7 @@ public class Constants {
     public static final String HUD_MOB_RAVAGER = "hud.dimtr.mob.ravager";
     public static final String HUD_MOB_EVOKER = "hud.dimtr.mob.evoker";
 
-    // Fase 2 Mobs - COM EMOJIS
+    // Fase 2 Mobs - COM EMOJIS (Nether/End)
     public static final String HUD_MOB_BLAZE = "hud.dimtr.mob.blaze";
     public static final String HUD_MOB_WITHER_SKELETON = "hud.dimtr.mob.wither_skeleton";
     public static final String HUD_MOB_PIGLIN_BRUTE = "hud.dimtr.mob.piglin_brute";
@@ -132,4 +142,60 @@ public class Constants {
     public static final String GUI_CHALLENGE_WARDEN = "gui.dimtr.challenge.warden";
     public static final String GUI_CHALLENGE_NETHER = "gui.dimtr.challenge.nether";
     public static final String GUI_CHALLENGE_NEW_MOBS = "gui.dimtr.challenge.new.mobs";
+
+    // NOVO: Instruções do GUI (compatibilidade com novos códigos)
+    public static final String GUI_WINDOW_INSTRUCTIONS_KEY = "gui.dimtr.window.instructions";
+    public static final String GUI_PAGE_INSTRUCTIONS_KEY = "gui.dimtr.page.instructions";
+    public static final String GUI_CLOSE_INSTRUCTIONS_KEY = "gui.dimtr.close.instructions";
+
+    // Teclas de atalho
+    public static final String KEY_OPEN_HUD = "key.dimtr.open_hud";
+    public static final String KEY_CATEGORY = "key.categories.dimtr";
+
+    // Item de progressão
+    public static final String ITEM_PROGRESSION_BOOK = "item.dimtr.progression_book";
+
+    // Comandos detalhados
+    public static final String COMMAND_DIMTR = "commands.dimtr.description";
+    public static final String COMMAND_DIMTR_STATUS = "commands.dimtr.status.description";
+    public static final String COMMAND_DIMTR_COMPLETE = "commands.dimtr.complete.description";
+    public static final String COMMAND_DIMTR_RESET = "commands.dimtr.reset.description";
+
+    // Avancements
+    public static final String ADVANCEMENT_PHASE1_COMPLETE = "advancement.dimtr.phase1_complete";
+    public static final String ADVANCEMENT_PHASE2_COMPLETE = "advancement.dimtr.phase2_complete";
+
+    // Creative Tab
+    public static final String CREATIVE_TAB_TITLE = "itemGroup.dimtr.main";
+
+    // Configurações
+    public static final String CONFIG_ENABLE_PHASE1 = "config.dimtr.enable_phase1";
+    public static final String CONFIG_ENABLE_PHASE2 = "config.dimtr.enable_phase2";
+    public static final String CONFIG_ENABLE_MOB_KILLS_PHASE1 = "config.dimtr.enable_mob_kills_phase1";
+    public static final String CONFIG_ENABLE_MOB_KILLS_PHASE2 = "config.dimtr.enable_mob_kills_phase2";
+
+    // Tooltips
+    public static final String TOOLTIP_PROGRESSION_BOOK = "tooltip.dimtr.progression_book";
+    public static final String TOOLTIP_PHASE_LOCKED = "tooltip.dimtr.phase_locked";
+    public static final String TOOLTIP_PHASE_UNLOCKED = "tooltip.dimtr.phase_unlocked";
+
+    // Informações de progresso
+    public static final String PROGRESS_PHASE1_INCOMPLETE = "progress.dimtr.phase1_incomplete";
+    public static final String PROGRESS_PHASE1_COMPLETE = "progress.dimtr.phase1_complete";
+    public static final String PROGRESS_PHASE2_INCOMPLETE = "progress.dimtr.phase2_incomplete";
+    public static final String PROGRESS_PHASE2_COMPLETE = "progress.dimtr.phase2_complete";
+
+    // Status de portais
+    public static final String PORTAL_STATUS_LOCKED = "portal.dimtr.status.locked";
+    public static final String PORTAL_STATUS_UNLOCKED = "portal.dimtr.status.unlocked";
+
+    // Validação
+    public static final String VALIDATION_INVALID_MOB_TYPE = "validation.dimtr.invalid_mob_type";
+    public static final String VALIDATION_INVALID_PHASE = "validation.dimtr.invalid_phase";
+
+    // NOVO: Constantes específicas para seções especializadas
+    public static final String SECTION_GOAL_KILLS = "gui.dimtr.section.goal.kills";
+    public static final String SECTION_SPECIAL_MOBS = "gui.dimtr.section.special.mobs";
+    public static final String SECTION_COMMON_MOBS = "gui.dimtr.section.common.mobs";
+    public static final String SECTION_NETHER_MOBS = "gui.dimtr.section.nether.mobs";
 }

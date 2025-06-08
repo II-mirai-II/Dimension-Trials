@@ -1,6 +1,5 @@
 package net.mirai.dimtr.client;
 
-import net.mirai.dimtr.config.DimTrConfig;
 import net.mirai.dimtr.network.UpdateProgressionToClientPayload;
 
 public class ClientProgressionData {
@@ -12,6 +11,8 @@ public class ClientProgressionData {
     private boolean ravagerKilled = false; // Manter para compatibilidade
     private boolean evokerKilled = false; // Manter para compatibilidade
     private boolean trialVaultAdvancementEarned = false;
+    // NOVO: Conquista Voluntaire Exile
+    private boolean voluntaireExileAdvancementEarned = false;
     private boolean phase1Completed = false;
 
     private boolean witherKilled = false;
@@ -49,9 +50,34 @@ public class ClientProgressionData {
     private int endermiteKills = 0;
     private int piglinKills = 0;
 
-    private ClientProgressionData() {
-    }
+    // CORREÇÃO PRINCIPAL: Configurações de requisitos sincronizadas do servidor
+    private int reqZombieKills = 50;
+    private int reqZombieVillagerKills = 3;
+    private int reqSkeletonKills = 40;
+    private int reqStrayKills = 10;
+    private int reqHuskKills = 10;
+    private int reqSpiderKills = 30;
+    private int reqCreeperKills = 30;
+    private int reqDrownedKills = 20;
+    private int reqEndermanKills = 5;
+    private int reqWitchKills = 5;
+    private int reqPillagerKills = 20;
+    private int reqCaptainKills = 1;
+    private int reqVindicatorKills = 10;
+    private int reqBoggedKills = 10;
+    private int reqBreezeKills = 5;
+    private int reqRavagerKills = 1; // CORRETO: 1
+    private int reqEvokerKills = 5;  // CORRETO: 5
+    private int reqBlazeKills = 20;
+    private int reqWitherSkeletonKills = 15;
+    private int reqPiglinBruteKills = 5;
+    private int reqHoglinKills = 1;  // CORRETO: 1
+    private int reqZoglinKills = 1;  // CORRETO: 1
+    private int reqGhastKills = 10;
+    private int reqEndermiteKills = 5;
+    private int reqPiglinKills = 30;
 
+    // MÉTODO PRINCIPAL: Atualizar dados com payload do servidor
     public void updateData(UpdateProgressionToClientPayload payload) {
         // Objetivos originais
         this.elderGuardianKilled = payload.elderGuardianKilled();
@@ -59,6 +85,8 @@ public class ClientProgressionData {
         this.ravagerKilled = payload.ravagerKilled(); // Manter para compatibilidade
         this.evokerKilled = payload.evokerKilled(); // Manter para compatibilidade
         this.trialVaultAdvancementEarned = payload.trialVaultAdvancementEarned();
+        // NOVO: Conquista Voluntaire Exile
+        this.voluntaireExileAdvancementEarned = payload.voluntaireExileAdvancementEarned();
         this.phase1Completed = payload.phase1Completed();
         this.witherKilled = payload.witherKilled();
         this.wardenKilled = payload.wardenKilled();
@@ -85,7 +113,7 @@ public class ClientProgressionData {
         this.ravagerKills = payload.ravagerKills();
         this.evokerKills = payload.evokerKills();
 
-        // Contadores de mobs - Fase 2
+        // Novos contadores de mobs - Fase 2
         this.blazeKills = payload.blazeKills();
         this.witherSkeletonKills = payload.witherSkeletonKills();
         this.piglinBruteKills = payload.piglinBruteKills();
@@ -94,6 +122,40 @@ public class ClientProgressionData {
         this.ghastKills = payload.ghastKills();
         this.endermiteKills = payload.endermiteKills();
         this.piglinKills = payload.piglinKills();
+
+        // CORREÇÃO PRINCIPAL: Atualizar configurações sincronizadas do servidor
+        this.reqZombieKills = payload.reqZombieKills();
+        this.reqZombieVillagerKills = payload.reqZombieVillagerKills();
+        this.reqSkeletonKills = payload.reqSkeletonKills();
+        this.reqStrayKills = payload.reqStrayKills();
+        this.reqHuskKills = payload.reqHuskKills();
+        this.reqSpiderKills = payload.reqSpiderKills();
+        this.reqCreeperKills = payload.reqCreeperKills();
+        this.reqDrownedKills = payload.reqDrownedKills();
+        this.reqEndermanKills = payload.reqEndermanKills();
+        this.reqWitchKills = payload.reqWitchKills();
+        this.reqPillagerKills = payload.reqPillagerKills();
+        this.reqCaptainKills = payload.reqCaptainKills();
+        this.reqVindicatorKills = payload.reqVindicatorKills();
+        this.reqBoggedKills = payload.reqBoggedKills();
+        this.reqBreezeKills = payload.reqBreezeKills();
+        this.reqRavagerKills = payload.reqRavagerKills(); // Agora sincronizado: 1
+        this.reqEvokerKills = payload.reqEvokerKills();   // Agora sincronizado: 5
+        this.reqBlazeKills = payload.reqBlazeKills();
+        this.reqWitherSkeletonKills = payload.reqWitherSkeletonKills();
+        this.reqPiglinBruteKills = payload.reqPiglinBruteKills();
+        this.reqHoglinKills = payload.reqHoglinKills();   // Agora sincronizado: 1
+        this.reqZoglinKills = payload.reqZoglinKills();   // Agora sincronizado: 1
+        this.reqGhastKills = payload.reqGhastKills();
+        this.reqEndermiteKills = payload.reqEndermiteKills();
+        this.reqPiglinKills = payload.reqPiglinKills();
+
+        // Debug log para verificar sincronização
+        System.out.println("CLIENT DATA UPDATED:");
+        System.out.println("Ravager req: " + this.reqRavagerKills + " (should be 1)");
+        System.out.println("Evoker req: " + this.reqEvokerKills + " (should be 5)");
+        System.out.println("Hoglin req: " + this.reqHoglinKills + " (should be 1)");
+        System.out.println("Zoglin req: " + this.reqZoglinKills + " (should be 1)");
     }
 
     // Getters para objetivos originais
@@ -102,6 +164,8 @@ public class ClientProgressionData {
     public boolean isRavagerKilled() { return ravagerKilled; } // Manter para compatibilidade
     public boolean isEvokerKilled() { return evokerKilled; } // Manter para compatibilidade
     public boolean isTrialVaultAdvancementEarned() { return trialVaultAdvancementEarned; }
+    // NOVO: Getter para conquista Voluntaire Exile
+    public boolean isVoluntaireExileAdvancementEarned() { return voluntaireExileAdvancementEarned; }
     public boolean isPhase1Completed() { return phase1Completed; }
     public boolean isWitherKilled() { return witherKilled; }
     public boolean isWardenKilled() { return wardenKilled; }
@@ -140,8 +204,7 @@ public class ClientProgressionData {
 
     // Método auxiliar para obter contagem de um mob específico
     public int getMobKillCount(String mobType) {
-        return switch (mobType.toLowerCase()) {
-            // Fase 1 mobs
+        return switch (mobType) {
             case "zombie" -> zombieKills;
             case "zombie_villager" -> zombieVillagerKills;
             case "skeleton" -> skeletonKills;
@@ -157,12 +220,8 @@ public class ClientProgressionData {
             case "vindicator" -> vindicatorKills;
             case "bogged" -> boggedKills;
             case "breeze" -> breezeKills;
-
-            // NOVO: Ravager e Evoker Goal Kills
             case "ravager" -> ravagerKills;
             case "evoker" -> evokerKills;
-
-            // Fase 2 mobs
             case "blaze" -> blazeKills;
             case "wither_skeleton" -> witherSkeletonKills;
             case "piglin_brute" -> piglinBruteKills;
@@ -171,77 +230,61 @@ public class ClientProgressionData {
             case "ghast" -> ghastKills;
             case "endermite" -> endermiteKills;
             case "piglin" -> piglinKills;
-
             default -> 0;
         };
     }
 
-    // Método auxiliar para obter requisito de um mob específico baseado na fase
+    // CORREÇÃO PRINCIPAL: Usar valores sincronizados em vez de DimTrConfig.SERVER
     public int getMobKillRequirement(String mobType, int phase) {
         if (phase == 1) {
-            // Fase 1 - Valores padrão
-            return switch (mobType.toLowerCase()) {
-                case "zombie" -> DimTrConfig.SERVER.reqZombieKills.get();
-                case "zombie_villager" -> DimTrConfig.SERVER.reqZombieVillagerKills.get();
-                case "skeleton" -> DimTrConfig.SERVER.reqSkeletonKills.get();
-                case "stray" -> DimTrConfig.SERVER.reqStrayKills.get();
-                case "husk" -> DimTrConfig.SERVER.reqHuskKills.get();
-                case "spider" -> DimTrConfig.SERVER.reqSpiderKills.get();
-                case "creeper" -> DimTrConfig.SERVER.reqCreeperKills.get();
-                case "drowned" -> DimTrConfig.SERVER.reqDrownedKills.get();
-                case "enderman" -> DimTrConfig.SERVER.reqEndermanKills.get();
-                case "witch" -> DimTrConfig.SERVER.reqWitchKills.get();
-                case "pillager" -> DimTrConfig.SERVER.reqPillagerKills.get();
-                case "captain" -> DimTrConfig.SERVER.reqCaptainKills.get();
-                case "vindicator" -> DimTrConfig.SERVER.reqVindicatorKills.get();
-                case "bogged" -> DimTrConfig.SERVER.reqBoggedKills.get();
-                case "breeze" -> DimTrConfig.SERVER.reqBreezeKills.get();
-
-                // CORREÇÃO 5: Ravager e Evoker com valores atualizados
-                case "ravager" -> DimTrConfig.SERVER.reqRavagerKills.get(); // Agora 1
-                case "evoker" -> DimTrConfig.SERVER.reqEvokerKills.get(); // Agora 5
-
+            return switch (mobType) {
+                case "zombie" -> reqZombieKills;
+                case "zombie_villager" -> reqZombieVillagerKills;
+                case "skeleton" -> reqSkeletonKills;
+                case "stray" -> reqStrayKills;
+                case "husk" -> reqHuskKills;
+                case "spider" -> reqSpiderKills;
+                case "creeper" -> reqCreeperKills;
+                case "drowned" -> reqDrownedKills;
+                case "enderman" -> reqEndermanKills;
+                case "witch" -> reqWitchKills;
+                case "pillager" -> reqPillagerKills;
+                case "captain" -> reqCaptainKills;
+                case "vindicator" -> reqVindicatorKills;
+                case "bogged" -> reqBoggedKills;
+                case "breeze" -> reqBreezeKills;
+                // CORREÇÃO: Agora usa valores sincronizados corretos
+                case "ravager" -> reqRavagerKills; // Retorna 1 correto
+                case "evoker" -> reqEvokerKills;   // Retorna 5 correto
                 default -> 0;
             };
         } else if (phase == 2) {
-            // Fase 2 - Valores aumentados para mobs do Overworld (125%)
-            return switch (mobType.toLowerCase()) {
-                // ATUALIZADO: Requisitos aumentados da Fase 1 (125% do original)
-                case "zombie" -> getPhase2OverworldRequirement(50);
-                case "zombie_villager" -> getPhase2OverworldRequirement(3);
-                case "skeleton" -> getPhase2OverworldRequirement(40);
-                case "stray" -> getPhase2OverworldRequirement(10);
-                case "husk" -> getPhase2OverworldRequirement(10);
-                case "spider" -> getPhase2OverworldRequirement(30);
-                case "creeper" -> getPhase2OverworldRequirement(30);
-                case "drowned" -> getPhase2OverworldRequirement(20);
-                case "enderman" -> getPhase2OverworldRequirement(5);
-                case "witch" -> getPhase2OverworldRequirement(5);
-                case "pillager" -> getPhase2OverworldRequirement(20);
-                case "captain" -> getPhase2OverworldRequirement(1);
-                case "vindicator" -> getPhase2OverworldRequirement(10);
-                case "bogged" -> getPhase2OverworldRequirement(10);
-                case "breeze" -> getPhase2OverworldRequirement(5);
+            return switch (mobType) {
+                // Mobs do Nether/End com valores corretos
+                case "blaze" -> reqBlazeKills;
+                case "wither_skeleton" -> reqWitherSkeletonKills;
+                case "piglin_brute" -> reqPiglinBruteKills;
+                case "hoglin" -> reqHoglinKills; // Retorna 1 correto
+                case "zoglin" -> reqZoglinKills; // Retorna 1 correto
+                case "ghast" -> reqGhastKills;
+                case "endermite" -> reqEndermiteKills;
+                case "piglin" -> reqPiglinKills;
 
-                // CORREÇÃO 5: Ravager e Evoker com 125% para Fase 2
-                case "ravager" -> getPhase2OverworldRequirement(1); // 1 * 1.25 = 1.25 -> 2
-                case "evoker" -> getPhase2OverworldRequirement(5); // 5 * 1.25 = 6.25 -> 7
+                // Mobs do Overworld com requisitos aumentados (125%)
+                case "zombie" -> getPhase2OverworldRequirement(reqZombieKills);
+                case "skeleton" -> getPhase2OverworldRequirement(reqSkeletonKills);
+                case "creeper" -> getPhase2OverworldRequirement(reqCreeperKills);
+                case "spider" -> getPhase2OverworldRequirement(reqSpiderKills);
+                case "enderman" -> getPhase2OverworldRequirement(reqEndermanKills);
+                case "witch" -> getPhase2OverworldRequirement(reqWitchKills);
+                case "pillager" -> getPhase2OverworldRequirement(reqPillagerKills);
 
-                // Mobs exclusivos da Fase 2
-                case "blaze" -> DimTrConfig.SERVER.reqBlazeKills.get();
-                case "wither_skeleton" -> DimTrConfig.SERVER.reqWitherSkeletonKills.get();
-                case "piglin_brute" -> DimTrConfig.SERVER.reqPiglinBruteKills.get();
-                case "hoglin" -> DimTrConfig.SERVER.reqHoglinKills.get(); // CORREÇÃO 4: Agora 1
-                case "zoglin" -> DimTrConfig.SERVER.reqZoglinKills.get(); // CORREÇÃO 4: Agora 1
-                case "ghast" -> DimTrConfig.SERVER.reqGhastKills.get();
-                // CORREÇÃO 3: REMOVER ENDERMITE COMPLETAMENTE
-                // case "endermite" -> DimTrConfig.SERVER.reqEndermiteKills.get();
-                case "piglin" -> DimTrConfig.SERVER.reqPiglinKills.get();
-
+                // CORREÇÃO: Ravager e Evoker Phase 2 com 125% dos valores da Phase 1
+                case "ravager" -> getPhase2OverworldRequirement(reqRavagerKills); // 1 * 1.25 = 2
+                case "evoker" -> getPhase2OverworldRequirement(reqEvokerKills);   // 5 * 1.25 = 7
                 default -> 0;
             };
         }
-
         return 0;
     }
 
@@ -265,13 +308,6 @@ public class ClientProgressionData {
 
     // CORREÇÃO PRINCIPAL: Adicionar método que estava faltando
     public boolean isPhase1EffectivelyComplete() {
-        // Simular a lógica do servidor no lado do cliente
-        // Se a configuração da Fase 1 está desabilitada, considera completa
-        if (!isServerEnablePhase1()) {
-            return true;
-        }
-
-        // Caso contrário, verifica se a Fase 1 foi marcada como completa
-        return isPhase1Completed();
+        return phase1Completed;
     }
 }

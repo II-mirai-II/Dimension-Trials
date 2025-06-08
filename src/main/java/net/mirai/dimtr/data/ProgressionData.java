@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.ChatFormatting;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -22,6 +23,8 @@ public class ProgressionData extends SavedData {
     public boolean ravagerKilled = false; // Manter para compatibilidade, mas não usar na lógica principal
     public boolean evokerKilled = false; // Manter para compatibilidade, mas não usar na lógica principal
     public boolean trialVaultAdvancementEarned = false;
+    // NOVO: Conquista Voluntaire Exile para Capitães Pillager
+    public boolean voluntaireExileAdvancementEarned = false;
     public boolean phase1Completed = false;
 
     public boolean witherKilled = false;
@@ -72,6 +75,8 @@ public class ProgressionData extends SavedData {
         ravagerKilled = tag.getBoolean("ravagerKilled"); // Manter para compatibilidade
         evokerKilled = tag.getBoolean("evokerKilled"); // Manter para compatibilidade
         trialVaultAdvancementEarned = tag.getBoolean("trialVaultAdvancementEarned");
+        // NOVO: Carregar conquista Voluntaire Exile
+        voluntaireExileAdvancementEarned = tag.getBoolean("voluntaireExileAdvancementEarned");
         phase1Completed = tag.getBoolean("phase1Completed");
         witherKilled = tag.getBoolean("witherKilled");
         wardenKilled = tag.getBoolean("wardenKilled");
@@ -94,7 +99,7 @@ public class ProgressionData extends SavedData {
         boggedKills = tag.getInt("boggedKills");
         breezeKills = tag.getInt("breezeKills");
 
-        // NOVO: Carregar Ravager e Evoker Goal Kills
+        // NOVO: Carregar Ravager e Evoker
         ravagerKills = tag.getInt("ravagerKills");
         evokerKills = tag.getInt("evokerKills");
 
@@ -125,6 +130,8 @@ public class ProgressionData extends SavedData {
         compoundTag.putBoolean("ravagerKilled", ravagerKilled);
         compoundTag.putBoolean("evokerKilled", evokerKilled);
         compoundTag.putBoolean("trialVaultAdvancementEarned", trialVaultAdvancementEarned);
+        // NOVO: Salvar conquista Voluntaire Exile
+        compoundTag.putBoolean("voluntaireExileAdvancementEarned", voluntaireExileAdvancementEarned);
         compoundTag.putBoolean("phase1Completed", phase1Completed);
         compoundTag.putBoolean("witherKilled", witherKilled);
         compoundTag.putBoolean("wardenKilled", wardenKilled);
@@ -147,7 +154,7 @@ public class ProgressionData extends SavedData {
         compoundTag.putInt("boggedKills", boggedKills);
         compoundTag.putInt("breezeKills", breezeKills);
 
-        // NOVO: Salvar Ravager e Evoker Goal Kills
+        // NOVO: Salvar Ravager e Evoker
         compoundTag.putInt("ravagerKills", ravagerKills);
         compoundTag.putInt("evokerKills", evokerKills);
 
@@ -167,7 +174,7 @@ public class ProgressionData extends SavedData {
     public static ProgressionData get(ServerLevel level) {
         // CORREÇÃO: Garantir que o server context seja definido
         ProgressionData data = level.getDataStorage().computeIfAbsent(
-                new SavedData.Factory<>(ProgressionData::create, ProgressionData::load),
+                new SavedData.Factory<>(ProgressionData::create, ProgressionData::load, DataFixTypes.LEVEL),
                 Constants.PROGRESSION_DATA_NAME
         );
 
@@ -179,42 +186,40 @@ public class ProgressionData extends SavedData {
         return data;
     }
 
+    public void setServerContext(MinecraftServer server) {
+        this.serverForContext = server;
+    }
+
     // CORREÇÃO: Método seguro para verificar se a Fase 1 está efetivamente bloqueada
     public boolean isPhase1EffectivelyLocked() {
         boolean configEnabled = DimTrConfig.SERVER.enablePhase1.get();
         boolean isCompleted = phase1Completed;
 
-        // NOVO: Log para debug
-        DimTrMod.LOGGER.debug("Phase 1 Lock Check - Config Enabled: {}, Completed: {}, Result: {}",
+        DimTrMod.LOGGER.debug("Phase 1 Lock Check - Config: {}, Completed: {}, Result: {}",
                 configEnabled, isCompleted, configEnabled && !isCompleted);
 
         if (!configEnabled) {
             return false; // Se desabilitado na config, não está bloqueado
         }
-        return !isCompleted; // Bloqueado se não foi completada
+        return !isCompleted; // Bloqueado se não foi completa
     }
 
     // CORREÇÃO: Método seguro para verificar se a Fase 2 está efetivamente bloqueada
     public boolean isPhase2EffectivelyLocked() {
         boolean configEnabled = DimTrConfig.SERVER.enablePhase2.get();
-        boolean phase1Complete = isPhase1EffectivelyComplete();
         boolean isCompleted = phase2Completed;
+        boolean phase1Complete = isPhase1EffectivelyComplete();
 
-        // NOVO: Log detalhado para debug
         DimTrMod.LOGGER.debug("Phase 2 Lock Check - Config: {}, Phase1Complete: {}, Phase2Complete: {}, Result: {}",
                 configEnabled, phase1Complete, isCompleted, configEnabled && (!phase1Complete || !isCompleted));
 
         if (!configEnabled) {
-            DimTrMod.LOGGER.debug("Phase 2 disabled in config - not locked");
             return false; // Se desabilitado na config, não está bloqueado
         }
         if (!phase1Complete) {
-            DimTrMod.LOGGER.debug("Phase 1 not complete - Phase 2 locked");
-            return true; // Bloqueado se Fase 1 não foi completada
+            return true; // Se Fase 1 não está completa, Fase 2 está bloqueada
         }
-        boolean result = !isCompleted;
-        DimTrMod.LOGGER.debug("Phase 2 lock result: {}", result);
-        return result; // Bloqueado se não foi completada
+        return !isCompleted; // Bloqueado se não foi completa
     }
 
     // CORREÇÃO: Método para verificar se Fase 1 está efetivamente completa
@@ -235,8 +240,7 @@ public class ProgressionData extends SavedData {
     public boolean incrementMobKill(String mobType) {
         boolean updated = false;
 
-        switch (mobType.toLowerCase()) {
-            // Fase 1 mobs
+        switch (mobType) {
             case "zombie" -> { zombieKills++; updated = true; }
             case "zombie_villager" -> { zombieVillagerKills++; updated = true; }
             case "skeleton" -> { skeletonKills++; updated = true; }
@@ -269,17 +273,19 @@ public class ProgressionData extends SavedData {
         }
 
         if (updated) {
-            checkAndCompletePhase1Internal();
-            checkAndCompletePhase2Internal();
+            DimTrMod.LOGGER.debug("Incremented {} kill count", mobType);
+            checkAndCompletePhase1(true);
+            checkAndCompletePhase2(true);
             markDirtyAndSendUpdates();
+            return true;
         }
 
-        return updated;
+        return false;
     }
 
     // Método helper para obter contagem de um mob específico
     public int getMobKillCount(String mobType) {
-        return switch (mobType.toLowerCase()) {
+        return switch (mobType) {
             case "zombie" -> zombieKills;
             case "zombie_villager" -> zombieVillagerKills;
             case "skeleton" -> skeletonKills;
@@ -295,8 +301,12 @@ public class ProgressionData extends SavedData {
             case "vindicator" -> vindicatorKills;
             case "bogged" -> boggedKills;
             case "breeze" -> breezeKills;
-            case "ravager" -> ravagerKills; // NOVO
-            case "evoker" -> evokerKills; // NOVO
+
+            // NOVO: Ravager e Evoker
+            case "ravager" -> ravagerKills;
+            case "evoker" -> evokerKills;
+
+            // Fase 2
             case "blaze" -> blazeKills;
             case "wither_skeleton" -> witherSkeletonKills;
             case "piglin_brute" -> piglinBruteKills;
@@ -323,6 +333,7 @@ public class ProgressionData extends SavedData {
     public void sendToClient(ServerPlayer player) {
         try {
             UpdateProgressionToClientPayload payload = createPayload();
+            // CORREÇÃO: Usar PacketDistributor.sendToPlayer() diretamente
             PacketDistributor.sendToPlayer(player, payload);
         } catch (Exception e) {
             DimTrMod.LOGGER.error("Failed to send progression data to client: {}", e.getMessage());
@@ -332,13 +343,38 @@ public class ProgressionData extends SavedData {
     public UpdateProgressionToClientPayload createPayload() {
         return new UpdateProgressionToClientPayload(
                 elderGuardianKilled, raidWon, ravagerKilled, evokerKilled, trialVaultAdvancementEarned,
-                phase1Completed, witherKilled, wardenKilled, phase2Completed,
-                zombieKills, zombieVillagerKills, skeletonKills, strayKills, huskKills,
-                spiderKills, creeperKills, drownedKills, endermanKills, witchKills,
-                pillagerKills, captainKills, vindicatorKills, boggedKills, breezeKills,
-                ravagerKills, evokerKills, // NOVO
+                voluntaireExileAdvancementEarned, phase1Completed, witherKilled, wardenKilled, phase2Completed,
+                zombieKills, zombieVillagerKills, skeletonKills, strayKills, huskKills, spiderKills,
+                creeperKills, drownedKills, endermanKills, witchKills, pillagerKills, captainKills,
+                vindicatorKills, boggedKills, breezeKills, ravagerKills, evokerKills,
                 blazeKills, witherSkeletonKills, piglinBruteKills, hoglinKills, zoglinKills,
-                ghastKills, endermiteKills, piglinKills
+                ghastKills, endermiteKills, piglinKills,
+                // NOVO: Sincronizar configurações do servidor para o cliente
+                DimTrConfig.SERVER.reqZombieKills.get(),
+                DimTrConfig.SERVER.reqZombieVillagerKills.get(),
+                DimTrConfig.SERVER.reqSkeletonKills.get(),
+                DimTrConfig.SERVER.reqStrayKills.get(),
+                DimTrConfig.SERVER.reqHuskKills.get(),
+                DimTrConfig.SERVER.reqSpiderKills.get(),
+                DimTrConfig.SERVER.reqCreeperKills.get(),
+                DimTrConfig.SERVER.reqDrownedKills.get(),
+                DimTrConfig.SERVER.reqEndermanKills.get(),
+                DimTrConfig.SERVER.reqWitchKills.get(),
+                DimTrConfig.SERVER.reqPillagerKills.get(),
+                DimTrConfig.SERVER.reqCaptainKills.get(),
+                DimTrConfig.SERVER.reqVindicatorKills.get(),
+                DimTrConfig.SERVER.reqBoggedKills.get(),
+                DimTrConfig.SERVER.reqBreezeKills.get(),
+                DimTrConfig.SERVER.reqRavagerKills.get(), // Enviará 1
+                DimTrConfig.SERVER.reqEvokerKills.get(),  // Enviará 5
+                DimTrConfig.SERVER.reqBlazeKills.get(),
+                DimTrConfig.SERVER.reqWitherSkeletonKills.get(),
+                DimTrConfig.SERVER.reqPiglinBruteKills.get(),
+                DimTrConfig.SERVER.reqHoglinKills.get(),  // Enviará 1
+                DimTrConfig.SERVER.reqZoglinKills.get(),  // Enviará 1
+                DimTrConfig.SERVER.reqGhastKills.get(),
+                DimTrConfig.SERVER.reqEndermiteKills.get(),
+                DimTrConfig.SERVER.reqPiglinKills.get()
         );
     }
 
@@ -372,20 +408,18 @@ public class ProgressionData extends SavedData {
     }
 
     public boolean updateRavagerKilled(boolean value) {
-        if (!this.ravagerKilled && value) {
-            this.ravagerKilled = true;
-            checkAndCompletePhase1(true);
-            markDirtyAndSendUpdates();
+        if (ravagerKilled != value) {
+            ravagerKilled = value;
+            DimTrMod.LOGGER.info("Ravager killed status updated: {}", value);
             return true;
         }
         return false;
     }
 
     public boolean updateEvokerKilled(boolean value) {
-        if (!this.evokerKilled && value) {
-            this.evokerKilled = true;
-            checkAndCompletePhase1(true);
-            markDirtyAndSendUpdates();
+        if (evokerKilled != value) {
+            evokerKilled = value;
+            DimTrMod.LOGGER.info("Evoker killed status updated: {}", value);
             return true;
         }
         return false;
@@ -396,6 +430,15 @@ public class ProgressionData extends SavedData {
             this.trialVaultAdvancementEarned = true;
             checkAndCompletePhase1(true);
             markDirtyAndSendUpdates();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean updateVoluntaireExileAdvancementEarned(boolean value) {
+        if (voluntaireExileAdvancementEarned != value) {
+            voluntaireExileAdvancementEarned = value;
+            DimTrMod.LOGGER.info("Voluntaire Exile advancement updated: {}", value);
             return true;
         }
         return false;
@@ -434,11 +477,13 @@ public class ProgressionData extends SavedData {
             boolean elderGuardianMet = DimTrConfig.SERVER.reqElderGuardian.get() ? elderGuardianKilled : true;
             boolean raidMet = DimTrConfig.SERVER.reqRaid.get() ? raidWon : true;
             boolean trialVaultMet = DimTrConfig.SERVER.reqTrialVaultAdv.get() ? trialVaultAdvancementEarned : true;
+            // NOVO: Verificar conquista Voluntaire Exile para capitães
+            boolean voluntaireExileMet = DimTrConfig.SERVER.reqCaptainKills.get() > 0 ? voluntaireExileAdvancementEarned : true;
 
             // Verificar novos requisitos de mobs
             boolean mobKillsMet = checkPhase1MobRequirements();
 
-            if (elderGuardianMet && raidMet && trialVaultMet && mobKillsMet) {
+            if (elderGuardianMet && raidMet && trialVaultMet && voluntaireExileMet && mobKillsMet) {
                 phase1Completed = true;
                 DimTrMod.LOGGER.info("Phase 1 requirements met and completed!");
                 if (announce) broadcastMessage(Component.translatable(Constants.MSG_PHASE1_UNLOCKED_GLOBAL).withStyle(ChatFormatting.GREEN));
@@ -447,11 +492,11 @@ public class ProgressionData extends SavedData {
     }
 
     private void checkAndCompletePhase2(boolean announce) {
-        if (!phase2Completed && DimTrConfig.SERVER.enablePhase2.get() && isPhase1EffectivelyComplete()) {
+        if (!phase2Completed && DimTrConfig.SERVER.enablePhase2.get() && phase1Completed) {
             boolean witherMet = DimTrConfig.SERVER.reqWither.get() ? witherKilled : true;
             boolean wardenMet = DimTrConfig.SERVER.reqWarden.get() ? wardenKilled : true;
 
-            // Verificar novos requisitos de mobs
+            // Verificar requisitos de mobs da Fase 2
             boolean mobKillsMet = checkPhase2MobRequirements();
 
             if (witherMet && wardenMet && mobKillsMet) {
@@ -481,7 +526,7 @@ public class ProgressionData extends SavedData {
         boolean endermenMet = endermanKills >= DimTrConfig.SERVER.reqEndermanKills.get();
         boolean witchesMet = witchKills >= DimTrConfig.SERVER.reqWitchKills.get();
         boolean pillagersMet = pillagerKills >= DimTrConfig.SERVER.reqPillagerKills.get();
-        boolean captainsMet = captainKills >= DimTrConfig.SERVER.reqCaptainKills.get();
+        // REMOVIDO: captainsMet dos goal kills
         boolean vindicatorsMet = vindicatorKills >= DimTrConfig.SERVER.reqVindicatorKills.get();
         boolean boggedMet = boggedKills >= DimTrConfig.SERVER.reqBoggedKills.get();
         boolean breezeMet = breezeKills >= DimTrConfig.SERVER.reqBreezeKills.get();
@@ -492,7 +537,8 @@ public class ProgressionData extends SavedData {
 
         boolean allMet = zombiesMet && zombieVillagersMet && skeletonsMet && straysMet && husksMet &&
                 spidersMet && creepersMet && drownedMet && endermenMet && witchesMet &&
-                pillagersMet && captainsMet && vindicatorsMet && boggedMet && breezeMet &&
+                // REMOVIDO: captainsMet da verificação
+                pillagersMet && vindicatorsMet && boggedMet && breezeMet &&
                 ravagersMet && evokersMet; // NOVO: Incluir Ravager e Evoker
 
         if (!allMet) {
@@ -514,7 +560,7 @@ public class ProgressionData extends SavedData {
             return true;
         }
 
-        // Verificar cada tipo de mob da Fase 2 (novos mobs do Nether/End)
+        // Verificar mobs do Nether/End
         boolean blazesMet = blazeKills >= DimTrConfig.SERVER.reqBlazeKills.get();
         boolean witherSkeletonsMet = witherSkeletonKills >= DimTrConfig.SERVER.reqWitherSkeletonKills.get();
         boolean piglinBrutesMet = piglinBruteKills >= DimTrConfig.SERVER.reqPiglinBruteKills.get();
@@ -524,36 +570,28 @@ public class ProgressionData extends SavedData {
         boolean endermitesMet = endermiteKills >= DimTrConfig.SERVER.reqEndermiteKills.get();
         boolean piglinsMet = piglinKills >= DimTrConfig.SERVER.reqPiglinKills.get();
 
-        // ATUALIZADO: Verificar também os requisitos aumentados da Fase 1 (125% dos valores originais)
+        // Verificar mobs do Overworld com requisitos aumentados (125%)
+        boolean overworldMobsMet = checkPhase2OverworldRequirements();
+
+        boolean allMet = blazesMet && witherSkeletonsMet && piglinBrutesMet && hoglinsMet &&
+                zoglinsMet && ghastsMet && endermitesMet && piglinsMet && overworldMobsMet;
+
+        if (!allMet) {
+            DimTrMod.LOGGER.debug("Phase 2 mob requirements not met");
+        }
+
+        return allMet;
+    }
+
+    private boolean checkPhase2OverworldRequirements() {
+        // Verificar mobs do Overworld com 125% dos valores da Fase 1
         boolean zombiesMet = zombieKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqZombieKills.get());
-        boolean zombieVillagersMet = zombieVillagerKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqZombieVillagerKills.get());
         boolean skeletonsMet = skeletonKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqSkeletonKills.get());
-        boolean straysMet = strayKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqStrayKills.get());
-        boolean husksMet = huskKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqHuskKills.get());
-        boolean spidersMet = spiderKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqSpiderKills.get());
         boolean creepersMet = creeperKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqCreeperKills.get());
-        boolean drownedMet = drownedKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqDrownedKills.get());
+        boolean spidersMet = spiderKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqSpiderKills.get());
         boolean endermenMet = endermanKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqEndermanKills.get());
-        boolean witchesMet = witchKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqWitchKills.get());
-        boolean pillagersMet = pillagerKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqPillagerKills.get());
-        boolean captainsMet = captainKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqCaptainKills.get());
-        boolean vindicatorsMet = vindicatorKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqVindicatorKills.get());
-        boolean boggedMet = boggedKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqBoggedKills.get());
-        boolean breezeMet = breezeKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqBreezeKills.get());
 
-        // NOVO: Ravager e Evoker com 125% também
-        boolean ravagersMet = ravagerKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqRavagerKills.get());
-        boolean evokersMet = evokerKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqEvokerKills.get());
-
-        boolean allNetherMet = blazesMet && witherSkeletonsMet && piglinBrutesMet && hoglinsMet && zoglinsMet &&
-                ghastsMet && endermitesMet && piglinsMet;
-
-        boolean allOverworldResetMet = zombiesMet && zombieVillagersMet && skeletonsMet && straysMet && husksMet &&
-                spidersMet && creepersMet && drownedMet && endermenMet && witchesMet &&
-                pillagersMet && captainsMet && vindicatorsMet && boggedMet && breezeMet &&
-                ravagersMet && evokersMet; // NOVO: Incluir Ravager e Evoker
-
-        return allNetherMet && allOverworldResetMet;
+        return zombiesMet && skeletonsMet && creepersMet && spidersMet && endermenMet;
     }
 
     // ATUALIZADO: Método auxiliar para calcular requisitos da Fase 2 para mobs do Overworld (125%)
