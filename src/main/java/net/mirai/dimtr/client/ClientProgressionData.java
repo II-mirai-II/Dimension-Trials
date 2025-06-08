@@ -77,6 +77,9 @@ public class ClientProgressionData {
     private int reqEndermiteKills = 5;
     private int reqPiglinKills = 30;
 
+    // NOVO: Configuração para Voluntary Exile
+    private boolean serverReqVoluntaryExile = true;
+
     // MÉTODO PRINCIPAL: Atualizar dados com payload do servidor
     public void updateData(UpdateProgressionToClientPayload payload) {
         // Objetivos originais
@@ -150,12 +153,17 @@ public class ClientProgressionData {
         this.reqEndermiteKills = payload.reqEndermiteKills();
         this.reqPiglinKills = payload.reqPiglinKills();
 
+        // NOVO: Sincronizar configuração Voluntary Exile
+        this.serverReqVoluntaryExile = payload.serverReqVoluntaryExile();
+
         // Debug log para verificar sincronização
         System.out.println("CLIENT DATA UPDATED:");
         System.out.println("Ravager req: " + this.reqRavagerKills + " (should be 1)");
         System.out.println("Evoker req: " + this.reqEvokerKills + " (should be 5)");
         System.out.println("Hoglin req: " + this.reqHoglinKills + " (should be 1)");
         System.out.println("Zoglin req: " + this.reqZoglinKills + " (should be 1)");
+        // NOVO: Debug para Voluntary Exile
+        System.out.println("Voluntary Exile required: " + this.serverReqVoluntaryExile);
     }
 
     // Getters para objetivos originais
@@ -305,6 +313,11 @@ public class ClientProgressionData {
     public boolean isServerReqTrialVaultAdv() { return true; }
     public boolean isServerReqWither() { return true; }
     public boolean isServerReqWarden() { return true; }
+
+    // NOVO: Getter para verificar se Voluntary Exile é obrigatório
+    public boolean isServerReqVoluntaryExile() {
+        return serverReqVoluntaryExile;
+    }
 
     // CORREÇÃO PRINCIPAL: Adicionar método que estava faltando
     public boolean isPhase1EffectivelyComplete() {

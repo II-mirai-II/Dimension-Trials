@@ -75,7 +75,9 @@ public record UpdateProgressionToClientPayload(
         int reqZoglinKills,  // VALOR CORRETO: 1
         int reqGhastKills,
         int reqEndermiteKills,
-        int reqPiglinKills
+        int reqPiglinKills,
+        // NOVO: Configuração específica para Voluntary Exile
+        boolean serverReqVoluntaryExile
 ) implements CustomPacketPayload {
 
     public static final Type<UpdateProgressionToClientPayload> TYPE =
@@ -157,6 +159,9 @@ public record UpdateProgressionToClientPayload(
         buf.writeInt(payload.reqGhastKills);
         buf.writeInt(payload.reqEndermiteKills);
         buf.writeInt(payload.reqPiglinKills);
+
+        // NOVO: Configuração Voluntary Exile
+        buf.writeBoolean(payload.serverReqVoluntaryExile);
     }
 
     private static UpdateProgressionToClientPayload decode(ByteBuf buf) {
@@ -228,6 +233,9 @@ public record UpdateProgressionToClientPayload(
         int reqEndermiteKills = buf.readInt();
         int reqPiglinKills = buf.readInt();
 
+        // NOVO: Configuração Voluntary Exile
+        boolean serverReqVoluntaryExile = buf.readBoolean();
+
         return new UpdateProgressionToClientPayload(
                 elderGuardianKilled, raidWon, ravagerKilled, evokerKilled, trialVaultAdvancementEarned,
                 voluntaireExileAdvancementEarned, phase1Completed, witherKilled, wardenKilled, phase2Completed,
@@ -240,7 +248,8 @@ public record UpdateProgressionToClientPayload(
                 reqSpiderKills, reqCreeperKills, reqDrownedKills, reqEndermanKills, reqWitchKills,
                 reqPillagerKills, reqCaptainKills, reqVindicatorKills, reqBoggedKills, reqBreezeKills,
                 reqRavagerKills, reqEvokerKills, reqBlazeKills, reqWitherSkeletonKills, reqPiglinBruteKills,
-                reqHoglinKills, reqZoglinKills, reqGhastKills, reqEndermiteKills, reqPiglinKills
+                reqHoglinKills, reqZoglinKills, reqGhastKills, reqEndermiteKills, reqPiglinKills,
+                serverReqVoluntaryExile
         );
     }
 
@@ -253,6 +262,8 @@ public record UpdateProgressionToClientPayload(
             System.out.println("Evoker req: " + payload.reqEvokerKills() + " (should be 5)");
             System.out.println("Hoglin req: " + payload.reqHoglinKills() + " (should be 1)");
             System.out.println("Zoglin req: " + payload.reqZoglinKills() + " (should be 1)");
+            // NOVO: Debug para Voluntary Exile
+            System.out.println("Voluntary Exile required: " + payload.serverReqVoluntaryExile());
 
             // Verificar se o ClientProgressionData está sendo atualizado
             System.out.println("Updating ClientProgressionData...");

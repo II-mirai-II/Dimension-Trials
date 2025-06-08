@@ -374,7 +374,9 @@ public class ProgressionData extends SavedData {
                 DimTrConfig.SERVER.reqZoglinKills.get(),  // Enviará 1
                 DimTrConfig.SERVER.reqGhastKills.get(),
                 DimTrConfig.SERVER.reqEndermiteKills.get(),
-                DimTrConfig.SERVER.reqPiglinKills.get()
+                DimTrConfig.SERVER.reqPiglinKills.get(),
+                // NOVO: Sincronizar configuração Voluntary Exile
+                DimTrConfig.SERVER.reqVoluntaryExile.get()
         );
     }
 
@@ -436,9 +438,10 @@ public class ProgressionData extends SavedData {
     }
 
     public boolean updateVoluntaireExileAdvancementEarned(boolean value) {
-        if (voluntaireExileAdvancementEarned != value) {
-            voluntaireExileAdvancementEarned = value;
-            DimTrMod.LOGGER.info("Voluntaire Exile advancement updated: {}", value);
+        if (!this.voluntaireExileAdvancementEarned && value) {
+            this.voluntaireExileAdvancementEarned = true;
+            checkAndCompletePhase1(true);
+            markDirtyAndSendUpdates();
             return true;
         }
         return false;
@@ -477,13 +480,14 @@ public class ProgressionData extends SavedData {
             boolean elderGuardianMet = DimTrConfig.SERVER.reqElderGuardian.get() ? elderGuardianKilled : true;
             boolean raidMet = DimTrConfig.SERVER.reqRaid.get() ? raidWon : true;
             boolean trialVaultMet = DimTrConfig.SERVER.reqTrialVaultAdv.get() ? trialVaultAdvancementEarned : true;
-            // NOVO: Verificar conquista Voluntaire Exile para capitães
-            boolean voluntaireExileMet = DimTrConfig.SERVER.reqCaptainKills.get() > 0 ? voluntaireExileAdvancementEarned : true;
+
+            // CORRIGIDO: Usar configuração específica para Voluntary Exile
+            boolean voluntaryExileMet = DimTrConfig.SERVER.reqVoluntaryExile.get() ? voluntaireExileAdvancementEarned : true;
 
             // Verificar novos requisitos de mobs
             boolean mobKillsMet = checkPhase1MobRequirements();
 
-            if (elderGuardianMet && raidMet && trialVaultMet && voluntaireExileMet && mobKillsMet) {
+            if (elderGuardianMet && raidMet && trialVaultMet && voluntaryExileMet && mobKillsMet) {
                 phase1Completed = true;
                 DimTrMod.LOGGER.info("Phase 1 requirements met and completed!");
                 if (announce) broadcastMessage(Component.translatable(Constants.MSG_PHASE1_UNLOCKED_GLOBAL).withStyle(ChatFormatting.GREEN));

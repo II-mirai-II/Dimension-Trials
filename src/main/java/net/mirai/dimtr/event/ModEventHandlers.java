@@ -254,6 +254,12 @@ public class ModEventHandlers {
                 DimTrMod.LOGGER.info("Under Lock and Key advancement earned! Phase 1 progress updated.");
             }
         }
+        // NOVO: Tratar conquista Voluntary Exile
+        else if (advancementId.equals(ResourceLocation.withDefaultNamespace("adventure/voluntary_exile"))) {
+            if (progressionData.updateVoluntaireExileAdvancementEarned(true)) {
+                DimTrMod.LOGGER.info("Voluntary Exile advancement earned! Phase 1 progress updated.");
+            }
+        }
     }
 
     @SubscribeEvent

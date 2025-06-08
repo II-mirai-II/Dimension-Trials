@@ -36,6 +36,8 @@ public class DimTrConfig {
         public final ModConfigSpec.BooleanValue reqElderGuardian;
         public final ModConfigSpec.BooleanValue reqRaid;
         public final ModConfigSpec.BooleanValue reqTrialVaultAdv;
+        // NOVO: Configuração específica para Voluntary Exile
+        public final ModConfigSpec.BooleanValue reqVoluntaryExile;
         public final ModConfigSpec.BooleanValue reqWither;
         public final ModConfigSpec.BooleanValue reqWarden;
 
@@ -112,6 +114,11 @@ public class DimTrConfig {
             reqTrialVaultAdv = builder
                     .comment("Require Trial Vault advancement for Phase 1")
                     .define("reqTrialVaultAdv", true);
+
+            // NOVO: Configuração específica para Voluntary Exile
+            reqVoluntaryExile = builder
+                    .comment("Require Voluntary Exile advancement for Phase 1 (earned by killing raid captain)")
+                    .define("reqVoluntaryExile", true);
 
             builder.pop();
 

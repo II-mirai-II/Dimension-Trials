@@ -500,8 +500,8 @@ public class ProgressionHUDScreen extends Screen {
             content.add(createGoalLine(Component.translatable(Constants.HUD_TRIAL_VAULT_ADV), progress.isTrialVaultAdvancementEarned()));
         }
 
-        // NOVO: Adicionar conquista Voluntaire Exile para capitães (movido para Main)
-        if (progress.getMobKillRequirement("captain", 1) > 0) {
+        // CORREÇÃO PRINCIPAL: Usar configuração específica para Voluntary Exile
+        if (progress.isServerReqVoluntaryExile()) {
             content.add(createGoalLine(Component.translatable(Constants.HUD_VOLUNTAIRE_EXILE), progress.isVoluntaireExileAdvancementEarned()));
         }
 
