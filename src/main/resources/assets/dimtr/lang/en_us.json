@@ -29,7 +29,7 @@
   "hud.dimtr.tooltip.raid_won": "Successfully defend a village against a raid",
   "hud.dimtr.trial_vault_adv": "🗝 Trial Vault",
   "hud.dimtr.tooltip.trial_vault_adv": "Earn the 'Under Lock and Key' advancement",
-  "hud.dimtr.voluntaire_exile": "🏴 Voluntaire Exile",
+  "hud.dimtr.voluntaire_exile": "🏴 Voluntary Exile",
   "hud.dimtr.tooltip.voluntaire_exile": "Defeat a Pillager Captain to earn this advancement",
   "hud.dimtr.wither_killed": "💀 Wither",
   "hud.dimtr.tooltip.wither_killed": "Defeat the mighty Wither",
@@ -42,7 +42,6 @@
   "hud.dimtr.section.repeat_overworld": "🔄 Reset Overworld",
 
   "hud.dimtr.mob.zombie": "🧟 Zombies",
-  "hud.dimtr.mob.zombie_villager": "🧟 Zombie Villagers",
   "hud.dimtr.mob.skeleton": "💀 Skeletons",
   "hud.dimtr.mob.stray": "🏔 Strays",
   "hud.dimtr.mob.husk": "🏜 Husks",
@@ -122,11 +121,11 @@
   "config.dimtr.server.reqElderGuardian": "Require Elder Guardian Kill",
   "config.dimtr.server.reqRaid": "Require Raid Victory",
   "config.dimtr.server.reqTrialVaultAdv": "Require Trial Vault Advancement",
+  "config.dimtr.server.reqVoluntaryExile": "Require Voluntary Exile Advancement",
   "config.dimtr.server.reqWither": "Require Wither Kill",
   "config.dimtr.server.reqWarden": "Require Warden Kill",
 
   "config.dimtr.server.reqZombieKills": "Required Zombie Kills",
-  "config.dimtr.server.reqZombieVillagerKills": "Required Zombie Villager Kills",
   "config.dimtr.server.reqSkeletonKills": "Required Skeleton Kills",
   "config.dimtr.server.reqStrayKills": "Required Stray Kills",
   "config.dimtr.server.reqHuskKills": "Required Husk Kills",
@@ -153,6 +152,7 @@
   "config.dimtr.server.reqPiglinKills": "Required Hostile Piglin Kills",
 
   "config.dimtr.server.enableMultipliers": "Enable Mob Multipliers After Phases",
+  "config.dimtr.server.enableXpMultiplier": "Enable XP Multiplier After Phases",
   "config.dimtr.server.phase1Multiplier": "Phase 1 Completion Multiplier",
   "config.dimtr.server.phase2Multiplier": "Phase 2 Completion Multiplier",
 

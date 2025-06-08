@@ -24,7 +24,8 @@ public class ClientEventHandlers {
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(OPEN_HUD_KEY);
-        DimTrMod.LOGGER.debug("Registered HUD keybinding: J");
+        // REMOVIDO: Log DEBUG que não é necessário
+        // DimTrMod.LOGGER.debug("Registered HUD keybinding: J");
     }
 
     @EventBusSubscriber(modid = DimTrMod.MODID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
@@ -36,7 +37,8 @@ public class ClientEventHandlers {
                 Minecraft minecraft = Minecraft.getInstance();
                 if (minecraft.screen == null) {
                     minecraft.setScreen(new ProgressionHUDScreen());
-                    DimTrMod.LOGGER.debug("Progression HUD opened by key press.");
+                    // REMOVIDO: Log DEBUG que causava spam
+                    // DimTrMod.LOGGER.debug("Progression HUD opened by key press.");
                 }
             }
         }

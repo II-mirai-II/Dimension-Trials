@@ -288,16 +288,9 @@ public class ModEventHandlers {
         ServerLevel serverLevel = (ServerLevel) player.level();
         ProgressionData progressionData = ProgressionData.get(serverLevel);
 
-        // CORREÇÃO: Log detalhado para debug
-        DimTrMod.LOGGER.debug("Player {} attempting to travel to dimension: {}",
-                player.getName().getString(), event.getDimension().location());
-
         // Verificar acesso ao Nether
         if (event.getDimension() == Level.NETHER) {
-            boolean isLocked = progressionData.isPhase1EffectivelyLocked();
-            DimTrMod.LOGGER.debug("Nether access check - Phase 1 locked: {}", isLocked);
-
-            if (isLocked) {
+            if (progressionData.isPhase1EffectivelyLocked()) {
                 event.setCanceled(true);
 
                 // NOVO: Teleportar para WorldSpawn
@@ -311,10 +304,7 @@ public class ModEventHandlers {
 
         // Verificar acesso ao End
         if (event.getDimension() == Level.END) {
-            boolean isLocked = progressionData.isPhase2EffectivelyLocked();
-            DimTrMod.LOGGER.debug("End access check - Phase 2 locked: {}", isLocked);
-
-            if (isLocked) {
+            if (progressionData.isPhase2EffectivelyLocked()) {
                 event.setCanceled(true);
 
                 // NOVO: Teleportar para WorldSpawn
@@ -325,9 +315,6 @@ public class ModEventHandlers {
                 return;
             }
         }
-
-        DimTrMod.LOGGER.debug("Allowing {} to travel to {}",
-                player.getName().getString(), event.getDimension().location());
     }
 
     // 2. BLOQUEAR ATIVAÇÃO/INTERAÇÃO COM PORTAIS

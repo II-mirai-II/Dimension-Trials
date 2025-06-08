@@ -195,8 +195,9 @@ public class ProgressionData extends SavedData {
         boolean configEnabled = DimTrConfig.SERVER.enablePhase1.get();
         boolean isCompleted = phase1Completed;
 
-        DimTrMod.LOGGER.debug("Phase 1 Lock Check - Config: {}, Completed: {}, Result: {}",
-                configEnabled, isCompleted, configEnabled && !isCompleted);
+        // REMOVIDO: Log DEBUG que causava spam
+        // DimTrMod.LOGGER.debug("Phase 1 Lock Check - Config: {}, Completed: {}, Result: {}",
+        //         configEnabled, isCompleted, configEnabled && !isCompleted);
 
         if (!configEnabled) {
             return false; // Se desabilitado na config, não está bloqueado
@@ -210,8 +211,9 @@ public class ProgressionData extends SavedData {
         boolean isCompleted = phase2Completed;
         boolean phase1Complete = isPhase1EffectivelyComplete();
 
-        DimTrMod.LOGGER.debug("Phase 2 Lock Check - Config: {}, Phase1Complete: {}, Phase2Complete: {}, Result: {}",
-                configEnabled, phase1Complete, isCompleted, configEnabled && (!phase1Complete || !isCompleted));
+        // REMOVIDO: Log DEBUG que causava spam
+        // DimTrMod.LOGGER.debug("Phase 2 Lock Check - Config: {}, Phase1Complete: {}, Phase2Complete: {}, Result: {}",
+        //         configEnabled, phase1Complete, isCompleted, configEnabled && (!phase1Complete || !isCompleted));
 
         if (!configEnabled) {
             return false; // Se desabilitado na config, não está bloqueado
@@ -227,8 +229,9 @@ public class ProgressionData extends SavedData {
         boolean configEnabled = DimTrConfig.SERVER.enablePhase1.get();
         boolean isCompleted = phase1Completed;
 
-        DimTrMod.LOGGER.debug("Phase 1 Complete Check - Config: {}, Completed: {}, Result: {}",
-                configEnabled, isCompleted, !configEnabled || isCompleted);
+        // REMOVIDO: Log DEBUG que causava spam
+        // DimTrMod.LOGGER.debug("Phase 1 Complete Check - Config: {}, Completed: {}, Result: {}",
+        //         configEnabled, isCompleted, !configEnabled || isCompleted);
 
         if (!configEnabled) {
             return true; // Se desabilitado na config, considera completa
