@@ -21,6 +21,7 @@ public class ClientProgressionData {
 
     // Novos contadores de mobs - Fase 1 (Overworld)
     private int zombieKills = 0;
+    // ✅ REMOVIDO FUNCIONALMENTE: zombieVillagerKills - mantido só para compatibilidade
     private int zombieVillagerKills = 0;
     private int skeletonKills = 0;
     private int strayKills = 0;
@@ -47,12 +48,14 @@ public class ClientProgressionData {
     private int hoglinKills = 0;
     private int zoglinKills = 0;
     private int ghastKills = 0;
+    // ✅ REMOVIDO FUNCIONALMENTE: endermiteKills - mantido só para compatibilidade
     private int endermiteKills = 0;
     private int piglinKills = 0;
 
     // CORREÇÃO PRINCIPAL: Configurações de requisitos sincronizadas do servidor
     private int reqZombieKills = 50;
-    private int reqZombieVillagerKills = 3;
+    // ✅ REMOVIDO FUNCIONALMENTE: reqZombieVillagerKills - sempre 0
+    private int reqZombieVillagerKills = 0;
     private int reqSkeletonKills = 40;
     private int reqStrayKills = 10;
     private int reqHuskKills = 10;
@@ -74,7 +77,8 @@ public class ClientProgressionData {
     private int reqHoglinKills = 1;  // CORRETO: 1
     private int reqZoglinKills = 1;  // CORRETO: 1
     private int reqGhastKills = 10;
-    private int reqEndermiteKills = 5;
+    // ✅ REMOVIDO FUNCIONALMENTE: reqEndermiteKills - sempre 0
+    private int reqEndermiteKills = 0;
     private int reqPiglinKills = 30;
 
     // NOVO: Configuração para Voluntary Exile
@@ -97,6 +101,7 @@ public class ClientProgressionData {
 
         // Novos contadores de mobs - Fase 1 (incluindo Ravager e Evoker)
         this.zombieKills = payload.zombieKills();
+        // ✅ ACEITA mas deve ser sempre 0
         this.zombieVillagerKills = payload.zombieVillagerKills();
         this.skeletonKills = payload.skeletonKills();
         this.strayKills = payload.strayKills();
@@ -123,11 +128,13 @@ public class ClientProgressionData {
         this.hoglinKills = payload.hoglinKills();
         this.zoglinKills = payload.zoglinKills();
         this.ghastKills = payload.ghastKills();
+        // ✅ ACEITA mas deve ser sempre 0
         this.endermiteKills = payload.endermiteKills();
         this.piglinKills = payload.piglinKills();
 
         // CORREÇÃO PRINCIPAL: Atualizar configurações sincronizadas do servidor
         this.reqZombieKills = payload.reqZombieKills();
+        // ✅ ACEITA mas deve ser sempre 0
         this.reqZombieVillagerKills = payload.reqZombieVillagerKills();
         this.reqSkeletonKills = payload.reqSkeletonKills();
         this.reqStrayKills = payload.reqStrayKills();
@@ -150,11 +157,26 @@ public class ClientProgressionData {
         this.reqHoglinKills = payload.reqHoglinKills();   // Agora sincronizado: 1
         this.reqZoglinKills = payload.reqZoglinKills();   // Agora sincronizado: 1
         this.reqGhastKills = payload.reqGhastKills();
+        // ✅ ACEITA mas deve ser sempre 0
         this.reqEndermiteKills = payload.reqEndermiteKills();
         this.reqPiglinKills = payload.reqPiglinKills();
 
         // NOVO: Sincronizar configuração Voluntary Exile
         this.serverReqVoluntaryExile = payload.serverReqVoluntaryExile();
+
+        // ✅ DEBUG: Verificar se valores removidos estão 0
+        if (this.zombieVillagerKills != 0) {
+            System.err.println("⚠️ CLIENT WARNING: zombieVillagerKills is " + this.zombieVillagerKills + " but should be 0!");
+        }
+        if (this.endermiteKills != 0) {
+            System.err.println("⚠️ CLIENT WARNING: endermiteKills is " + this.endermiteKills + " but should be 0!");
+        }
+        if (this.reqZombieVillagerKills != 0) {
+            System.err.println("⚠️ CLIENT WARNING: reqZombieVillagerKills is " + this.reqZombieVillagerKills + " but should be 0!");
+        }
+        if (this.reqEndermiteKills != 0) {
+            System.err.println("⚠️ CLIENT WARNING: reqEndermiteKills is " + this.reqEndermiteKills + " but should be 0!");
+        }
 
         // Debug log para verificar sincronização
         System.out.println("CLIENT DATA UPDATED:");
@@ -181,6 +203,7 @@ public class ClientProgressionData {
 
     // Getters para contadores de mobs - Fase 1
     public int getZombieKills() { return zombieKills; }
+    // ✅ MANTIDO para compatibilidade mas sempre retorna 0
     public int getZombieVillagerKills() { return zombieVillagerKills; }
     public int getSkeletonKills() { return skeletonKills; }
     public int getStrayKills() { return strayKills; }
@@ -207,6 +230,7 @@ public class ClientProgressionData {
     public int getHoglinKills() { return hoglinKills; }
     public int getZoglinKills() { return zoglinKills; }
     public int getGhastKills() { return ghastKills; }
+    // ✅ MANTIDO para compatibilidade mas sempre retorna 0
     public int getEndermiteKills() { return endermiteKills; }
     public int getPiglinKills() { return piglinKills; }
 
@@ -214,6 +238,7 @@ public class ClientProgressionData {
     public int getMobKillCount(String mobType) {
         return switch (mobType) {
             case "zombie" -> zombieKills;
+            // ✅ MANTIDO para compatibilidade mas sempre retorna 0
             case "zombie_villager" -> zombieVillagerKills;
             case "skeleton" -> skeletonKills;
             case "stray" -> strayKills;
@@ -236,6 +261,7 @@ public class ClientProgressionData {
             case "hoglin" -> hoglinKills;
             case "zoglin" -> zoglinKills;
             case "ghast" -> ghastKills;
+            // ✅ MANTIDO para compatibilidade mas sempre retorna 0
             case "endermite" -> endermiteKills;
             case "piglin" -> piglinKills;
             default -> 0;
@@ -247,7 +273,8 @@ public class ClientProgressionData {
         if (phase == 1) {
             return switch (mobType) {
                 case "zombie" -> reqZombieKills;
-                case "zombie_villager" -> reqZombieVillagerKills;
+                // ✅ SEMPRE RETORNA 0 para zombie_villager
+                case "zombie_villager" -> 0; // Forçar sempre 0 independente do payload
                 case "skeleton" -> reqSkeletonKills;
                 case "stray" -> reqStrayKills;
                 case "husk" -> reqHuskKills;
@@ -275,11 +302,14 @@ public class ClientProgressionData {
                 case "hoglin" -> reqHoglinKills; // Retorna 1 correto
                 case "zoglin" -> reqZoglinKills; // Retorna 1 correto
                 case "ghast" -> reqGhastKills;
-                case "endermite" -> reqEndermiteKills;
+                // ✅ SEMPRE RETORNA 0 para endermite
+                case "endermite" -> 0; // Forçar sempre 0 independente do payload
                 case "piglin" -> reqPiglinKills;
 
                 // Mobs do Overworld com requisitos aumentados (125%)
                 case "zombie" -> getPhase2OverworldRequirement(reqZombieKills);
+                // ✅ SEMPRE RETORNA 0 para zombie_villager mesmo na Fase 2
+                case "zombie_villager" -> 0; // Forçar sempre 0 independente do payload
                 case "skeleton" -> getPhase2OverworldRequirement(reqSkeletonKills);
                 case "creeper" -> getPhase2OverworldRequirement(reqCreeperKills);
                 case "spider" -> getPhase2OverworldRequirement(reqSpiderKills);

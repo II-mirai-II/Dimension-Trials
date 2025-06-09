@@ -76,7 +76,7 @@ public class DimTrCommands {
 
         // Definir diretamente os valores dos contadores de mobs da Fase 1
         progressionData.zombieKills = 50;
-        // REMOVIDO: progressionData.zombieVillagerKills = 3;
+        // ✅ REMOVIDO: progressionData.zombieVillagerKills = 3;
         progressionData.skeletonKills = 40;
         progressionData.strayKills = 10;
         progressionData.huskKills = 10;
@@ -136,12 +136,12 @@ public class DimTrCommands {
         progressionData.hoglinKills = 1; // CORREÇÃO: Valor correto
         progressionData.zoglinKills = 1; // CORREÇÃO: Valor correto
         progressionData.ghastKills = 10;
-        progressionData.endermiteKills = 5;
+        // ✅ REMOVIDO: progressionData.endermiteKills = 5;
         progressionData.piglinKills = 30;
 
         // ATUALIZADO: Completar os requisitos aumentados do Overworld (125% dos valores originais)
         progressionData.zombieKills = Math.max(progressionData.zombieKills, 63); // 50 * 1.25 = 62.5 -> 63
-        // REMOVIDO: progressionData.zombieVillagerKills = Math.max(progressionData.zombieVillagerKills, 4);
+        // ✅ REMOVIDO: progressionData.zombieVillagerKills = Math.max(progressionData.zombieVillagerKills, 4);
         progressionData.skeletonKills = Math.max(progressionData.skeletonKills, 50); // 40 * 1.25 = 50
         progressionData.strayKills = Math.max(progressionData.strayKills, 13); // 10 * 1.25 = 12.5 -> 13
         progressionData.huskKills = Math.max(progressionData.huskKills, 13); // 10 * 1.25 = 12.5 -> 13
@@ -226,7 +226,7 @@ public class DimTrCommands {
 
         boolean success = switch (mobType.toLowerCase()) {
             case "zombie" -> { progressionData.zombieKills = count; yield true; }
-            // REMOVIDO: case "zombie_villager" -> { progressionData.zombieVillagerKills = count; yield true; }
+            // ✅ REMOVIDO: case "zombie_villager" -> { progressionData.zombieVillagerKills = count; yield true; }
             case "skeleton" -> { progressionData.skeletonKills = count; yield true; }
             case "stray" -> { progressionData.strayKills = count; yield true; }
             case "husk" -> { progressionData.huskKills = count; yield true; }
@@ -248,7 +248,7 @@ public class DimTrCommands {
             case "hoglin" -> { progressionData.hoglinKills = count; yield true; }
             case "zoglin" -> { progressionData.zoglinKills = count; yield true; }
             case "ghast" -> { progressionData.ghastKills = count; yield true; }
-            case "endermite" -> { progressionData.endermiteKills = count; yield true; }
+            // ✅ REMOVIDO: case "endermite" -> { progressionData.endermiteKills = count; yield true; }
             case "piglin" -> { progressionData.piglinKills = count; yield true; }
             default -> {
                 context.getSource().sendFailure(Component.literal("Invalid mob type: " + mobType));
@@ -283,7 +283,7 @@ public class DimTrCommands {
 
         // Reset all mob kill counters
         progressionData.zombieKills = 0;
-        // REMOVIDO: progressionData.zombieVillagerKills = 0;
+        // ✅ REMOVIDO: progressionData.zombieVillagerKills = 0;
         progressionData.skeletonKills = 0;
         progressionData.strayKills = 0;
         progressionData.huskKills = 0;
@@ -305,7 +305,7 @@ public class DimTrCommands {
         progressionData.hoglinKills = 0;
         progressionData.zoglinKills = 0;
         progressionData.ghastKills = 0;
-        progressionData.endermiteKills = 0;
+        // ✅ REMOVIDO: progressionData.endermiteKills = 0;
         progressionData.piglinKills = 0;
 
         progressionData.markDirtyAndSendUpdates();
@@ -328,7 +328,7 @@ public class DimTrCommands {
 
         // Reset Phase 1 mob counters
         progressionData.zombieKills = 0;
-        // REMOVIDO: progressionData.zombieVillagerKills = 0;
+        // ✅ REMOVIDO: progressionData.zombieVillagerKills = 0;
         progressionData.skeletonKills = 0;
         progressionData.strayKills = 0;
         progressionData.huskKills = 0;
@@ -366,7 +366,7 @@ public class DimTrCommands {
         progressionData.hoglinKills = 0;
         progressionData.zoglinKills = 0;
         progressionData.ghastKills = 0;
-        progressionData.endermiteKills = 0;
+        // ✅ REMOVIDO: progressionData.endermiteKills = 0;
         progressionData.piglinKills = 0;
 
         progressionData.markDirtyAndSendUpdates();
@@ -380,7 +380,7 @@ public class DimTrCommands {
 
         // Reset all mob kill counters but keep objectives
         progressionData.zombieKills = 0;
-        // REMOVIDO: progressionData.zombieVillagerKills = 0;
+        // ✅ REMOVIDO: progressionData.zombieVillagerKills = 0;
         progressionData.skeletonKills = 0;
         progressionData.strayKills = 0;
         progressionData.huskKills = 0;
@@ -402,7 +402,7 @@ public class DimTrCommands {
         progressionData.hoglinKills = 0;
         progressionData.zoglinKills = 0;
         progressionData.ghastKills = 0;
-        progressionData.endermiteKills = 0;
+        // ✅ REMOVIDO: progressionData.endermiteKills = 0;
         progressionData.piglinKills = 0;
 
         progressionData.markDirtyAndSendUpdates();

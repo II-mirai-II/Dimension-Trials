@@ -206,7 +206,7 @@ public class ModEventHandlers {
         } else if (entity instanceof Ghast) {
             return "ghast";
         }
-        // CORREÇÃO 3: REMOVER ENDERMITE COMPLETAMENTE
+        // ✅ CORREÇÃO FINAL: REMOVER ENDERMITE COMPLETAMENTE
         // else if (entity instanceof Endermite) {
         //     return "endermite";
         // }

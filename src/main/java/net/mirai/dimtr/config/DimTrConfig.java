@@ -71,7 +71,7 @@ public class DimTrConfig {
         public final ModConfigSpec.IntValue reqHoglinKills;
         public final ModConfigSpec.IntValue reqZoglinKills;
         public final ModConfigSpec.IntValue reqGhastKills;
-        public final ModConfigSpec.IntValue reqEndermiteKills;
+        // ✅ REMOVIDO COMPLETAMENTE: public final ModConfigSpec.IntValue reqEndermiteKills;
         public final ModConfigSpec.IntValue reqPiglinKills;
 
         // Multiplicadores de dificuldade
@@ -238,9 +238,10 @@ public class DimTrConfig {
                     .comment("Number of Ghasts to kill for Phase 2")
                     .defineInRange("reqGhastKills", 10, 0, 100);
 
-            reqEndermiteKills = builder
-                    .comment("Number of Endermites to kill for Phase 2")
-                    .defineInRange("reqEndermiteKills", 5, 0, 50);
+            // ✅ REMOVIDO COMPLETAMENTE: reqEndermiteKills
+            // reqEndermiteKills = builder
+            //         .comment("Number of Endermites to kill for Phase 2")
+            //         .defineInRange("reqEndermiteKills", 5, 0, 50);
 
             reqPiglinKills = builder
                     .comment("Number of hostile Piglins to kill for Phase 2")

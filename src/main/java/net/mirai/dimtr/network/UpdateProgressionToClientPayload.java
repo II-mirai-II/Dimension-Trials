@@ -23,6 +23,7 @@ public record UpdateProgressionToClientPayload(
 
         // Contadores de mobs - Fase 1
         int zombieKills,
+        // ✅ REMOVIDO: zombieVillagerKills - manter só para compatibilidade no payload mas sempre 0
         int zombieVillagerKills,
         int skeletonKills,
         int strayKills,
@@ -47,11 +48,13 @@ public record UpdateProgressionToClientPayload(
         int hoglinKills,
         int zoglinKills,
         int ghastKills,
+        // ✅ REMOVIDO: endermiteKills - manter só para compatibilidade no payload mas sempre 0
         int endermiteKills,
         int piglinKills,
 
         // NOVO: Configurações de requisitos sincronizadas
         int reqZombieKills,
+        // ✅ REMOVIDO: reqZombieVillagerKills - sempre 0
         int reqZombieVillagerKills,
         int reqSkeletonKills,
         int reqStrayKills,
@@ -74,6 +77,7 @@ public record UpdateProgressionToClientPayload(
         int reqHoglinKills,  // VALOR CORRETO: 1
         int reqZoglinKills,  // VALOR CORRETO: 1
         int reqGhastKills,
+        // ✅ REMOVIDO: reqEndermiteKills - sempre 0
         int reqEndermiteKills,
         int reqPiglinKills,
         // NOVO: Configuração específica para Voluntary Exile
@@ -106,7 +110,7 @@ public record UpdateProgressionToClientPayload(
 
         // Contadores Fase 1
         buf.writeInt(payload.zombieKills);
-        buf.writeInt(payload.zombieVillagerKills);
+        buf.writeInt(payload.zombieVillagerKills); // ✅ SEMPRE 0
         buf.writeInt(payload.skeletonKills);
         buf.writeInt(payload.strayKills);
         buf.writeInt(payload.huskKills);
@@ -130,12 +134,12 @@ public record UpdateProgressionToClientPayload(
         buf.writeInt(payload.hoglinKills);
         buf.writeInt(payload.zoglinKills);
         buf.writeInt(payload.ghastKills);
-        buf.writeInt(payload.endermiteKills);
+        buf.writeInt(payload.endermiteKills); // ✅ SEMPRE 0
         buf.writeInt(payload.piglinKills);
 
         // NOVO: Configurações de requisitos
         buf.writeInt(payload.reqZombieKills);
-        buf.writeInt(payload.reqZombieVillagerKills);
+        buf.writeInt(payload.reqZombieVillagerKills); // ✅ SEMPRE 0
         buf.writeInt(payload.reqSkeletonKills);
         buf.writeInt(payload.reqStrayKills);
         buf.writeInt(payload.reqHuskKills);
@@ -157,7 +161,7 @@ public record UpdateProgressionToClientPayload(
         buf.writeInt(payload.reqHoglinKills);
         buf.writeInt(payload.reqZoglinKills);
         buf.writeInt(payload.reqGhastKills);
-        buf.writeInt(payload.reqEndermiteKills);
+        buf.writeInt(payload.reqEndermiteKills); // ✅ SEMPRE 0
         buf.writeInt(payload.reqPiglinKills);
 
         // NOVO: Configuração Voluntary Exile
@@ -179,7 +183,7 @@ public record UpdateProgressionToClientPayload(
 
         // Contadores Fase 1
         int zombieKills = buf.readInt();
-        int zombieVillagerKills = buf.readInt();
+        int zombieVillagerKills = buf.readInt(); // ✅ SEMPRE 0
         int skeletonKills = buf.readInt();
         int strayKills = buf.readInt();
         int huskKills = buf.readInt();
@@ -203,12 +207,12 @@ public record UpdateProgressionToClientPayload(
         int hoglinKills = buf.readInt();
         int zoglinKills = buf.readInt();
         int ghastKills = buf.readInt();
-        int endermiteKills = buf.readInt();
+        int endermiteKills = buf.readInt(); // ✅ SEMPRE 0
         int piglinKills = buf.readInt();
 
         // NOVO: Configurações de requisitos
         int reqZombieKills = buf.readInt();
-        int reqZombieVillagerKills = buf.readInt();
+        int reqZombieVillagerKills = buf.readInt(); // ✅ SEMPRE 0
         int reqSkeletonKills = buf.readInt();
         int reqStrayKills = buf.readInt();
         int reqHuskKills = buf.readInt();
@@ -230,7 +234,7 @@ public record UpdateProgressionToClientPayload(
         int reqHoglinKills = buf.readInt();
         int reqZoglinKills = buf.readInt();
         int reqGhastKills = buf.readInt();
-        int reqEndermiteKills = buf.readInt();
+        int reqEndermiteKills = buf.readInt(); // ✅ SEMPRE 0
         int reqPiglinKills = buf.readInt();
 
         // NOVO: Configuração Voluntary Exile
@@ -255,21 +259,60 @@ public record UpdateProgressionToClientPayload(
 
     public static void handle(UpdateProgressionToClientPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            // DEBUG: Logs detalhados para diagnóstico
+            // ✅ LOGS DE DEBUG APRIMORADOS PARA DIAGNÓSTICO
             System.out.println("=== PAYLOAD HANDLER CALLED ON CLIENT ===");
-            System.out.println("Payload received with values:");
+            System.out.println("PAYLOAD DATA RECEIVED:");
+            System.out.println("Phase 1 Complete: " + payload.phase1Completed());
+            System.out.println("Zombie Kills (Actual): " + payload.zombieKills());
+            System.out.println("Skeleton Kills (Actual): " + payload.skeletonKills());
+            System.out.println("Piglin Kills (Actual): " + payload.piglinKills());
+            System.out.println("Elder Guardian Killed: " + payload.elderGuardianKilled());
+            System.out.println("Raid Won: " + payload.raidWon());
+            System.out.println("Trial Vault Advancement: " + payload.trialVaultAdvancementEarned());
+            System.out.println("Voluntary Exile Advancement: " + payload.voluntaireExileAdvancementEarned());
+
+            System.out.println("REQUIREMENTS RECEIVED:");
+            System.out.println("Zombie req: " + payload.reqZombieKills());
+            // ✅ DEBUG: Zombie Villager e Endermite devem estar sempre 0
+            System.out.println("Zombie Villager req: " + payload.reqZombieVillagerKills() + " (should be 0 - REMOVED)");
+            System.out.println("Skeleton req: " + payload.reqSkeletonKills());
             System.out.println("Ravager req: " + payload.reqRavagerKills() + " (should be 1)");
             System.out.println("Evoker req: " + payload.reqEvokerKills() + " (should be 5)");
             System.out.println("Hoglin req: " + payload.reqHoglinKills() + " (should be 1)");
             System.out.println("Zoglin req: " + payload.reqZoglinKills() + " (should be 1)");
-            // NOVO: Debug para Voluntary Exile
+            // ✅ DEBUG: Endermite deve estar sempre 0
+            System.out.println("Endermite req: " + payload.reqEndermiteKills() + " (should be 0 - REMOVED)");
             System.out.println("Voluntary Exile required: " + payload.serverReqVoluntaryExile());
+
+            // ✅ VERIFICAÇÃO CRÍTICA: Confirmar que os valores removidos estão 0
+            if (payload.reqZombieVillagerKills() != 0) {
+                System.err.println("⚠️ WARNING: reqZombieVillagerKills is " + payload.reqZombieVillagerKills() + " but should be 0!");
+            }
+            if (payload.reqEndermiteKills() != 0) {
+                System.err.println("⚠️ WARNING: reqEndermiteKills is " + payload.reqEndermiteKills() + " but should be 0!");
+            }
+            if (payload.zombieVillagerKills() != 0) {
+                System.err.println("⚠️ WARNING: zombieVillagerKills is " + payload.zombieVillagerKills() + " but should be 0!");
+            }
+            if (payload.endermiteKills() != 0) {
+                System.err.println("⚠️ WARNING: endermiteKills is " + payload.endermiteKills() + " but should be 0!");
+            }
 
             // Verificar se o ClientProgressionData está sendo atualizado
             System.out.println("Updating ClientProgressionData...");
             try {
                 ClientProgressionData.INSTANCE.updateData(payload);
                 System.out.println("✅ ClientProgressionData updated successfully!");
+
+                // ✅ VERIFICAÇÃO ADICIONAL - Confirmar se os dados foram salvos corretamente
+                System.out.println("VERIFICATION - Data after update:");
+                System.out.println("Client Zombie Kills: " + ClientProgressionData.INSTANCE.getZombieKills());
+                System.out.println("Client Skeleton Kills: " + ClientProgressionData.INSTANCE.getSkeletonKills());
+                System.out.println("Client Phase 1 Complete: " + ClientProgressionData.INSTANCE.isPhase1Completed());
+                // ✅ VERIFICAÇÃO FINAL: Confirmar que os valores removidos estão 0 no cliente
+                System.out.println("Client Zombie Villager Kills: " + ClientProgressionData.INSTANCE.getZombieVillagerKills() + " (should be 0)");
+                System.out.println("Client Endermite Kills: " + ClientProgressionData.INSTANCE.getEndermiteKills() + " (should be 0)");
+
             } catch (Exception e) {
                 System.err.println("❌ Failed to update ClientProgressionData: " + e.getMessage());
                 e.printStackTrace();
