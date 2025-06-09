@@ -276,8 +276,6 @@ public class ProgressionData extends SavedData {
         }
 
         if (updated) {
-            DimTrMod.LOGGER.debug("Incremented {} kill count", mobType);
-
             // ✅ CORREÇÃO: Só verificar a fase apropriada baseada no mob
             if (isPhase1Mob(mobType)) {
                 checkAndCompletePhase1(true);
@@ -368,13 +366,6 @@ public class ProgressionData extends SavedData {
     }
 
     public UpdateProgressionToClientPayload createPayload() {
-        // ✅ LOGS DE DEBUG CRÍTICOS
-        DimTrMod.LOGGER.info("=== CREATING PAYLOAD - SERVER STATE ===");
-        DimTrMod.LOGGER.info("Server zombieKills: {}", zombieKills);
-        DimTrMod.LOGGER.info("Server phase1Completed: {}", phase1Completed);
-        DimTrMod.LOGGER.info("Server piglinKills: {}", piglinKills);
-        DimTrMod.LOGGER.info("Server phase2Completed: {}", phase2Completed);
-
         return new UpdateProgressionToClientPayload(
                 elderGuardianKilled, raidWon, ravagerKilled, evokerKilled, trialVaultAdvancementEarned,
                 voluntaireExileAdvancementEarned, phase1Completed, witherKilled, wardenKilled, phase2Completed,
@@ -447,7 +438,6 @@ public class ProgressionData extends SavedData {
     public boolean updateRavagerKilled(boolean value) {
         if (ravagerKilled != value) {
             ravagerKilled = value;
-            DimTrMod.LOGGER.info("Ravager killed status updated: {}", value);
             return true;
         }
         return false;
@@ -456,7 +446,6 @@ public class ProgressionData extends SavedData {
     public boolean updateEvokerKilled(boolean value) {
         if (evokerKilled != value) {
             evokerKilled = value;
-            DimTrMod.LOGGER.info("Evoker killed status updated: {}", value);
             return true;
         }
         return false;
@@ -524,7 +513,6 @@ public class ProgressionData extends SavedData {
 
             if (elderGuardianMet && raidMet && trialVaultMet && voluntaryExileMet && mobKillsMet) {
                 phase1Completed = true;
-                DimTrMod.LOGGER.info("Phase 1 requirements met and completed!");
                 if (announce) broadcastMessage(Component.translatable(Constants.MSG_PHASE1_UNLOCKED_GLOBAL).withStyle(ChatFormatting.GREEN));
 
                 // ✅ CORREÇÃO CRÍTICA: Adicionar markDirtyAndSendUpdates() aqui
@@ -543,7 +531,6 @@ public class ProgressionData extends SavedData {
 
             if (witherMet && wardenMet && mobKillsMet) {
                 phase2Completed = true;
-                DimTrMod.LOGGER.info("Phase 2 requirements met and completed!");
                 if (announce) broadcastMessage(Component.translatable(Constants.MSG_PHASE2_UNLOCKED_GLOBAL).withStyle(ChatFormatting.GREEN));
 
                 // ✅ CORREÇÃO CRÍTICA: Adicionar markDirtyAndSendUpdates() aqui
@@ -587,16 +574,6 @@ public class ProgressionData extends SavedData {
                 pillagersMet && vindicatorsMet && boggedMet && breezeMet &&
                 ravagersMet && evokersMet; // NOVO: Incluir Ravager e Evoker
 
-        if (!allMet) {
-            DimTrMod.LOGGER.debug("Phase 1 mob requirements not met. Progress: " +
-                            "Zombies: {}/{}, Skeletons: {}/{}, Creepers: {}/{}, Ravagers: {}/{}, Evokers: {}/{}, etc.",
-                    zombieKills, DimTrConfig.SERVER.reqZombieKills.get(),
-                    skeletonKills, DimTrConfig.SERVER.reqSkeletonKills.get(),
-                    creeperKills, DimTrConfig.SERVER.reqCreeperKills.get(),
-                    ravagerKills, DimTrConfig.SERVER.reqRavagerKills.get(),
-                    evokerKills, DimTrConfig.SERVER.reqEvokerKills.get());
-        }
-
         return allMet;
     }
 
@@ -621,10 +598,6 @@ public class ProgressionData extends SavedData {
 
         boolean allMet = blazesMet && witherSkeletonsMet && piglinBrutesMet && hoglinsMet &&
                 zoglinsMet && ghastsMet && piglinsMet && overworldMobsMet; // ✅ REMOVIDO: endermitesMet
-
-        if (!allMet) {
-            DimTrMod.LOGGER.debug("Phase 2 mob requirements not met");
-        }
 
         return allMet;
     }

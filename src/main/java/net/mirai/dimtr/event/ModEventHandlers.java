@@ -78,35 +78,21 @@ public class ModEventHandlers {
 
         // MANTIDO: Objetivos especiais (bosses únicos)
         if (entity.getType() == EntityType.ELDER_GUARDIAN) {
-            if (progressionData.updateElderGuardianKilled(true)) {
-                DimTrMod.LOGGER.info("Elder Guardian killed! Phase 1 progress updated.");
-            }
+            progressionData.updateElderGuardianKilled(true);
         } else if (entity.getType() == EntityType.RAVAGER) {
-            if (progressionData.updateRavagerKilled(true)) {
-                DimTrMod.LOGGER.info("Ravager killed! Phase 1 progress updated.");
-            }
+            progressionData.updateRavagerKilled(true);
         } else if (entity.getType() == EntityType.EVOKER) {
-            if (progressionData.updateEvokerKilled(true)) {
-                DimTrMod.LOGGER.info("Evoker killed! Phase 1 progress updated.");
-            }
+            progressionData.updateEvokerKilled(true);
         } else if (entity.getType() == EntityType.WITHER) {
-            if (progressionData.updateWitherKilled(true)) {
-                DimTrMod.LOGGER.info("Wither killed! Phase 2 progress updated.");
-            }
+            progressionData.updateWitherKilled(true);
         } else if (entity.getType() == EntityType.WARDEN) {
-            if (progressionData.updateWardenKilled(true)) {
-                DimTrMod.LOGGER.info("Warden killed! Phase 2 progress updated.");
-            }
+            progressionData.updateWardenKilled(true);
         }
 
         // CORRIGIDO: Sistema de contagem de mobs comuns
         String mobType = getMobType(entity);
         if (mobType != null) {
-            boolean updated = progressionData.incrementMobKill(mobType);
-            if (updated) {
-                DimTrMod.LOGGER.debug("Player {} killed a {} (count incremented)",
-                        player.getDisplayName().getString(), mobType);
-            }
+            progressionData.incrementMobKill(mobType);
         }
     }
 
@@ -246,19 +232,13 @@ public class ModEventHandlers {
         ResourceLocation advancementId = advancement.id();
 
         if (advancementId.equals(ResourceLocation.withDefaultNamespace("adventure/hero_of_the_village"))) {
-            if (progressionData.updateRaidWon(true)) {
-                DimTrMod.LOGGER.info("Hero of the Village advancement earned! Phase 1 progress updated.");
-            }
+            progressionData.updateRaidWon(true);
         } else if (advancementId.equals(ResourceLocation.withDefaultNamespace("adventure/under_lock_and_key"))) {
-            if (progressionData.updateTrialVaultAdvancementEarned(true)) {
-                DimTrMod.LOGGER.info("Under Lock and Key advancement earned! Phase 1 progress updated.");
-            }
+            progressionData.updateTrialVaultAdvancementEarned(true);
         }
         // NOVO: Tratar conquista Voluntary Exile
         else if (advancementId.equals(ResourceLocation.withDefaultNamespace("adventure/voluntary_exile"))) {
-            if (progressionData.updateVoluntaireExileAdvancementEarned(true)) {
-                DimTrMod.LOGGER.info("Voluntary Exile advancement earned! Phase 1 progress updated.");
-            }
+            progressionData.updateVoluntaireExileAdvancementEarned(true);
         }
     }
 
@@ -292,12 +272,7 @@ public class ModEventHandlers {
         if (event.getDimension() == Level.NETHER) {
             if (progressionData.isPhase1EffectivelyLocked()) {
                 event.setCanceled(true);
-
-                // NOVO: Teleportar para WorldSpawn
                 teleportToWorldSpawn(player, serverLevel, "nether");
-
-                DimTrMod.LOGGER.info("Blocked {} from entering Nether - Phase 1 incomplete. Teleported to spawn.",
-                        player.getName().getString());
                 return;
             }
         }
@@ -306,12 +281,7 @@ public class ModEventHandlers {
         if (event.getDimension() == Level.END) {
             if (progressionData.isPhase2EffectivelyLocked()) {
                 event.setCanceled(true);
-
-                // NOVO: Teleportar para WorldSpawn
                 teleportToWorldSpawn(player, serverLevel, "end");
-
-                DimTrMod.LOGGER.info("Blocked {} from entering End - Phase 2 incomplete. Teleported to spawn.",
-                        player.getName().getString());
                 return;
             }
         }
@@ -347,8 +317,6 @@ public class ModEventHandlers {
                         firePos.getX() + 0.5, firePos.getY() + 0.5, firePos.getZ() + 0.5,
                         15, 0.1, 0.1, 0.1, 0.02);
 
-                DimTrMod.LOGGER.info("Blocked {} from lighting Nether portal - Phase 1 incomplete",
-                        player.getName().getString());
                 return;
             }
         }
@@ -367,8 +335,6 @@ public class ModEventHandlers {
                         clickedPos.getX() + 0.5, clickedPos.getY() + 0.8, clickedPos.getZ() + 0.5,
                         30, 0.2, 0.2, 0.2, 0.05);
 
-                DimTrMod.LOGGER.info("Blocked {} from placing Ender Eye - Phase 2 incomplete",
-                        player.getName().getString());
                 return;
             }
         }
@@ -383,9 +349,6 @@ public class ModEventHandlers {
                         .withStyle(ChatFormatting.RED));
 
                 playDenialEffects(serverLevel, player, "end");
-
-                DimTrMod.LOGGER.info("Blocked {} from lighting End portal - Phase 2 incomplete",
-                        player.getName().getString());
                 return;
             }
         }
@@ -433,16 +396,12 @@ public class ModEventHandlers {
         }
 
         if (isInEndPortal) {
-            // NOVO: Teleportar para WorldSpawn em vez de só empurrar para cima
             teleportToWorldSpawn(player, serverLevel, "end");
 
             // Partículas adicionais no portal
             serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
                     portalPos.getX() + 0.5, portalPos.getY() + 1, portalPos.getZ() + 0.5,
                     50, 0.5, 0.3, 0.5, 0.1);
-
-            DimTrMod.LOGGER.info("Blocked {} from using End portal - Phase 2 incomplete. Teleported to spawn.",
-                    player.getName().getString());
         }
     }
 
@@ -497,9 +456,6 @@ public class ModEventHandlers {
 
         // Definir cooldown
         teleportCooldowns.put(playerId, currentTime);
-
-        DimTrMod.LOGGER.info("Teleported {} to world spawn due to {} portal violation",
-                player.getName().getString(), portalType);
     }
 
     // NOVO: Encontrar posição segura próxima ao spawn

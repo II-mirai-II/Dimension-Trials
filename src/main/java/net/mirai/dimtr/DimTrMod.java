@@ -27,12 +27,9 @@ public class DimTrMod {
 
         // Registrar eventos de comandos
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
-
-        LOGGER.info("Dimension Trials mod initialized successfully!");
     }
 
     private void onRegisterCommands(RegisterCommandsEvent event) {
         DimTrCommands.register(event.getDispatcher());
-        LOGGER.info("Commands registered successfully!");
     }
 }

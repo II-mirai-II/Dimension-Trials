@@ -259,61 +259,10 @@ public record UpdateProgressionToClientPayload(
 
     public static void handle(UpdateProgressionToClientPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            // ✅ LOGS DE DEBUG APRIMORADOS PARA DIAGNÓSTICO
-            System.out.println("=== PAYLOAD HANDLER CALLED ON CLIENT ===");
-            System.out.println("PAYLOAD DATA RECEIVED:");
-            System.out.println("Phase 1 Complete: " + payload.phase1Completed());
-            System.out.println("Zombie Kills (Actual): " + payload.zombieKills());
-            System.out.println("Skeleton Kills (Actual): " + payload.skeletonKills());
-            System.out.println("Piglin Kills (Actual): " + payload.piglinKills());
-            System.out.println("Elder Guardian Killed: " + payload.elderGuardianKilled());
-            System.out.println("Raid Won: " + payload.raidWon());
-            System.out.println("Trial Vault Advancement: " + payload.trialVaultAdvancementEarned());
-            System.out.println("Voluntary Exile Advancement: " + payload.voluntaireExileAdvancementEarned());
-
-            System.out.println("REQUIREMENTS RECEIVED:");
-            System.out.println("Zombie req: " + payload.reqZombieKills());
-            // ✅ DEBUG: Zombie Villager e Endermite devem estar sempre 0
-            System.out.println("Zombie Villager req: " + payload.reqZombieVillagerKills() + " (should be 0 - REMOVED)");
-            System.out.println("Skeleton req: " + payload.reqSkeletonKills());
-            System.out.println("Ravager req: " + payload.reqRavagerKills() + " (should be 1)");
-            System.out.println("Evoker req: " + payload.reqEvokerKills() + " (should be 5)");
-            System.out.println("Hoglin req: " + payload.reqHoglinKills() + " (should be 1)");
-            System.out.println("Zoglin req: " + payload.reqZoglinKills() + " (should be 1)");
-            // ✅ DEBUG: Endermite deve estar sempre 0
-            System.out.println("Endermite req: " + payload.reqEndermiteKills() + " (should be 0 - REMOVED)");
-            System.out.println("Voluntary Exile required: " + payload.serverReqVoluntaryExile());
-
-            // ✅ VERIFICAÇÃO CRÍTICA: Confirmar que os valores removidos estão 0
-            if (payload.reqZombieVillagerKills() != 0) {
-                System.err.println("⚠️ WARNING: reqZombieVillagerKills is " + payload.reqZombieVillagerKills() + " but should be 0!");
-            }
-            if (payload.reqEndermiteKills() != 0) {
-                System.err.println("⚠️ WARNING: reqEndermiteKills is " + payload.reqEndermiteKills() + " but should be 0!");
-            }
-            if (payload.zombieVillagerKills() != 0) {
-                System.err.println("⚠️ WARNING: zombieVillagerKills is " + payload.zombieVillagerKills() + " but should be 0!");
-            }
-            if (payload.endermiteKills() != 0) {
-                System.err.println("⚠️ WARNING: endermiteKills is " + payload.endermiteKills() + " but should be 0!");
-            }
-
-            // Verificar se o ClientProgressionData está sendo atualizado
-            System.out.println("Updating ClientProgressionData...");
             try {
                 ClientProgressionData.INSTANCE.updateData(payload);
-                System.out.println("✅ ClientProgressionData updated successfully!");
-
-                // ✅ VERIFICAÇÃO ADICIONAL - Confirmar se os dados foram salvos corretamente
-                System.out.println("VERIFICATION - Data after update:");
-                System.out.println("Client Zombie Kills: " + ClientProgressionData.INSTANCE.getZombieKills());
-                System.out.println("Client Skeleton Kills: " + ClientProgressionData.INSTANCE.getSkeletonKills());
-                System.out.println("Client Phase 1 Complete: " + ClientProgressionData.INSTANCE.isPhase1Completed());
-                // ✅ VERIFICAÇÃO FINAL: Confirmar que os valores removidos estão 0 no cliente
-                System.out.println("Client Zombie Villager Kills: " + ClientProgressionData.INSTANCE.getZombieVillagerKills() + " (should be 0)");
-                System.out.println("Client Endermite Kills: " + ClientProgressionData.INSTANCE.getEndermiteKills() + " (should be 0)");
-
             } catch (Exception e) {
+                // Manter apenas log de erro crítico
                 System.err.println("❌ Failed to update ClientProgressionData: " + e.getMessage());
                 e.printStackTrace();
             }

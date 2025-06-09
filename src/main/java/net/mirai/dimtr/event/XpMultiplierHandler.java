@@ -4,7 +4,6 @@ import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.config.DimTrConfig;
 import net.mirai.dimtr.data.ProgressionData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.monster.piglin.Piglin;
@@ -46,13 +45,6 @@ public class XpMultiplierHandler {
             int originalXp = event.getDroppedExperience();
             int newXp = (int) Math.ceil(originalXp * multiplier);
             event.setDroppedExperience(newXp);
-
-            DimTrMod.LOGGER.debug("Applied {}x XP multiplier to {} (Original: {}, New: {})",
-                    multiplier,
-                    entity.getType().getDescriptionId(),
-                    originalXp,
-                    newXp
-            );
         }
     }
 

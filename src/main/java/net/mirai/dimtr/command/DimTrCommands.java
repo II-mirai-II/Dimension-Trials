@@ -61,8 +61,6 @@ public class DimTrCommands {
         ServerLevel serverLevel = context.getSource().getLevel();
         ProgressionData progressionData = ProgressionData.get(serverLevel);
 
-        DimTrMod.LOGGER.info("Starting Phase 1 completion via command...");
-
         // CORREÇÃO: Marcar dirty ANTES para garantir que as mudanças sejam salvas
         progressionData.setDirty();
 
@@ -95,8 +93,6 @@ public class DimTrCommands {
         progressionData.ravagerKills = 1; // Novo valor: 1
         progressionData.evokerKills = 5; // Novo valor: 5
 
-        DimTrMod.LOGGER.info("Phase 1 mob counters set. Checking completion...");
-
         // CORREÇÃO: Usar o método de verificação sem announce para evitar problemas
         progressionData.checkAndCompletePhase1Internal();
 
@@ -107,15 +103,12 @@ public class DimTrCommands {
         progressionData.markDirtyAndSendUpdates();
 
         context.getSource().sendSuccess(() -> Component.literal("All Phase 1 requirements completed via command."), true);
-        DimTrMod.LOGGER.info("Phase 1 completed via command by {} - Mob counters set and phase marked complete", context.getSource().getTextName());
         return 1;
     }
 
     private static int executeCompletePhase2(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerLevel serverLevel = context.getSource().getLevel();
         ProgressionData progressionData = ProgressionData.get(serverLevel);
-
-        DimTrMod.LOGGER.info("Starting Phase 2 completion via command...");
 
         // CORREÇÃO: Marcar dirty ANTES para garantir que as mudanças sejam salvas
         progressionData.setDirty();
@@ -160,8 +153,6 @@ public class DimTrCommands {
         progressionData.ravagerKills = Math.max(progressionData.ravagerKills, 2); // 1 * 1.25 = 1.25 -> 2
         progressionData.evokerKills = Math.max(progressionData.evokerKills, 7); // 5 * 1.25 = 6.25 -> 7
 
-        DimTrMod.LOGGER.info("Phase 2 mob counters set. Checking completion...");
-
         // CORREÇÃO: Usar o método de verificação sem announce para evitar problemas
         progressionData.checkAndCompletePhase2Internal();
 
@@ -172,7 +163,6 @@ public class DimTrCommands {
         progressionData.markDirtyAndSendUpdates();
 
         context.getSource().sendSuccess(() -> Component.literal("All Phase 2 requirements completed via command."), true);
-        DimTrMod.LOGGER.info("Phase 2 completed via command by {} - All mob counters set and phase marked complete", context.getSource().getTextName());
         return 1;
     }
 
@@ -418,34 +408,6 @@ public class DimTrCommands {
         ServerLevel serverLevel = context.getSource().getLevel();
         ProgressionData progressionData = ProgressionData.get(serverLevel);
 
-        // DEBUG: Verificar valores do servidor
-        context.getSource().sendSuccess(() -> Component.literal("=== SERVER CONFIG DEBUG ==="), false);
-        context.getSource().sendSuccess(() -> Component.literal("Server Ravager req: " + DimTrConfig.SERVER.reqRavagerKills.get()), false);
-        context.getSource().sendSuccess(() -> Component.literal("Server Evoker req: " + DimTrConfig.SERVER.reqEvokerKills.get()), false);
-        context.getSource().sendSuccess(() -> Component.literal("Server Hoglin req: " + DimTrConfig.SERVER.reqHoglinKills.get()), false);
-        context.getSource().sendSuccess(() -> Component.literal("Server Zoglin req: " + DimTrConfig.SERVER.reqZoglinKills.get()), false);
-
-        // DEBUG: Verificar payload que seria enviado
-        if (context.getSource().getEntity() instanceof ServerPlayer player) {
-            UpdateProgressionToClientPayload payload = progressionData.createPayload();
-            context.getSource().sendSuccess(() -> Component.literal("=== PAYLOAD DEBUG ==="), false);
-            context.getSource().sendSuccess(() -> Component.literal("Payload Ravager req: " + payload.reqRavagerKills()), false);
-            context.getSource().sendSuccess(() -> Component.literal("Payload Evoker req: " + payload.reqEvokerKills()), false);
-            context.getSource().sendSuccess(() -> Component.literal("Payload Hoglin req: " + payload.reqHoglinKills()), false);
-            context.getSource().sendSuccess(() -> Component.literal("Payload Zoglin req: " + payload.reqZoglinKills()), false);
-
-            // Forçar envio do payload
-            try {
-                context.getSource().sendSuccess(() -> Component.literal("Attempting to send payload..."), false);
-                progressionData.sendToClient(player);
-                context.getSource().sendSuccess(() -> Component.literal("✅ Payload sent successfully!"), false);
-                context.getSource().sendSuccess(() -> Component.literal("Check client logs for 'PAYLOAD HANDLER CALLED'"), false);
-            } catch (Exception e) {
-                context.getSource().sendFailure(Component.literal("❌ Failed to send payload: " + e.getMessage()));
-                e.printStackTrace();
-            }
-        }
-
         // Mostrar status das fases
         context.getSource().sendSuccess(() -> Component.literal("=== DIMENSION TRIALS STATUS ==="), false);
         context.getSource().sendSuccess(() -> Component.literal("Phase 1 Complete: " + progressionData.phase1Completed), false);
@@ -486,7 +448,6 @@ public class DimTrCommands {
             try {
                 progressionData.sendToClient(player);
                 context.getSource().sendSuccess(() -> Component.literal("✅ Sync command sent to client!"), false);
-                context.getSource().sendSuccess(() -> Component.literal("Check logs for 'PAYLOAD HANDLER CALLED'"), false);
                 context.getSource().sendSuccess(() -> Component.literal("Open HUD (J) to verify correct values."), false);
             } catch (Exception e) {
                 context.getSource().sendFailure(Component.literal("❌ Failed to sync: " + e.getMessage()));
