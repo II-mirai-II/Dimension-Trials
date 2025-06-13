@@ -2,14 +2,10 @@ package net.mirai.dimtr.event;
 
 import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.command.DimTrCommands;
-import net.mirai.dimtr.data.ProgressionData;
-import net.mirai.dimtr.network.UpdateProgressionToClientPayload;
-import net.mirai.dimtr.util.Constants;
-import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.core.BlockPos;
+import net.mirai.dimtr.command.PartyCommands;
+import net.mirai.dimtr.data.PartyManager;
+import net.mirai.dimtr.data.ProgressionManager;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,13 +18,16 @@ import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.entity.monster.piglin.PiglinBrute;
 import net.minecraft.world.entity.monster.hoglin.Hoglin;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.FlintAndSteelItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.FlintAndSteelItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.advancements.AdvancementHolder;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -39,67 +38,140 @@ import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Gerenciador central de eventos do mod - VERSÃO COMPLETA E CORRIGIDA
+ *
+ * ✅ Sistema de progressão individual
+ * ✅ Sistema de parties colaborativas
+ * ✅ Integração completa entre sistemas
+ * ✅ Bloqueio individual de portais
+ * ✅ Detecção avançada de mobs
+ * ✅ Correções de compilação
+ */
 @EventBusSubscriber(modid = DimTrMod.MODID, bus = EventBusSubscriber.Bus.GAME)
 public class ModEventHandlers {
 
     public static final String NBT_MOD_SUBTAG_KEY = DimTrMod.MODID;
     public static final String NBT_FLAG_RECEIVED_BOOK = "received_progression_book";
 
+    // Cooldowns para sons de portais
     private static final int PORTAL_SOUND_COOLDOWN_TICKS = 40;
-    private static final int TELEPORT_COOLDOWN_TICKS = 100; // 5 segundos de cooldown para teleporte
     private static final Map<UUID, Long> netherPortalSoundCooldowns = new HashMap<>();
     private static final Map<UUID, Long> endPortalSoundCooldowns = new HashMap<>();
-    private static final Map<UUID, Long> teleportCooldowns = new HashMap<>();
+
+    // ============================================================================
+    // 🎯 REGISTRO DE COMANDOS
+    // ============================================================================
 
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
+        // 🎯 REGISTRO COMPLETO DE COMANDOS
         DimTrCommands.register(event.getDispatcher());
+        PartyCommands.register(event.getDispatcher()); // ✅ CORRIGIDO
+
+        DimTrMod.LOGGER.info("✅ Registered all DimTr commands:");
+        DimTrMod.LOGGER.info("   • /dimtr (Administrative & individual commands)");
+        DimTrMod.LOGGER.info("   • /dimtr party (Party management commands)");
     }
 
-    @SubscribeEvent
-    public static void onLivingDeath(LivingDeathEvent event) {
-        LivingEntity entity = event.getEntity();
-        if (!(entity.level() instanceof ServerLevel serverLevel)) {
-            return;
-        }
+    // ============================================================================
+    // 🎯 SISTEMA DE MORTE DE ENTIDADES (VERSÃO UNIFICADA - CORRIGIDO)
+    // ============================================================================
 
-        // Verificar se foi morto por um jogador
+    @SubscribeEvent
+    public static void onLivingDeathEvent(LivingDeathEvent event) {
+        // Verificar se foi um jogador que matou
         if (!(event.getSource().getEntity() instanceof ServerPlayer player)) {
             return;
         }
 
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
-
-        // MANTIDO: Objetivos especiais (bosses únicos)
-        if (entity.getType() == EntityType.ELDER_GUARDIAN) {
-            progressionData.updateElderGuardianKilled(true);
-        } else if (entity.getType() == EntityType.RAVAGER) {
-            progressionData.updateRavagerKilled(true);
-        } else if (entity.getType() == EntityType.EVOKER) {
-            progressionData.updateEvokerKilled(true);
-        } else if (entity.getType() == EntityType.WITHER) {
-            progressionData.updateWitherKilled(true);
-        } else if (entity.getType() == EntityType.WARDEN) {
-            progressionData.updateWardenKilled(true);
+        if (!(event.getEntity() instanceof LivingEntity killedEntity)) {
+            return;
         }
 
-        // CORRIGIDO: Sistema de contagem de mobs comuns
-        String mobType = getMobType(entity);
+        if (!(killedEntity.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        UUID playerId = player.getUUID();
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        PartyManager partyManager = PartyManager.get(serverLevel);
+
+        // 🎯 OBJETIVOS ESPECIAIS (Elder Guardian, Wither, Warden)
+        if (killedEntity.getType() == EntityType.ELDER_GUARDIAN) {
+            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "elder_guardian");
+            if (!processedByParty) {
+                progressionManager.updateElderGuardianKilled(playerId);
+            }
+        } else if (killedEntity.getType() == EntityType.WITHER) {
+            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "wither");
+            if (!processedByParty) {
+                progressionManager.updateWitherKilled(playerId);
+            }
+        } else if (killedEntity.getType() == EntityType.WARDEN) {
+            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "warden");
+            if (!processedByParty) {
+                progressionManager.updateWardenKilled(playerId);
+            }
+        }
+
+        // 🎯 CONTADORES DE MOBS
+        String mobType = getMobTypeFromEntity(killedEntity);
         if (mobType != null) {
-            progressionData.incrementMobKill(mobType);
+            // PRIMEIRO: Tentar processar via party
+            boolean processedByParty = partyManager.processPartyMobKill(playerId, mobType);
+
+            // SEGUNDO: Se não foi processado por party, processar individualmente
+            if (!processedByParty) {
+                progressionManager.incrementMobKill(playerId, mobType);
+            }
         }
     }
 
-    // CORRIGIDO: Método para mapear entidades para strings usadas no sistema
+    /**
+     * 🎯 MÉTODO ATUALIZADO: Obter tipo de mob a partir da entidade
+     */
+    private static String getMobTypeFromEntity(LivingEntity entity) {
+        return switch (entity.getType().toString()) {
+            case "zombie" -> "zombie";
+            case "skeleton" -> "skeleton";
+            case "stray" -> "stray";
+            case "husk" -> "husk";
+            case "spider" -> "spider";
+            case "creeper" -> "creeper";
+            case "drowned" -> "drowned";
+            case "enderman" -> "enderman";
+            case "witch" -> "witch";
+            case "pillager" -> "pillager";
+            case "vindicator" -> "vindicator";
+            case "bogged" -> "bogged";
+            case "breeze" -> "breeze";
+            case "ravager" -> "ravager";
+            case "evoker" -> "evoker";
+            case "blaze" -> "blaze";
+            case "wither_skeleton" -> "wither_skeleton";
+            case "piglin_brute" -> "piglin_brute";
+            case "hoglin" -> "hoglin";
+            case "zoglin" -> "zoglin";
+            case "ghast" -> "ghast";
+            case "piglin" -> "piglin";
+            case "wither" -> "wither";
+            case "warden" -> "warden";
+            case "elder_guardian" -> "elder_guardian";
+            default -> null;
+        };
+    }
+
+    /**
+     * 🎯 MÉTODO MANTIDO: Detecção detalhada de tipos de mobs
+     */
     private static String getMobType(LivingEntity entity) {
         // CORREÇÃO 1: DROWNED DEVE VIR ANTES DE ZOMBIE
-        // Verificar Drowned PRIMEIRO para evitar que seja classificado como Zombie
         if (entity instanceof Drowned) {
             return "drowned";
         }
@@ -108,7 +180,7 @@ public class ModEventHandlers {
         if (entity instanceof Zombie && !(entity instanceof ZombieVillager) && !(entity instanceof Husk)) {
             return "zombie";
         } else if (entity instanceof ZombieVillager) {
-            return "zombie_villager";
+            return "zombie_villager"; // Ainda retorna mas não é mais usado
         } else if (entity instanceof Skeleton && !(entity instanceof Stray) && !(entity instanceof WitherSkeleton)) {
             return "skeleton";
         } else if (entity instanceof Stray) {
@@ -124,12 +196,10 @@ public class ModEventHandlers {
         } else if (entity instanceof Witch) {
             return "witch";
         } else if (entity instanceof Pillager pillager) {
-            // CORREÇÃO 2: MELHOR IDENTIFICAÇÃO DE CAPTAIN PILLAGER
-            // Captain Pillager carrega uma bandeira na mão principal ou offhand
+            // CORREÇÃO: MELHOR IDENTIFICAÇÃO DE CAPTAIN PILLAGER
             ItemStack mainHand = pillager.getMainHandItem();
             ItemStack offHand = pillager.getOffhandItem();
 
-            // Verificar se está segurando uma bandeira (qualquer tipo de banner)
             boolean isCarryingBanner = mainHand.getItem() == Items.WHITE_BANNER ||
                     mainHand.getItem() == Items.BLACK_BANNER ||
                     mainHand.getItem() == Items.BLUE_BANNER ||
@@ -163,7 +233,6 @@ public class ModEventHandlers {
                     offHand.getItem() == Items.RED_BANNER ||
                     offHand.getItem() == Items.YELLOW_BANNER;
 
-            // ALTERNATIVA: Verificar se o Pillager tem o efeito "Bad Omen" que indica que é um Captain
             boolean hasBadOmen = pillager.hasEffect(net.minecraft.world.effect.MobEffects.BAD_OMEN);
 
             if (isCarryingBanner || hasBadOmen) {
@@ -192,25 +261,17 @@ public class ModEventHandlers {
         } else if (entity instanceof Ghast) {
             return "ghast";
         }
-        // ✅ CORREÇÃO FINAL: REMOVER ENDERMITE COMPLETAMENTE
-        // else if (entity instanceof Endermite) {
-        //     return "endermite";
-        // }
+        // ✅ ENDERMITE REMOVIDO COMPLETAMENTE
         else if (entity instanceof Piglin piglin) {
-            // CORRIGIDO: Usar apenas getTarget() para verificar se Piglin é hostil
-            // Um Piglin é considerado hostil se ele tem um alvo de ataque
             if (piglin.getTarget() != null) {
                 return "piglin";
             }
-            // ALTERNATIVA: Verificar se está em modo de ataque
-            // Também podemos verificar se não está "calmo" (isAdult e não tem item de ouro)
             if (piglin.isAdult() && !piglin.isHolding(Items.GOLD_INGOT)) {
-                // Considera como hostil se é adulto e não está segurando ouro
                 return "piglin";
             }
         }
 
-        // ADICIONADO: Mobs mais novos que podem não estar disponíveis em todas as versões
+        // ADICIONADO: Mobs mais novos
         String entityName = entity.getType().toString().toLowerCase();
         if (entityName.contains("bogged")) {
             return "bogged";
@@ -221,26 +282,104 @@ public class ModEventHandlers {
         return null;
     }
 
+    // ============================================================================
+    // 🎯 SISTEMA DE ADVANCEMENTS (INTEGRAÇÃO COMPLETA)
+    // ============================================================================
+
+    @SubscribeEvent
+    public static void onAdvancementEvent(AdvancementEvent.AdvancementEarnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            // 🔧 CORRIGIDO: AdvancementHolder.id() em vez de getId()
+            String advancementId = event.getAdvancement().id().toString();
+            ServerLevel serverLevel = (ServerLevel) player.level();
+
+            // Mapear advancement para objetivo especial
+            String objectiveType = mapAdvancementToObjective(advancementId);
+            if (objectiveType != null) {
+                // 🎯 PRIMEIRO: Processar para party (se aplicável)
+                PartyManager partyManager = PartyManager.get(serverLevel);
+                boolean processedByParty = partyManager.processPartySpecialObjective(player.getUUID(), objectiveType);
+
+                // 🎯 SEGUNDO: Se não foi processado por party, processar individualmente
+                if (!processedByParty) {
+                    ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+                    processIndividualObjective(progressionManager, player.getUUID(), objectiveType);
+                }
+            }
+        }
+    }
+
     @SubscribeEvent
     public static void onPlayerGetAdvancement(AdvancementEvent.AdvancementEarnEvent event) {
         if (!(event.getEntity().level() instanceof ServerLevel serverLevel)) {
             return;
         }
 
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
+        // 🎯 MUDANÇA PRINCIPAL: Progressão individual por jogador
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        PartyManager partyManager = PartyManager.get(serverLevel);
+        UUID playerId = event.getEntity().getUUID();
         AdvancementHolder advancement = event.getAdvancement();
         ResourceLocation advancementId = advancement.id();
 
         if (advancementId.equals(ResourceLocation.withDefaultNamespace("adventure/hero_of_the_village"))) {
-            progressionData.updateRaidWon(true);
+            // 🎯 PRIMEIRO: Processar para party (se aplicável)
+            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "raid");
+
+            // 🎯 SEGUNDO: Se não foi processado por party, processar individualmente
+            if (!processedByParty) {
+                progressionManager.updateRaidWon(playerId);
+            }
         } else if (advancementId.equals(ResourceLocation.withDefaultNamespace("adventure/under_lock_and_key"))) {
-            progressionData.updateTrialVaultAdvancementEarned(true);
-        }
-        // NOVO: Tratar conquista Voluntary Exile
-        else if (advancementId.equals(ResourceLocation.withDefaultNamespace("adventure/voluntary_exile"))) {
-            progressionData.updateVoluntaireExileAdvancementEarned(true);
+            // 🎯 PRIMEIRO: Processar para party (se aplicável)
+            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "trial_vault");
+
+            // 🎯 SEGUNDO: Se não foi processado por party, processar individualmente
+            if (!processedByParty) {
+                progressionManager.updateTrialVaultAdvancementEarned(playerId);
+            }
+        } else if (advancementId.equals(ResourceLocation.withDefaultNamespace("adventure/voluntary_exile"))) {
+            // 🎯 PRIMEIRO: Processar para party (se aplicável)
+            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "voluntary_exile");
+
+            // 🎯 SEGUNDO: Se não foi processado por party, processar individualmente
+            if (!processedByParty) {
+                progressionManager.updateVoluntaireExileAdvancementEarned(playerId);
+            }
         }
     }
+
+    /**
+     * Mapear ID do advancement para tipo de objetivo
+     */
+    private static String mapAdvancementToObjective(String advancementId) {
+        return switch (advancementId) {
+            case "minecraft:adventure/kill_a_mob" -> null; // Muito genérico
+            case "minecraft:adventure/voluntary_exile" -> "voluntary_exile";
+            case "minecraft:adventure/hero_of_the_village" -> "raid";
+            case "minecraft:adventure/under_lock_and_key" -> "trial_vault";
+            // TODO: Adicionar outros mappings conforme necessário
+            default -> null;
+        };
+    }
+
+    /**
+     * Processar objetivo individual
+     */
+    private static void processIndividualObjective(ProgressionManager manager, UUID playerId, String objectiveType) {
+        switch (objectiveType.toLowerCase()) {
+            case "elder_guardian" -> manager.updateElderGuardianKilled(playerId);
+            case "raid" -> manager.updateRaidWon(playerId);
+            case "trial_vault" -> manager.updateTrialVaultAdvancementEarned(playerId);
+            case "voluntary_exile" -> manager.updateVoluntaireExileAdvancementEarned(playerId);
+            case "wither" -> manager.updateWitherKilled(playerId);
+            case "warden" -> manager.updateWardenKilled(playerId);
+        }
+    }
+
+    // ============================================================================
+    // 🎯 SISTEMA DE LOGIN (ATUALIZADO)
+    // ============================================================================
 
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
@@ -248,17 +387,18 @@ public class ModEventHandlers {
             return;
         }
 
+        // 🎯 MUDANÇA PRINCIPAL: Enviar dados individuais do jogador
         ServerLevel serverLevel = player.serverLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
-        UpdateProgressionToClientPayload payload = progressionData.createPayload();
-        PacketDistributor.sendToPlayer(player, payload);
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+
+        // Enviar dados específicos do jogador
+        progressionManager.sendToClient(player);
     }
 
     // ============================================================================
-    // SISTEMA COMPLETO DE BLOQUEIO DE PORTAIS COM TELEPORTE PARA WORLDSPAWN
+    // 🎯 SISTEMA DE BLOQUEIO INDIVIDUAL DE PORTAIS
     // ============================================================================
 
-    // 1. BLOQUEAR VIAGEM DIMENSIONAL (caso o portal já esteja ativo) + TELEPORTE PARA WORLDSPAWN
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onEntityTravelToDimension(EntityTravelToDimensionEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
@@ -266,28 +406,31 @@ public class ModEventHandlers {
         }
 
         ServerLevel serverLevel = (ServerLevel) player.level();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        UUID playerId = player.getUUID();
 
-        // Verificar acesso ao Nether
+        // 🎯 MUDANÇA: Verificar acesso individual do jogador
         if (event.getDimension() == Level.NETHER) {
-            if (progressionData.isPhase1EffectivelyLocked()) {
+            if (!progressionManager.canPlayerAccessNether(playerId)) {
                 event.setCanceled(true);
-                teleportToWorldSpawn(player, serverLevel, "nether");
+                player.sendSystemMessage(Component.translatable("message.dimtr.nether_locked")
+                        .withStyle(ChatFormatting.RED));
+                playDenialEffects(serverLevel, player, "nether");
                 return;
             }
         }
 
-        // Verificar acesso ao End
         if (event.getDimension() == Level.END) {
-            if (progressionData.isPhase2EffectivelyLocked()) {
+            if (!progressionManager.canPlayerAccessEnd(playerId)) {
                 event.setCanceled(true);
-                teleportToWorldSpawn(player, serverLevel, "end");
+                player.sendSystemMessage(Component.translatable("message.dimtr.end_locked")
+                        .withStyle(ChatFormatting.RED));
+                playDenialEffects(serverLevel, player, "end");
                 return;
             }
         }
     }
 
-    // 2. BLOQUEAR ATIVAÇÃO/INTERAÇÃO COM PORTAIS
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onPlayerRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         Player player = event.getEntity();
@@ -295,7 +438,9 @@ public class ModEventHandlers {
             return;
         }
 
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
+        // 🎯 MUDANÇA: Verificação individual
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        UUID playerId = player.getUUID();
         BlockPos clickedPos = event.getPos();
         BlockState clickedState = serverLevel.getBlockState(clickedPos);
         ItemStack heldItem = event.getItemStack();
@@ -304,37 +449,32 @@ public class ModEventHandlers {
         if ((heldItem.getItem() instanceof FlintAndSteelItem || heldItem.getItem() == Items.FIRE_CHARGE) &&
                 clickedState.is(Blocks.OBSIDIAN)) {
 
-            if (progressionData.isPhase1EffectivelyLocked()) {
+            if (!progressionManager.canPlayerAccessNether(playerId)) {
                 event.setCanceled(true);
-                player.sendSystemMessage(Component.translatable(Constants.MSG_NETHER_LOCKED)
+                player.sendSystemMessage(Component.translatable("message.dimtr.nether_locked")
                         .withStyle(ChatFormatting.RED));
 
                 playDenialEffects(serverLevel, player, "nether");
 
-                // Partículas extras na posição clicada
-                BlockPos firePos = clickedPos.relative(event.getFace());
-                serverLevel.sendParticles(ParticleTypes.SMOKE,
-                        firePos.getX() + 0.5, firePos.getY() + 0.5, firePos.getZ() + 0.5,
-                        15, 0.1, 0.1, 0.1, 0.02);
-
+                serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE,
+                        clickedPos.getX() + 0.5, clickedPos.getY() + 0.8, clickedPos.getZ() + 0.5,
+                        30, 0.2, 0.2, 0.2, 0.05);
                 return;
             }
         }
 
         // ====== BLOQUEAR COLOCAÇÃO DE ENDER EYE ======
         if (heldItem.getItem() == Items.ENDER_EYE && clickedState.is(Blocks.END_PORTAL_FRAME)) {
-            if (progressionData.isPhase2EffectivelyLocked()) {
+            if (!progressionManager.canPlayerAccessEnd(playerId)) {
                 event.setCanceled(true);
-                player.sendSystemMessage(Component.translatable(Constants.MSG_END_LOCKED)
+                player.sendSystemMessage(Component.translatable("message.dimtr.end_locked")
                         .withStyle(ChatFormatting.RED));
 
                 playDenialEffects(serverLevel, player, "end");
 
-                // Partículas extras na posição clicada
                 serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
                         clickedPos.getX() + 0.5, clickedPos.getY() + 0.8, clickedPos.getZ() + 0.5,
                         30, 0.2, 0.2, 0.2, 0.05);
-
                 return;
             }
         }
@@ -343,182 +483,95 @@ public class ModEventHandlers {
         if ((heldItem.getItem() instanceof FlintAndSteelItem || heldItem.getItem() == Items.FIRE_CHARGE) &&
                 (clickedState.is(Blocks.END_PORTAL_FRAME) || clickedState.is(Blocks.END_PORTAL))) {
 
-            if (progressionData.isPhase2EffectivelyLocked()) {
+            if (!progressionManager.canPlayerAccessEnd(playerId)) {
                 event.setCanceled(true);
-                player.sendSystemMessage(Component.translatable(Constants.MSG_END_LOCKED)
+                player.sendSystemMessage(Component.translatable("message.dimtr.end_locked")
                         .withStyle(ChatFormatting.RED));
 
                 playDenialEffects(serverLevel, player, "end");
+
+                serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
+                        clickedPos.getX() + 0.5, clickedPos.getY() + 0.8, clickedPos.getZ() + 0.5,
+                        20, 0.3, 0.3, 0.3, 0.05);
                 return;
             }
         }
     }
 
-    // 3. DETECTAR COLISÃO COM PORTAL DO END (caso o portal já esteja completo) + TELEPORTE PARA WORLDSPAWN
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
-        // CORREÇÃO: Usar PlayerTickEvent.Post em vez de TickEvent.PlayerTickEvent
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
 
         ServerLevel serverLevel = player.serverLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        UUID playerId = player.getUUID();
 
-        // Verificar se Phase 2 está bloqueada
-        if (!progressionData.isPhase2EffectivelyLocked()) {
-            return; // End liberado, não bloquear
+        // 🎯 MUDANÇA: Verificação individual
+        if (progressionManager.canPlayerAccessEnd(playerId)) {
+            return; // End liberado para este jogador
         }
 
         BlockPos playerPos = player.blockPosition();
 
-        // Verificar múltiplas posições ao redor do jogador
         BlockPos[] positionsToCheck = {
-                playerPos,                    // Posição atual
-                playerPos.below(),            // Abaixo
-                playerPos.above(),            // Acima
-                playerPos.north(),            // Norte
-                playerPos.south(),            // Sul
-                playerPos.east(),             // Leste
-                playerPos.west()              // Oeste
+                playerPos, playerPos.below(), playerPos.above(),
+                playerPos.north(), playerPos.south(), playerPos.east(), playerPos.west()
         };
 
         boolean isInEndPortal = false;
         BlockPos portalPos = null;
 
-        for (BlockPos checkPos : positionsToCheck) {
-            BlockState state = serverLevel.getBlockState(checkPos);
-            if (state.is(Blocks.END_PORTAL)) {
+        for (BlockPos pos : positionsToCheck) {
+            BlockState blockState = serverLevel.getBlockState(pos);
+            if (blockState.is(Blocks.END_PORTAL)) {
                 isInEndPortal = true;
-                portalPos = checkPos;
+                portalPos = pos;
                 break;
             }
         }
 
         if (isInEndPortal) {
-            teleportToWorldSpawn(player, serverLevel, "end");
+            // Teletransportar jogador para fora do portal
+            BlockPos safePos = findSafePositionNearPortal(serverLevel, portalPos);
+            if (safePos != null) {
+                player.teleportTo(safePos.getX() + 0.5, safePos.getY(), safePos.getZ() + 0.5);
+            }
 
-            // Partículas adicionais no portal
-            serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
-                    portalPos.getX() + 0.5, portalPos.getY() + 1, portalPos.getZ() + 0.5,
-                    50, 0.5, 0.3, 0.5, 0.1);
+            player.sendSystemMessage(Component.translatable("message.dimtr.end_locked")
+                    .withStyle(ChatFormatting.RED));
+
+            playDenialEffects(serverLevel, player, "end");
         }
     }
 
     // ============================================================================
-    // MÉTODOS AUXILIARES
+    // 🎯 MÉTODOS AUXILIARES
     // ============================================================================
 
-    // NOVO: Método para teleportar para WorldSpawn com cooldown
-    private static void teleportToWorldSpawn(ServerPlayer player, ServerLevel serverLevel, String portalType) {
-        long currentTime = serverLevel.getGameTime();
-        UUID playerId = player.getUUID();
-
-        // Verificar cooldown de teleporte para evitar spam
-        long lastTeleport = teleportCooldowns.getOrDefault(playerId, 0L);
-        if (currentTime <= lastTeleport + TELEPORT_COOLDOWN_TICKS) {
-            return; // Ainda no cooldown, não teleportar novamente
-        }
-
-        // Obter posição do WorldSpawn
-        BlockPos spawnPos = serverLevel.getSharedSpawnPos();
-        double spawnX = spawnPos.getX() + 0.5;
-        double spawnY = spawnPos.getY();
-        double spawnZ = spawnPos.getZ() + 0.5;
-
-        // Verificar se é uma posição segura (não dentro de blocos)
-        BlockPos safePos = findSafeSpawnPosition(serverLevel, spawnPos);
-        if (safePos != null) {
-            spawnX = safePos.getX() + 0.5;
-            spawnY = safePos.getY();
-            spawnZ = safePos.getZ() + 0.5;
-        }
-
-        // Teleportar o jogador
-        player.teleportTo(spawnX, spawnY, spawnZ);
-
-        // Enviar mensagem personalizada baseada no tipo de portal
-        Component message;
-        if ("nether".equals(portalType)) {
-            message = Component.translatable(Constants.MSG_NETHER_LOCKED_TELEPORT)
-                    .withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
-        } else if ("end".equals(portalType)) {
-            message = Component.translatable(Constants.MSG_END_LOCKED_TELEPORT)
-                    .withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
-        } else {
-            message = Component.literal("§c§l[DimTr] Você foi teleportado para o spawn por tentar acessar uma dimensão bloqueada!");
-        }
-
-        player.sendSystemMessage(message);
-
-        // Som e partículas de teleporte
-        playTeleportEffects(serverLevel, player, portalType);
-
-        // Definir cooldown
-        teleportCooldowns.put(playerId, currentTime);
-    }
-
-    // NOVO: Encontrar posição segura próxima ao spawn
-    private static BlockPos findSafeSpawnPosition(ServerLevel serverLevel, BlockPos originalSpawn) {
-        // Verificar posição original primeiro
-        if (isSafePosition(serverLevel, originalSpawn)) {
-            return originalSpawn;
-        }
-
-        // Procurar em um raio de 5 blocos ao redor do spawn
+    private static BlockPos findSafePositionNearPortal(ServerLevel level, BlockPos portalPos) {
+        // Procurar posição segura em um raio de 5 blocos
         for (int x = -5; x <= 5; x++) {
             for (int z = -5; z <= 5; z++) {
-                for (int y = -3; y <= 10; y++) {
-                    BlockPos testPos = originalSpawn.offset(x, y, z);
-                    if (isSafePosition(serverLevel, testPos)) {
-                        return testPos;
+                for (int y = -2; y <= 2; y++) {
+                    BlockPos checkPos = portalPos.offset(x, y, z);
+                    if (isSafePosition(level, checkPos)) {
+                        return checkPos;
                     }
                 }
             }
         }
-
-        // Se não encontrar, usar a posição original mesmo
-        return originalSpawn;
+        return portalPos.above(3); // Fallback
     }
 
-    // NOVO: Verificar se uma posição é segura para teleporte
-    private static boolean isSafePosition(ServerLevel serverLevel, BlockPos pos) {
-        BlockState groundState = serverLevel.getBlockState(pos.below());
-        BlockState posState = serverLevel.getBlockState(pos);
-        BlockState aboveState = serverLevel.getBlockState(pos.above());
+    private static boolean isSafePosition(ServerLevel level, BlockPos pos) {
+        BlockState groundState = level.getBlockState(pos.below());
+        BlockState feetState = level.getBlockState(pos);
+        BlockState headState = level.getBlockState(pos.above());
 
-        // Verificar se há chão sólido e espaço suficiente acima
-        return groundState.isSolid() &&
-                !posState.isSolid() &&
-                !aboveState.isSolid() &&
-                !groundState.is(Blocks.LAVA) &&
-                !posState.is(Blocks.LAVA) &&
-                !aboveState.is(Blocks.LAVA);
-    }
-
-    // NOVO: Efeitos de teleporte
-    private static void playTeleportEffects(ServerLevel serverLevel, ServerPlayer player, String portalType) {
-        // Som de teleporte
-        serverLevel.playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT,
-                SoundSource.PLAYERS, 1.0F, 1.2F);
-
-        // Partículas de teleporte
-        if ("nether".equals(portalType)) {
-            // Partículas vermelhas para Nether
-            serverLevel.sendParticles(ParticleTypes.PORTAL,
-                    player.getX(), player.getY() + 1, player.getZ(),
-                    30, 0.5, 1.0, 0.5, 0.1);
-        } else if ("end".equals(portalType)) {
-            // Partículas roxas para End
-            serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
-                    player.getX(), player.getY() + 1, player.getZ(),
-                    30, 0.5, 1.0, 0.5, 0.1);
-        }
-
-        // Partículas adicionais de teleporte
-        serverLevel.sendParticles(ParticleTypes.CLOUD,
-                player.getX(), player.getY() + 0.5, player.getZ(),
-                20, 0.3, 0.3, 0.3, 0.05);
+        return groundState.isSolid() && !feetState.isSolid() && !headState.isSolid() &&
+                !groundState.is(Blocks.END_PORTAL) && !feetState.is(Blocks.END_PORTAL) && !headState.is(Blocks.END_PORTAL);
     }
 
     private static void playDenialEffects(ServerLevel serverLevel, Player player, String portalType) {
@@ -533,7 +586,6 @@ public class ModEventHandlers {
                 netherPortalSoundCooldowns.put(playerId, currentTime);
             }
 
-            // Partículas de fumaça
             serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE,
                     player.getX(), player.getY() + 1, player.getZ(),
                     10, 0.3, 0.3, 0.3, 0.05);
@@ -546,7 +598,6 @@ public class ModEventHandlers {
                 endPortalSoundCooldowns.put(playerId, currentTime);
             }
 
-            // Partículas do portal reverso
             serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
                     player.getX(), player.getY() + 1, player.getZ(),
                     20, 0.3, 0.3, 0.3, 0.1);

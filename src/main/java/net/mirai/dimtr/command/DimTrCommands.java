@@ -8,490 +8,822 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.config.DimTrConfig;
-import net.mirai.dimtr.data.ProgressionData;
+import net.mirai.dimtr.data.ProgressionManager;
+import net.mirai.dimtr.data.PlayerProgressionData;
 import net.mirai.dimtr.network.UpdateProgressionToClientPayload;
+import net.mirai.dimtr.util.Constants;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.ChatFormatting;
 
+import java.util.UUID;
+
+/**
+ * Sistema de comandos para Dimension Trials - VERSÃO INDIVIDUAL COMPLETA
+ *
+ * ✅ Sistema individual de progressão por jogador
+ * ✅ Comandos administrativos avançados
+ * ✅ Debug e sincronização melhorados
+ * ✅ Suporte para múltiplos jogadores
+ * ✅ Comandos de reset detalhados
+ * ✅ Integração com sistema de parties
+ */
 public class DimTrCommands {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("dimtr")
                 .requires(source -> source.hasPermission(2)) // OP level 2
+
+                // ============================================================================
+                // 🎯 COMANDOS INDIVIDUAIS (NOVO SISTEMA)
+                // ============================================================================
+                .then(Commands.literal("player")
+                        .then(Commands.argument("target", EntityArgument.player())
+                                .then(Commands.literal("complete")
+                                        .then(Commands.literal("phase1")
+                                                .executes(DimTrCommands::executeCompletePlayerPhase1))
+                                        .then(Commands.literal("phase2")
+                                                .executes(DimTrCommands::executeCompletePlayerPhase2)))
+                                .then(Commands.literal("reset")
+                                        .then(Commands.literal("all")
+                                                .executes(DimTrCommands::executeResetPlayerAll))
+                                        .then(Commands.literal("phase1")
+                                                .executes(DimTrCommands::executeResetPlayerPhase1))
+                                        .then(Commands.literal("phase2")
+                                                .executes(DimTrCommands::executeResetPlayerPhase2))
+                                        .then(Commands.literal("mob_kills")
+                                                .executes(DimTrCommands::executeResetPlayerMobKills)))
+                                .then(Commands.literal("set")
+                                        .then(Commands.literal("goal")
+                                                .then(Commands.argument("goal_name", StringArgumentType.string())
+                                                        .then(Commands.argument("value", BoolArgumentType.bool())
+                                                                .executes(DimTrCommands::executeSetPlayerGoal))))
+                                        .then(Commands.literal("mob_kill")
+                                                .then(Commands.argument("mob_type", StringArgumentType.string())
+                                                        .then(Commands.argument("count", IntegerArgumentType.integer(0))
+                                                                .executes(DimTrCommands::executeSetPlayerMobKill)))))
+                                .then(Commands.literal("status")
+                                        .executes(DimTrCommands::executePlayerStatus))
+                                .then(Commands.literal("sync")
+                                        .executes(DimTrCommands::executePlayerSync))))
+
+                // ============================================================================
+                // 🎯 COMANDOS GLOBAIS (COMPATIBILIDADE + SELF-TARGET)
+                // ============================================================================
                 .then(Commands.literal("complete")
                         .then(Commands.literal("phase1")
-                                .executes(DimTrCommands::executeCompletePhase1))
+                                .executes(DimTrCommands::executeCompleteSelfPhase1))
                         .then(Commands.literal("phase2")
-                                .executes(DimTrCommands::executeCompletePhase2)))
+                                .executes(DimTrCommands::executeCompleteSelfPhase2)))
                 .then(Commands.literal("reset")
                         .then(Commands.literal("all")
-                                .executes(DimTrCommands::executeResetAll))
+                                .executes(DimTrCommands::executeResetSelfAll))
                         .then(Commands.literal("phase1")
-                                .executes(DimTrCommands::executeResetPhase1))
+                                .executes(DimTrCommands::executeResetSelfPhase1))
                         .then(Commands.literal("phase2")
-                                .executes(DimTrCommands::executeResetPhase2))
+                                .executes(DimTrCommands::executeResetSelfPhase2))
                         .then(Commands.literal("mob_kills")
-                                .executes(DimTrCommands::executeResetMobKills)))
+                                .executes(DimTrCommands::executeResetSelfMobKills)))
                 .then(Commands.literal("set")
                         .then(Commands.literal("goal")
                                 .then(Commands.argument("goal_name", StringArgumentType.string())
                                         .then(Commands.argument("value", BoolArgumentType.bool())
-                                                .executes(DimTrCommands::executeSetGoal))))
+                                                .executes(DimTrCommands::executeSetSelfGoal))))
                         .then(Commands.literal("mob_kill")
                                 .then(Commands.argument("mob_type", StringArgumentType.string())
                                         .then(Commands.argument("count", IntegerArgumentType.integer(0))
-                                                .executes(DimTrCommands::executeSetMobKill)))))
+                                                .executes(DimTrCommands::executeSetSelfMobKill)))))
                 .then(Commands.literal("status")
-                        .executes(DimTrCommands::executeStatus))
+                        .executes(DimTrCommands::executeSelfStatus))
                 .then(Commands.literal("sync")
-                        .executes(DimTrCommands::executeForceSync))
+                        .executes(DimTrCommands::executeSelfSync))
+
+                // ============================================================================
+                // 🎯 COMANDOS DE DEBUG AVANÇADOS
+                // ============================================================================
                 .then(Commands.literal("debug")
                         .then(Commands.literal("payload")
-                                .executes(DimTrCommands::executeDebugPayload))));
+                                .executes(DimTrCommands::executeDebugSelfPayload)
+                                .then(Commands.argument("target", EntityArgument.player())
+                                        .executes(DimTrCommands::executeDebugPlayerPayload)))
+                        .then(Commands.literal("global_status")
+                                .executes(DimTrCommands::executeDebugGlobalStatus))
+                        .then(Commands.literal("list_players")
+                                .executes(DimTrCommands::executeDebugListPlayers))
+                        .then(Commands.literal("multipliers")
+                                .executes(DimTrCommands::executeDebugMultipliers))));
     }
 
     // ============================================================================
-    // COMANDOS DE COMPLETAR FASES (PARA TESTES)
+    // 🎯 COMANDOS INDIVIDUAIS PARA JOGADORES ESPECÍFICOS
     // ============================================================================
 
-    private static int executeCompletePhase1(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
+    private static int executeCompletePlayerPhase1(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "target");
+        return completePhase1ForPlayer(context, targetPlayer.getUUID(), targetPlayer.getName().getString());
+    }
 
-        // CORREÇÃO: Marcar dirty ANTES para garantir que as mudanças sejam salvas
-        progressionData.setDirty();
+    private static int executeCompletePlayerPhase2(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "target");
+        return completePhase2ForPlayer(context, targetPlayer.getUUID(), targetPlayer.getName().getString());
+    }
+
+    private static int executeResetPlayerAll(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "target");
+        return resetPlayerProgress(context, targetPlayer.getUUID(), targetPlayer.getName().getString(), "all");
+    }
+
+    private static int executeResetPlayerPhase1(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "target");
+        return resetPlayerProgress(context, targetPlayer.getUUID(), targetPlayer.getName().getString(), "phase1");
+    }
+
+    private static int executeResetPlayerPhase2(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "target");
+        return resetPlayerProgress(context, targetPlayer.getUUID(), targetPlayer.getName().getString(), "phase2");
+    }
+
+    private static int executeResetPlayerMobKills(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "target");
+        return resetPlayerProgress(context, targetPlayer.getUUID(), targetPlayer.getName().getString(), "mob_kills");
+    }
+
+    private static int executeSetPlayerGoal(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "target");
+        String goalName = StringArgumentType.getString(context, "goal_name");
+        boolean value = BoolArgumentType.getBool(context, "value");
+        return setPlayerGoal(context, targetPlayer.getUUID(), targetPlayer.getName().getString(), goalName, value);
+    }
+
+    private static int executeSetPlayerMobKill(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "target");
+        String mobType = StringArgumentType.getString(context, "mob_type");
+        int count = IntegerArgumentType.getInteger(context, "count");
+        return setPlayerMobKill(context, targetPlayer.getUUID(), targetPlayer.getName().getString(), mobType, count);
+    }
+
+    private static int executePlayerStatus(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "target");
+        return showPlayerStatus(context, targetPlayer.getUUID(), targetPlayer.getName().getString());
+    }
+
+    private static int executePlayerSync(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "target");
+        return syncPlayer(context, targetPlayer);
+    }
+
+    // ============================================================================
+    // 🎯 COMANDOS SELF-TARGET (PARA O PRÓPRIO EXECUTANTE)
+    // ============================================================================
+
+    private static int executeCompleteSelfPhase1(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = getPlayerFromContext(context);
+        if (player == null) return 0;
+        return completePhase1ForPlayer(context, player.getUUID(), "você");
+    }
+
+    private static int executeCompleteSelfPhase2(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = getPlayerFromContext(context);
+        if (player == null) return 0;
+        return completePhase2ForPlayer(context, player.getUUID(), "você");
+    }
+
+    private static int executeResetSelfAll(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = getPlayerFromContext(context);
+        if (player == null) return 0;
+        return resetPlayerProgress(context, player.getUUID(), "sua", "all");
+    }
+
+    private static int executeResetSelfPhase1(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = getPlayerFromContext(context);
+        if (player == null) return 0;
+        return resetPlayerProgress(context, player.getUUID(), "sua", "phase1");
+    }
+
+    private static int executeResetSelfPhase2(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = getPlayerFromContext(context);
+        if (player == null) return 0;
+        return resetPlayerProgress(context, player.getUUID(), "sua", "phase2");
+    }
+
+    private static int executeResetSelfMobKills(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = getPlayerFromContext(context);
+        if (player == null) return 0;
+        return resetPlayerProgress(context, player.getUUID(), "seus", "mob_kills");
+    }
+
+    private static int executeSetSelfGoal(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = getPlayerFromContext(context);
+        if (player == null) return 0;
+        String goalName = StringArgumentType.getString(context, "goal_name");
+        boolean value = BoolArgumentType.getBool(context, "value");
+        return setPlayerGoal(context, player.getUUID(), "seu", goalName, value);
+    }
+
+    private static int executeSetSelfMobKill(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = getPlayerFromContext(context);
+        if (player == null) return 0;
+        String mobType = StringArgumentType.getString(context, "mob_type");
+        int count = IntegerArgumentType.getInteger(context, "count");
+        return setPlayerMobKill(context, player.getUUID(), "seus", mobType, count);
+    }
+
+    private static int executeSelfStatus(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = getPlayerFromContext(context);
+        if (player == null) return 0;
+        return showPlayerStatus(context, player.getUUID(), "Sua");
+    }
+
+    private static int executeSelfSync(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = getPlayerFromContext(context);
+        if (player == null) return 0;
+        return syncPlayer(context, player);
+    }
+
+    // ============================================================================
+    // 🎯 MÉTODOS CORE DE IMPLEMENTAÇÃO
+    // ============================================================================
+
+    private static int completePhase1ForPlayer(CommandContext<CommandSourceStack> context, UUID playerId, String playerName) {
+        ServerLevel serverLevel = context.getSource().getLevel();
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
 
         // Completar objetivos especiais
-        progressionData.elderGuardianKilled = true;
-        progressionData.raidWon = true;
-        progressionData.ravagerKilled = true; // Manter por compatibilidade
-        progressionData.evokerKilled = true; // Manter por compatibilidade
-        progressionData.trialVaultAdvancementEarned = true;
-        progressionData.voluntaireExileAdvancementEarned = true; // NOVO: Completar Voluntaire Exile
+        playerData.elderGuardianKilled = true;
+        playerData.raidWon = true;
+        playerData.trialVaultAdvancementEarned = true;
+        playerData.voluntaireExileAdvancementEarned = true;
 
-        // Definir diretamente os valores dos contadores de mobs da Fase 1
-        progressionData.zombieKills = 50;
-        // ✅ REMOVIDO: progressionData.zombieVillagerKills = 3;
-        progressionData.skeletonKills = 40;
-        progressionData.strayKills = 10;
-        progressionData.huskKills = 10;
-        progressionData.spiderKills = 30;
-        progressionData.creeperKills = 30;
-        progressionData.drownedKills = 20;
-        progressionData.endermanKills = 5;
-        progressionData.witchKills = 5;
-        progressionData.pillagerKills = 20;
-        progressionData.captainKills = 1;
-        progressionData.vindicatorKills = 10;
-        progressionData.boggedKills = 10;
-        progressionData.breezeKills = 5;
+        // Completar todos os mob kills da Fase 1
+        playerData.zombieKills = DimTrConfig.SERVER.reqZombieKills.get();
+        playerData.skeletonKills = DimTrConfig.SERVER.reqSkeletonKills.get();
+        playerData.strayKills = DimTrConfig.SERVER.reqStrayKills.get();
+        playerData.huskKills = DimTrConfig.SERVER.reqHuskKills.get();
+        playerData.spiderKills = DimTrConfig.SERVER.reqSpiderKills.get();
+        playerData.creeperKills = DimTrConfig.SERVER.reqCreeperKills.get();
+        playerData.drownedKills = DimTrConfig.SERVER.reqDrownedKills.get();
+        playerData.endermanKills = DimTrConfig.SERVER.reqEndermanKills.get();
+        playerData.witchKills = DimTrConfig.SERVER.reqWitchKills.get();
+        playerData.pillagerKills = DimTrConfig.SERVER.reqPillagerKills.get();
+        playerData.captainKills = DimTrConfig.SERVER.reqCaptainKills.get();
+        playerData.vindicatorKills = DimTrConfig.SERVER.reqVindicatorKills.get();
+        playerData.boggedKills = DimTrConfig.SERVER.reqBoggedKills.get();
+        playerData.breezeKills = DimTrConfig.SERVER.reqBreezeKills.get();
+        playerData.ravagerKills = DimTrConfig.SERVER.reqRavagerKills.get();
+        playerData.evokerKills = DimTrConfig.SERVER.reqEvokerKills.get();
 
-        // CORREÇÃO: Completar Ravager e Evoker como Goal Kills com valores atualizados
-        progressionData.ravagerKills = 1; // Novo valor: 1
-        progressionData.evokerKills = 5; // Novo valor: 5
+        // Forçar completude da Fase 1
+        playerData.phase1Completed = true;
 
-        // CORREÇÃO: Usar o método de verificação sem announce para evitar problemas
-        progressionData.checkAndCompletePhase1Internal();
+        // Salvar e sincronizar
+        progressionManager.setDirty();
+        if (context.getSource().getLevel().getServer() != null) {
+            ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayer(playerId);
+            if (player != null) {
+                progressionManager.sendToClient(player);
+            }
+        }
 
-        // Forçar que phase1Completed seja true
-        progressionData.phase1Completed = true;
+        context.getSource().sendSuccess(() ->
+                Component.literal("✅ Fase 1 completa para " + playerName + "!")
+                        .withStyle(ChatFormatting.GREEN), true);
 
-        // CORREÇÃO: Marcar como dirty e enviar atualizações imediatamente
-        progressionData.markDirtyAndSendUpdates();
-
-        context.getSource().sendSuccess(() -> Component.literal("All Phase 1 requirements completed via command."), true);
         return 1;
     }
 
-    private static int executeCompletePhase2(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int completePhase2ForPlayer(CommandContext<CommandSourceStack> context, UUID playerId, String playerName) {
         ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
 
-        // CORREÇÃO: Marcar dirty ANTES para garantir que as mudanças sejam salvas
-        progressionData.setDirty();
-
-        // Completar Fase 1 primeiro se não estiver
-        if (!progressionData.phase1Completed) {
-            executeCompletePhase1(context);
+        // Completar Fase 1 primeiro se necessário
+        if (!playerData.phase1Completed) {
+            completePhase1ForPlayer(context, playerId, playerName);
         }
 
         // Completar objetivos especiais da Fase 2
-        progressionData.witherKilled = true;
-        progressionData.wardenKilled = true;
+        playerData.witherKilled = true;
+        playerData.wardenKilled = true;
 
-        // Completar todos os mob kills da Fase 2 (Nether mobs)
-        progressionData.blazeKills = 20;
-        progressionData.witherSkeletonKills = 15;
-        progressionData.piglinBruteKills = 5;
-        progressionData.hoglinKills = 1; // CORREÇÃO: Valor correto
-        progressionData.zoglinKills = 1; // CORREÇÃO: Valor correto
-        progressionData.ghastKills = 10;
-        // ✅ REMOVIDO: progressionData.endermiteKills = 5;
-        progressionData.piglinKills = 30;
+        // Completar mobs do Nether
+        playerData.blazeKills = DimTrConfig.SERVER.reqBlazeKills.get();
+        playerData.witherSkeletonKills = DimTrConfig.SERVER.reqWitherSkeletonKills.get();
+        playerData.piglinBruteKills = DimTrConfig.SERVER.reqPiglinBruteKills.get();
+        playerData.hoglinKills = DimTrConfig.SERVER.reqHoglinKills.get();
+        playerData.zoglinKills = DimTrConfig.SERVER.reqZoglinKills.get();
+        playerData.ghastKills = DimTrConfig.SERVER.reqGhastKills.get();
+        playerData.piglinKills = DimTrConfig.SERVER.reqPiglinKills.get();
 
-        // ATUALIZADO: Completar os requisitos aumentados do Overworld (125% dos valores originais)
-        progressionData.zombieKills = Math.max(progressionData.zombieKills, 63); // 50 * 1.25 = 62.5 -> 63
-        // ✅ REMOVIDO: progressionData.zombieVillagerKills = Math.max(progressionData.zombieVillagerKills, 4);
-        progressionData.skeletonKills = Math.max(progressionData.skeletonKills, 50); // 40 * 1.25 = 50
-        progressionData.strayKills = Math.max(progressionData.strayKills, 13); // 10 * 1.25 = 12.5 -> 13
-        progressionData.huskKills = Math.max(progressionData.huskKills, 13); // 10 * 1.25 = 12.5 -> 13
-        progressionData.spiderKills = Math.max(progressionData.spiderKills, 38); // 30 * 1.25 = 37.5 -> 38
-        progressionData.creeperKills = Math.max(progressionData.creeperKills, 38); // 30 * 1.25 = 37.5 -> 38
-        progressionData.drownedKills = Math.max(progressionData.drownedKills, 25); // 20 * 1.25 = 25
-        progressionData.endermanKills = Math.max(progressionData.endermanKills, 7); // 5 * 1.25 = 6.25 -> 7
-        progressionData.witchKills = Math.max(progressionData.witchKills, 7); // 5 * 1.25 = 6.25 -> 7
-        progressionData.pillagerKills = Math.max(progressionData.pillagerKills, 25); // 20 * 1.25 = 25
-        progressionData.captainKills = Math.max(progressionData.captainKills, 2); // 1 * 1.25 = 1.25 -> 2
-        progressionData.vindicatorKills = Math.max(progressionData.vindicatorKills, 13); // 10 * 1.25 = 12.5 -> 13
-        progressionData.boggedKills = Math.max(progressionData.boggedKills, 13); // 10 * 1.25 = 12.5 -> 13
-        progressionData.breezeKills = Math.max(progressionData.breezeKills, 7); // 5 * 1.25 = 6.25 -> 7
+        // Completar requisitos aumentados do Overworld (125%)
+        playerData.zombieKills = Math.max(playerData.zombieKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqZombieKills.get()));
+        playerData.skeletonKills = Math.max(playerData.skeletonKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqSkeletonKills.get()));
+        playerData.strayKills = Math.max(playerData.strayKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqStrayKills.get()));
+        playerData.huskKills = Math.max(playerData.huskKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqHuskKills.get()));
+        playerData.spiderKills = Math.max(playerData.spiderKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqSpiderKills.get()));
+        playerData.creeperKills = Math.max(playerData.creeperKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqCreeperKills.get()));
+        playerData.drownedKills = Math.max(playerData.drownedKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqDrownedKills.get()));
+        playerData.endermanKills = Math.max(playerData.endermanKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqEndermanKills.get()));
+        playerData.witchKills = Math.max(playerData.witchKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqWitchKills.get()));
+        playerData.pillagerKills = Math.max(playerData.pillagerKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqPillagerKills.get()));
+        playerData.captainKills = Math.max(playerData.captainKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqCaptainKills.get()));
+        playerData.vindicatorKills = Math.max(playerData.vindicatorKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqVindicatorKills.get()));
+        playerData.boggedKills = Math.max(playerData.boggedKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqBoggedKills.get()));
+        playerData.breezeKills = Math.max(playerData.breezeKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqBreezeKills.get()));
+        playerData.ravagerKills = Math.max(playerData.ravagerKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqRavagerKills.get()));
+        playerData.evokerKills = Math.max(playerData.evokerKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqEvokerKills.get()));
 
-        // CORREÇÃO: Ravager e Evoker com valores atualizados e 125% para Fase 2
-        progressionData.ravagerKills = Math.max(progressionData.ravagerKills, 2); // 1 * 1.25 = 1.25 -> 2
-        progressionData.evokerKills = Math.max(progressionData.evokerKills, 7); // 5 * 1.25 = 6.25 -> 7
+        // Forçar completude da Fase 2
+        playerData.phase2Completed = true;
 
-        // CORREÇÃO: Usar o método de verificação sem announce para evitar problemas
-        progressionData.checkAndCompletePhase2Internal();
+        // Salvar e sincronizar
+        progressionManager.setDirty();
+        if (context.getSource().getLevel().getServer() != null) {
+            ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayer(playerId);
+            if (player != null) {
+                progressionManager.sendToClient(player);
+            }
+        }
 
-        // Forçar que phase2Completed seja true
-        progressionData.phase2Completed = true;
+        context.getSource().sendSuccess(() ->
+                Component.literal("✅ Fase 2 completa para " + playerName + "!")
+                        .withStyle(ChatFormatting.GREEN), true);
 
-        // CORREÇÃO: Marcar como dirty e enviar atualizações imediatamente
-        progressionData.markDirtyAndSendUpdates();
-
-        context.getSource().sendSuccess(() -> Component.literal("All Phase 2 requirements completed via command."), true);
         return 1;
     }
 
-    // ============================================================================
-    // COMANDOS EXISTENTES (MANTIDOS)
-    // ============================================================================
-
-    private static int executeSetGoal(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int resetPlayerProgress(CommandContext<CommandSourceStack> context, UUID playerId, String playerName, String resetType) {
         ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
 
-        String goalName = StringArgumentType.getString(context, "goal_name");
-        boolean value = BoolArgumentType.getBool(context, "value");
+        switch (resetType) {
+            case "all" -> {
+                // Reset completo
+                playerData.elderGuardianKilled = false;
+                playerData.raidWon = false;
+                playerData.trialVaultAdvancementEarned = false;
+                playerData.voluntaireExileAdvancementEarned = false;
+                playerData.phase1Completed = false;
+                playerData.witherKilled = false;
+                playerData.wardenKilled = false;
+                playerData.phase2Completed = false;
+                resetAllMobKills(playerData);
+            }
+            case "phase1" -> {
+                // Reset apenas Fase 1
+                playerData.elderGuardianKilled = false;
+                playerData.raidWon = false;
+                playerData.trialVaultAdvancementEarned = false;
+                playerData.voluntaireExileAdvancementEarned = false;
+                playerData.phase1Completed = false;
+                resetPhase1MobKills(playerData);
+            }
+            case "phase2" -> {
+                // Reset apenas Fase 2
+                playerData.witherKilled = false;
+                playerData.wardenKilled = false;
+                playerData.phase2Completed = false;
+                resetPhase2MobKills(playerData);
+            }
+            case "mob_kills" -> {
+                // Reset apenas contadores de mobs
+                resetAllMobKills(playerData);
+            }
+        }
 
-        // CORREÇÃO: Marcar dirty ANTES
-        progressionData.setDirty();
+        // Salvar e sincronizar
+        progressionManager.setDirty();
+        if (context.getSource().getLevel().getServer() != null) {
+            ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayer(playerId);
+            if (player != null) {
+                progressionManager.sendToClient(player);
+            }
+        }
+
+        String resetDescription = switch (resetType) {
+            case "all" -> "progressão completa";
+            case "phase1" -> "progressão da Fase 1";
+            case "phase2" -> "progressão da Fase 2";
+            case "mob_kills" -> "contadores de mobs";
+            default -> "dados";
+        };
+
+        context.getSource().sendSuccess(() ->
+                Component.literal("✅ " + resetDescription + " resetada para " + playerName + "!")
+                        .withStyle(ChatFormatting.GREEN), true);
+
+        return 1;
+    }
+
+    private static int setPlayerGoal(CommandContext<CommandSourceStack> context, UUID playerId, String playerName, String goalName, boolean value) {
+        ServerLevel serverLevel = context.getSource().getLevel();
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
 
         boolean success = switch (goalName.toLowerCase()) {
-            case "elder_guardian" -> progressionData.updateElderGuardianKilled(value);
-            case "raid" -> progressionData.updateRaidWon(value);
-            case "ravager" -> progressionData.updateRavagerKilled(value);
-            case "evoker" -> progressionData.updateEvokerKilled(value);
-            case "trial_vault" -> progressionData.updateTrialVaultAdvancementEarned(value);
-            // NOVO: Suporte para Voluntaire Exile
-            case "voluntaire_exile" -> progressionData.updateVoluntaireExileAdvancementEarned(value);
-            case "wither" -> progressionData.updateWitherKilled(value);
-            case "warden" -> progressionData.updateWardenKilled(value);
+            case "elder_guardian" -> { playerData.elderGuardianKilled = value; yield true; }
+            case "raid" -> { playerData.raidWon = value; yield true; }
+            case "trial_vault" -> { playerData.trialVaultAdvancementEarned = value; yield true; }
+            case "voluntaire_exile" -> { playerData.voluntaireExileAdvancementEarned = value; yield true; }
+            case "wither" -> { playerData.witherKilled = value; yield true; }
+            case "warden" -> { playerData.wardenKilled = value; yield true; }
             default -> {
-                context.getSource().sendFailure(Component.literal("Invalid goal name: " + goalName));
+                context.getSource().sendFailure(Component.literal("❌ Objetivo inválido: " + goalName));
                 yield false;
             }
         };
 
         if (success) {
-            context.getSource().sendSuccess(() -> Component.literal("Goal '" + goalName + "' set to " + value), true);
+            // Salvar e sincronizar
+            progressionManager.setDirty();
+            if (context.getSource().getLevel().getServer() != null) {
+                ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayer(playerId);
+                if (player != null) {
+                    progressionManager.sendToClient(player);
+                }
+            }
+
+            context.getSource().sendSuccess(() ->
+                    Component.literal("✅ Objetivo '" + goalName + "' definido como " + value + " para " + playerName)
+                            .withStyle(ChatFormatting.GREEN), true);
             return 1;
         }
 
         return 0;
     }
 
-    private static int executeSetMobKill(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int setPlayerMobKill(CommandContext<CommandSourceStack> context, UUID playerId, String playerName, String mobType, int count) {
         ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
-
-        String mobType = StringArgumentType.getString(context, "mob_type");
-        int count = IntegerArgumentType.getInteger(context, "count");
-
-        // CORREÇÃO: Marcar dirty ANTES
-        progressionData.setDirty();
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
 
         boolean success = switch (mobType.toLowerCase()) {
-            case "zombie" -> { progressionData.zombieKills = count; yield true; }
-            // ✅ REMOVIDO: case "zombie_villager" -> { progressionData.zombieVillagerKills = count; yield true; }
-            case "skeleton" -> { progressionData.skeletonKills = count; yield true; }
-            case "stray" -> { progressionData.strayKills = count; yield true; }
-            case "husk" -> { progressionData.huskKills = count; yield true; }
-            case "spider" -> { progressionData.spiderKills = count; yield true; }
-            case "creeper" -> { progressionData.creeperKills = count; yield true; }
-            case "drowned" -> { progressionData.drownedKills = count; yield true; }
-            case "enderman" -> { progressionData.endermanKills = count; yield true; }
-            case "witch" -> { progressionData.witchKills = count; yield true; }
-            case "pillager" -> { progressionData.pillagerKills = count; yield true; }
-            case "captain" -> { progressionData.captainKills = count; yield true; }
-            case "vindicator" -> { progressionData.vindicatorKills = count; yield true; }
-            case "bogged" -> { progressionData.boggedKills = count; yield true; }
-            case "breeze" -> { progressionData.breezeKills = count; yield true; }
-            case "ravager" -> { progressionData.ravagerKills = count; yield true; }
-            case "evoker" -> { progressionData.evokerKills = count; yield true; }
-            case "blaze" -> { progressionData.blazeKills = count; yield true; }
-            case "wither_skeleton" -> { progressionData.witherSkeletonKills = count; yield true; }
-            case "piglin_brute" -> { progressionData.piglinBruteKills = count; yield true; }
-            case "hoglin" -> { progressionData.hoglinKills = count; yield true; }
-            case "zoglin" -> { progressionData.zoglinKills = count; yield true; }
-            case "ghast" -> { progressionData.ghastKills = count; yield true; }
-            // ✅ REMOVIDO: case "endermite" -> { progressionData.endermiteKills = count; yield true; }
-            case "piglin" -> { progressionData.piglinKills = count; yield true; }
+            case "zombie" -> { playerData.zombieKills = count; yield true; }
+            case "skeleton" -> { playerData.skeletonKills = count; yield true; }
+            case "stray" -> { playerData.strayKills = count; yield true; }
+            case "husk" -> { playerData.huskKills = count; yield true; }
+            case "spider" -> { playerData.spiderKills = count; yield true; }
+            case "creeper" -> { playerData.creeperKills = count; yield true; }
+            case "drowned" -> { playerData.drownedKills = count; yield true; }
+            case "enderman" -> { playerData.endermanKills = count; yield true; }
+            case "witch" -> { playerData.witchKills = count; yield true; }
+            case "pillager" -> { playerData.pillagerKills = count; yield true; }
+            case "captain" -> { playerData.captainKills = count; yield true; }
+            case "vindicator" -> { playerData.vindicatorKills = count; yield true; }
+            case "bogged" -> { playerData.boggedKills = count; yield true; }
+            case "breeze" -> { playerData.breezeKills = count; yield true; }
+            case "ravager" -> { playerData.ravagerKills = count; yield true; }
+            case "evoker" -> { playerData.evokerKills = count; yield true; }
+            case "blaze" -> { playerData.blazeKills = count; yield true; }
+            case "wither_skeleton" -> { playerData.witherSkeletonKills = count; yield true; }
+            case "piglin_brute" -> { playerData.piglinBruteKills = count; yield true; }
+            case "hoglin" -> { playerData.hoglinKills = count; yield true; }
+            case "zoglin" -> { playerData.zoglinKills = count; yield true; }
+            case "ghast" -> { playerData.ghastKills = count; yield true; }
+            case "piglin" -> { playerData.piglinKills = count; yield true; }
             default -> {
-                context.getSource().sendFailure(Component.literal("Invalid mob type: " + mobType));
+                context.getSource().sendFailure(Component.literal("❌ Tipo de mob inválido: " + mobType));
                 yield false;
             }
         };
 
         if (success) {
-            progressionData.markDirtyAndSendUpdates();
-            context.getSource().sendSuccess(() -> Component.literal("Mob kill count for '" + mobType + "' set to " + count), true);
+            // Salvar e sincronizar
+            progressionManager.setDirty();
+            if (context.getSource().getLevel().getServer() != null) {
+                ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayer(playerId);
+                if (player != null) {
+                    progressionManager.sendToClient(player);
+                }
+            }
+
+            context.getSource().sendSuccess(() ->
+                    Component.literal("✅ Contagem de '" + mobType + "' definida como " + count + " para " + playerName)
+                            .withStyle(ChatFormatting.GREEN), true);
             return 1;
         }
 
         return 0;
     }
 
-    private static int executeResetAll(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int showPlayerStatus(CommandContext<CommandSourceStack> context, UUID playerId, String playerName) {
         ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
 
-        // Reset all progression data
-        progressionData.elderGuardianKilled = false;
-        progressionData.raidWon = false;
-        progressionData.ravagerKilled = false;
-        progressionData.evokerKilled = false;
-        progressionData.trialVaultAdvancementEarned = false;
-        progressionData.voluntaireExileAdvancementEarned = false;
-        progressionData.phase1Completed = false;
-        progressionData.witherKilled = false;
-        progressionData.wardenKilled = false;
-        progressionData.phase2Completed = false;
+        // Cabeçalho
+        context.getSource().sendSuccess(() ->
+                Component.literal("=== " + playerName.toUpperCase() + " PROGRESSÃO ===")
+                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
 
-        // Reset all mob kill counters
-        progressionData.zombieKills = 0;
-        // ✅ REMOVIDO: progressionData.zombieVillagerKills = 0;
-        progressionData.skeletonKills = 0;
-        progressionData.strayKills = 0;
-        progressionData.huskKills = 0;
-        progressionData.spiderKills = 0;
-        progressionData.creeperKills = 0;
-        progressionData.drownedKills = 0;
-        progressionData.endermanKills = 0;
-        progressionData.witchKills = 0;
-        progressionData.pillagerKills = 0;
-        progressionData.captainKills = 0;
-        progressionData.vindicatorKills = 0;
-        progressionData.boggedKills = 0;
-        progressionData.breezeKills = 0;
-        progressionData.ravagerKills = 0;
-        progressionData.evokerKills = 0;
-        progressionData.blazeKills = 0;
-        progressionData.witherSkeletonKills = 0;
-        progressionData.piglinBruteKills = 0;
-        progressionData.hoglinKills = 0;
-        progressionData.zoglinKills = 0;
-        progressionData.ghastKills = 0;
-        // ✅ REMOVIDO: progressionData.endermiteKills = 0;
-        progressionData.piglinKills = 0;
+        // Status das fases
+        ChatFormatting phase1Color = playerData.phase1Completed ? ChatFormatting.GREEN : ChatFormatting.RED;
+        ChatFormatting phase2Color = playerData.phase2Completed ? ChatFormatting.GREEN : ChatFormatting.RED;
 
-        progressionData.markDirtyAndSendUpdates();
-        context.getSource().sendSuccess(() -> Component.literal("All progression data has been reset"), true);
-        return 1;
-    }
+        context.getSource().sendSuccess(() ->
+                Component.literal("🏆 Fase 1: " + (playerData.phase1Completed ? "COMPLETA" : "INCOMPLETA"))
+                        .withStyle(phase1Color), false);
 
-    private static int executeResetPhase1(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
+        context.getSource().sendSuccess(() ->
+                Component.literal("🏆 Fase 2: " + (playerData.phase2Completed ? "COMPLETA" : "INCOMPLETA"))
+                        .withStyle(phase2Color), false);
 
-        // Reset Phase 1 specific data
-        progressionData.elderGuardianKilled = false;
-        progressionData.raidWon = false;
-        progressionData.ravagerKilled = false;
-        progressionData.evokerKilled = false;
-        progressionData.trialVaultAdvancementEarned = false;
-        progressionData.voluntaireExileAdvancementEarned = false;
-        progressionData.phase1Completed = false;
+        // Multiplicador atual
+        double multiplier = playerData.getProgressionMultiplier();
+        context.getSource().sendSuccess(() ->
+                Component.literal("⚡ Multiplicador: " + String.format("%.1fx", multiplier))
+                        .withStyle(multiplier > 1.0 ? ChatFormatting.GOLD : ChatFormatting.GRAY), false);
 
-        // Reset Phase 1 mob counters
-        progressionData.zombieKills = 0;
-        // ✅ REMOVIDO: progressionData.zombieVillagerKills = 0;
-        progressionData.skeletonKills = 0;
-        progressionData.strayKills = 0;
-        progressionData.huskKills = 0;
-        progressionData.spiderKills = 0;
-        progressionData.creeperKills = 0;
-        progressionData.drownedKills = 0;
-        progressionData.endermanKills = 0;
-        progressionData.witchKills = 0;
-        progressionData.pillagerKills = 0;
-        progressionData.captainKills = 0;
-        progressionData.vindicatorKills = 0;
-        progressionData.boggedKills = 0;
-        progressionData.breezeKills = 0;
-        progressionData.ravagerKills = 0;
-        progressionData.evokerKills = 0;
+        // Objetivos especiais
+        context.getSource().sendSuccess(() ->
+                Component.literal("--- OBJETIVOS ESPECIAIS ---")
+                        .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD), false);
 
-        progressionData.markDirtyAndSendUpdates();
-        context.getSource().sendSuccess(() -> Component.literal("Phase 1 progression data has been reset"), true);
-        return 1;
-    }
+        showGoalStatus(context, "🦈 Elder Guardian", playerData.elderGuardianKilled);
+        showGoalStatus(context, "⚔️ Raid Vencida", playerData.raidWon);
+        showGoalStatus(context, "💎 Trial Vault", playerData.trialVaultAdvancementEarned);
+        showGoalStatus(context, "🏹 Voluntary Exile", playerData.voluntaireExileAdvancementEarned);
+        showGoalStatus(context, "💀 Wither Morto", playerData.witherKilled);
+        showGoalStatus(context, "👁️ Warden Morto", playerData.wardenKilled);
 
-    private static int executeResetPhase2(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
+        // Contadores importantes
+        context.getSource().sendSuccess(() ->
+                Component.literal("--- CONTADORES PRINCIPAIS ---")
+                        .withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD), false);
 
-        // Reset Phase 2 specific data
-        progressionData.witherKilled = false;
-        progressionData.wardenKilled = false;
-        progressionData.phase2Completed = false;
-
-        // Reset Phase 2 mob counters
-        progressionData.blazeKills = 0;
-        progressionData.witherSkeletonKills = 0;
-        progressionData.piglinBruteKills = 0;
-        progressionData.hoglinKills = 0;
-        progressionData.zoglinKills = 0;
-        progressionData.ghastKills = 0;
-        // ✅ REMOVIDO: progressionData.endermiteKills = 0;
-        progressionData.piglinKills = 0;
-
-        progressionData.markDirtyAndSendUpdates();
-        context.getSource().sendSuccess(() -> Component.literal("Phase 2 progression data has been reset"), true);
-        return 1;
-    }
-
-    private static int executeResetMobKills(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
-
-        // Reset all mob kill counters but keep objectives
-        progressionData.zombieKills = 0;
-        // ✅ REMOVIDO: progressionData.zombieVillagerKills = 0;
-        progressionData.skeletonKills = 0;
-        progressionData.strayKills = 0;
-        progressionData.huskKills = 0;
-        progressionData.spiderKills = 0;
-        progressionData.creeperKills = 0;
-        progressionData.drownedKills = 0;
-        progressionData.endermanKills = 0;
-        progressionData.witchKills = 0;
-        progressionData.pillagerKills = 0;
-        progressionData.captainKills = 0;
-        progressionData.vindicatorKills = 0;
-        progressionData.boggedKills = 0;
-        progressionData.breezeKills = 0;
-        progressionData.ravagerKills = 0;
-        progressionData.evokerKills = 0;
-        progressionData.blazeKills = 0;
-        progressionData.witherSkeletonKills = 0;
-        progressionData.piglinBruteKills = 0;
-        progressionData.hoglinKills = 0;
-        progressionData.zoglinKills = 0;
-        progressionData.ghastKills = 0;
-        // ✅ REMOVIDO: progressionData.endermiteKills = 0;
-        progressionData.piglinKills = 0;
-
-        progressionData.markDirtyAndSendUpdates();
-        context.getSource().sendSuccess(() -> Component.literal("All mob kill counters have been reset"), true);
-        return 1;
-    }
-
-    // ============================================================================
-    // COMANDOS DE DEBUG AVANÇADOS
-    // ============================================================================
-
-    private static int executeStatus(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
-
-        // Mostrar status das fases
-        context.getSource().sendSuccess(() -> Component.literal("=== DIMENSION TRIALS STATUS ==="), false);
-        context.getSource().sendSuccess(() -> Component.literal("Phase 1 Complete: " + progressionData.phase1Completed), false);
-        context.getSource().sendSuccess(() -> Component.literal("Phase 2 Complete: " + progressionData.phase2Completed), false);
-
-        // Mostrar objetivos especiais
-        context.getSource().sendSuccess(() -> Component.literal("--- Special Objectives ---"), false);
-        context.getSource().sendSuccess(() -> Component.literal("Elder Guardian: " + progressionData.elderGuardianKilled), false);
-        context.getSource().sendSuccess(() -> Component.literal("Raid Won: " + progressionData.raidWon), false);
-        context.getSource().sendSuccess(() -> Component.literal("Trial Vault: " + progressionData.trialVaultAdvancementEarned), false);
-        context.getSource().sendSuccess(() -> Component.literal("Voluntaire Exile: " + progressionData.voluntaireExileAdvancementEarned), false);
-        context.getSource().sendSuccess(() -> Component.literal("Wither: " + progressionData.witherKilled), false);
-        context.getSource().sendSuccess(() -> Component.literal("Warden: " + progressionData.wardenKilled), false);
-
-        // Mostrar alguns contadores importantes
-        context.getSource().sendSuccess(() -> Component.literal("--- Phase 1 Mobs ---"), false);
-        context.getSource().sendSuccess(() -> Component.literal("Zombies: " + progressionData.zombieKills), false);
-        context.getSource().sendSuccess(() -> Component.literal("Skeletons: " + progressionData.skeletonKills), false);
-        context.getSource().sendSuccess(() -> Component.literal("Ravagers: " + progressionData.ravagerKills), false);
-        context.getSource().sendSuccess(() -> Component.literal("Evokers: " + progressionData.evokerKills), false);
-
-        context.getSource().sendSuccess(() -> Component.literal("--- Phase 2 Mobs ---"), false);
-        context.getSource().sendSuccess(() -> Component.literal("Blazes: " + progressionData.blazeKills), false);
-        context.getSource().sendSuccess(() -> Component.literal("Hoglins: " + progressionData.hoglinKills), false);
-        context.getSource().sendSuccess(() -> Component.literal("Zoglins: " + progressionData.zoglinKills), false);
-
-        return 1;
-    }
-
-    // NOVO: Comando para forçar sincronização
-    private static int executeForceSync(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
-
-        if (context.getSource().getEntity() instanceof ServerPlayer player) {
-            context.getSource().sendSuccess(() -> Component.literal("🔄 Forcing client sync..."), false);
-
-            try {
-                progressionData.sendToClient(player);
-                context.getSource().sendSuccess(() -> Component.literal("✅ Sync command sent to client!"), false);
-                context.getSource().sendSuccess(() -> Component.literal("Open HUD (J) to verify correct values."), false);
-            } catch (Exception e) {
-                context.getSource().sendFailure(Component.literal("❌ Failed to sync: " + e.getMessage()));
-                e.printStackTrace();
+        String[] importantMobs = {"zombie", "skeleton", "creeper", "spider", "ravager", "evoker", "blaze", "wither_skeleton", "hoglin", "zoglin"};
+        for (String mobType : importantMobs) {
+            int kills = playerData.getMobKillCount(mobType);
+            if (kills > 0) {
+                context.getSource().sendSuccess(() ->
+                        Component.literal("⚔️ " + capitalizeFirst(mobType) + ": " + kills)
+                                .withStyle(ChatFormatting.GRAY), false);
             }
-        } else {
-            context.getSource().sendFailure(Component.literal("This command must be run by a player."));
         }
 
         return 1;
     }
 
-    // NOVO: Comando para debug detalhado do payload
-    private static int executeDebugPayload(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int syncPlayer(CommandContext<CommandSourceStack> context, ServerPlayer player) {
         ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
 
-        if (context.getSource().getEntity() instanceof ServerPlayer player) {
-            UpdateProgressionToClientPayload payload = progressionData.createPayload();
+        try {
+            progressionManager.sendToClient(player);
+            context.getSource().sendSuccess(() ->
+                    Component.literal("✅ Sincronização enviada para " + player.getName().getString() + "!")
+                            .withStyle(ChatFormatting.GREEN), false);
 
-            context.getSource().sendSuccess(() -> Component.literal("=== DETAILED PAYLOAD DEBUG ==="), false);
+            context.getSource().sendSuccess(() ->
+                    Component.literal("💡 Peça ao jogador para abrir o HUD (J) para verificar os valores")
+                            .withStyle(ChatFormatting.GRAY), false);
+            return 1;
+        } catch (Exception e) {
+            context.getSource().sendFailure(
+                    Component.literal("❌ Falha na sincronização: " + e.getMessage()));
+            DimTrMod.LOGGER.error("Failed to sync player data", e);
+            return 0;
+        }
+    }
 
-            // Debug todos os valores importantes
-            context.getSource().sendSuccess(() -> Component.literal("Phase 1 Goal Requirements:"), false);
-            context.getSource().sendSuccess(() -> Component.literal("  Zombies: " + payload.reqZombieKills() + " | Current: " + payload.zombieKills()), false);
-            context.getSource().sendSuccess(() -> Component.literal("  Skeletons: " + payload.reqSkeletonKills() + " | Current: " + payload.skeletonKills()), false);
-            context.getSource().sendSuccess(() -> Component.literal("  Ravagers: " + payload.reqRavagerKills() + " | Current: " + payload.ravagerKills()), false);
-            context.getSource().sendSuccess(() -> Component.literal("  Evokers: " + payload.reqEvokerKills() + " | Current: " + payload.evokerKills()), false);
+    // ============================================================================
+    // 🎯 COMANDOS DE DEBUG AVANÇADOS
+    // ============================================================================
 
-            context.getSource().sendSuccess(() -> Component.literal("Phase 2 Goal Requirements:"), false);
-            context.getSource().sendSuccess(() -> Component.literal("  Blazes: " + payload.reqBlazeKills() + " | Current: " + payload.blazeKills()), false);
-            context.getSource().sendSuccess(() -> Component.literal("  Hoglins: " + payload.reqHoglinKills() + " | Current: " + payload.hoglinKills()), false);
-            context.getSource().sendSuccess(() -> Component.literal("  Zoglins: " + payload.reqZoglinKills() + " | Current: " + payload.zoglinKills()), false);
+    private static int executeDebugSelfPayload(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = getPlayerFromContext(context);
+        if (player == null) return 0;
+        return debugPlayerPayload(context, player);
+    }
 
-            context.getSource().sendSuccess(() -> Component.literal("Expected Values:"), false);
-            context.getSource().sendSuccess(() -> Component.literal("  Ravager req should be 1"), false);
-            context.getSource().sendSuccess(() -> Component.literal("  Evoker req should be 5"), false);
-            context.getSource().sendSuccess(() -> Component.literal("  Hoglin req should be 1"), false);
-            context.getSource().sendSuccess(() -> Component.literal("  Zoglin req should be 1"), false);
+    private static int executeDebugPlayerPayload(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "target");
+        return debugPlayerPayload(context, targetPlayer);
+    }
 
-        } else {
-            context.getSource().sendFailure(Component.literal("This command must be run by a player."));
+    private static int debugPlayerPayload(CommandContext<CommandSourceStack> context, ServerPlayer player) {
+        ServerLevel serverLevel = context.getSource().getLevel();
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        PlayerProgressionData playerData = progressionManager.getPlayerData(player.getUUID());
+
+        try {
+            UpdateProgressionToClientPayload payload = UpdateProgressionToClientPayload.createFromPlayerData(playerData);
+
+            context.getSource().sendSuccess(() ->
+                    Component.literal("=== DEBUG PAYLOAD: " + player.getName().getString() + " ===")
+                            .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+
+            // Debug valores críticos
+            context.getSource().sendSuccess(() ->
+                    Component.literal("📊 Requisitos vs Atual:")
+                            .withStyle(ChatFormatting.AQUA), false);
+
+            debugMobComparison(context, "Ravager", payload.reqRavagerKills(), payload.ravagerKills());
+            debugMobComparison(context, "Evoker", payload.reqEvokerKills(), payload.evokerKills());
+            debugMobComparison(context, "Hoglin", payload.reqHoglinKills(), payload.hoglinKills());
+            debugMobComparison(context, "Zoglin", payload.reqZoglinKills(), payload.zoglinKills());
+
+            context.getSource().sendSuccess(() ->
+                    Component.literal("🔧 Status das Fases:")
+                            .withStyle(ChatFormatting.LIGHT_PURPLE), false);
+
+            context.getSource().sendSuccess(() ->
+                    Component.literal("  Phase 1: " + payload.phase1Completed())
+                            .withStyle(payload.phase1Completed() ? ChatFormatting.GREEN : ChatFormatting.RED), false);
+
+            context.getSource().sendSuccess(() ->
+                    Component.literal("  Phase 2: " + payload.phase2Completed())
+                            .withStyle(payload.phase2Completed() ? ChatFormatting.GREEN : ChatFormatting.RED), false);
+
+            return 1;
+        } catch (Exception e) {
+            context.getSource().sendFailure(
+                    Component.literal("❌ Erro ao criar payload de debug: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int executeDebugGlobalStatus(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel serverLevel = context.getSource().getLevel();
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+
+        context.getSource().sendSuccess(() ->
+                Component.literal("=== STATUS GLOBAL DO SERVIDOR ===")
+                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+
+        context.getSource().sendSuccess(() ->
+                Component.literal("🌍 Dimension Trials - Sistema Individual")
+                        .withStyle(ChatFormatting.GREEN), false);
+
+        // Estatísticas de configuração
+        context.getSource().sendSuccess(() ->
+                Component.literal("📋 Configurações Ativas:")
+                        .withStyle(ChatFormatting.AQUA), false);
+
+        context.getSource().sendSuccess(() ->
+                Component.literal("  Fase 1: " + (DimTrConfig.SERVER.enablePhase1.get() ? "Ativada" : "Desativada"))
+                        .withStyle(DimTrConfig.SERVER.enablePhase1.get() ? ChatFormatting.GREEN : ChatFormatting.RED), false);
+
+        context.getSource().sendSuccess(() ->
+                Component.literal("  Fase 2: " + (DimTrConfig.SERVER.enablePhase2.get() ? "Ativada" : "Desativada"))
+                        .withStyle(DimTrConfig.SERVER.enablePhase2.get() ? ChatFormatting.GREEN : ChatFormatting.RED), false);
+
+        context.getSource().sendSuccess(() ->
+                Component.literal("  Voluntary Exile: " + (DimTrConfig.SERVER.reqVoluntaryExile.get() ? "Obrigatório" : "Opcional"))
+                        .withStyle(DimTrConfig.SERVER.reqVoluntaryExile.get() ? ChatFormatting.YELLOW : ChatFormatting.GRAY), false);
+
+        return 1;
+    }
+
+    private static int executeDebugListPlayers(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel serverLevel = context.getSource().getLevel();
+
+        context.getSource().sendSuccess(() ->
+                Component.literal("=== JOGADORES ONLINE ===")
+                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+
+        var playerList = serverLevel.getServer().getPlayerList().getPlayers();
+        if (playerList.isEmpty()) {
+            context.getSource().sendSuccess(() ->
+                    Component.literal("❌ Nenhum jogador online")
+                            .withStyle(ChatFormatting.RED), false);
+            return 1;
+        }
+
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+
+        for (ServerPlayer player : playerList) {
+            PlayerProgressionData playerData = progressionManager.getPlayerData(player.getUUID());
+            String phase1Status = playerData.phase1Completed ? "✅" : "❌";
+            String phase2Status = playerData.phase2Completed ? "✅" : "❌";
+            double multiplier = playerData.getProgressionMultiplier();
+
+            context.getSource().sendSuccess(() ->
+                    Component.literal("👤 " + player.getName().getString() + " - P1:" + phase1Status + " P2:" + phase2Status + " (" + String.format("%.1fx", multiplier) + ")")
+                            .withStyle(ChatFormatting.WHITE), false);
         }
 
         return 1;
+    }
+
+    private static int executeDebugMultipliers(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel serverLevel = context.getSource().getLevel();
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+
+        context.getSource().sendSuccess(() ->
+                Component.literal("=== MULTIPLICADORES POR JOGADOR ===")
+                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+
+        var playerList = serverLevel.getServer().getPlayerList().getPlayers();
+        if (playerList.isEmpty()) {
+            context.getSource().sendSuccess(() ->
+                    Component.literal("❌ Nenhum jogador online")
+                            .withStyle(ChatFormatting.RED), false);
+            return 1;
+        }
+
+        for (ServerPlayer player : playerList) {
+            PlayerProgressionData playerData = progressionManager.getPlayerData(player.getUUID());
+            double personalMultiplier = playerData.getProgressionMultiplier();
+
+            // Calcular multiplicador médio próximo
+            double averageMultiplier = progressionManager.calculateAverageMultiplierNearPosition(
+                    player.getX(), player.getY(), player.getZ(), serverLevel);
+
+            ChatFormatting color = personalMultiplier > 1.0 ? ChatFormatting.GOLD : ChatFormatting.GRAY;
+
+            context.getSource().sendSuccess(() ->
+                    Component.literal("👤 " + player.getName().getString() + ":")
+                            .withStyle(ChatFormatting.WHITE), false);
+
+            context.getSource().sendSuccess(() ->
+                    Component.literal("  Individual: " + String.format("%.1fx", personalMultiplier))
+                            .withStyle(color), false);
+
+            context.getSource().sendSuccess(() ->
+                    Component.literal("  Próximo: " + String.format("%.1fx", averageMultiplier))
+                            .withStyle(ChatFormatting.GRAY), false);
+        }
+
+        return 1;
+    }
+
+    // ============================================================================
+    // 🎯 MÉTODOS AUXILIARES
+    // ============================================================================
+
+    private static ServerPlayer getPlayerFromContext(CommandContext<CommandSourceStack> context) {
+        if (context.getSource().getEntity() instanceof ServerPlayer player) {
+            return player;
+        }
+        context.getSource().sendFailure(Component.literal("❌ Este comando deve ser executado por um jogador"));
+        return null;
+    }
+
+    private static void resetAllMobKills(PlayerProgressionData playerData) {
+        resetPhase1MobKills(playerData);
+        resetPhase2MobKills(playerData);
+    }
+
+    private static void resetPhase1MobKills(PlayerProgressionData playerData) {
+        playerData.zombieKills = 0;
+        playerData.skeletonKills = 0;
+        playerData.strayKills = 0;
+        playerData.huskKills = 0;
+        playerData.spiderKills = 0;
+        playerData.creeperKills = 0;
+        playerData.drownedKills = 0;
+        playerData.endermanKills = 0;
+        playerData.witchKills = 0;
+        playerData.pillagerKills = 0;
+        playerData.captainKills = 0;
+        playerData.vindicatorKills = 0;
+        playerData.boggedKills = 0;
+        playerData.breezeKills = 0;
+        playerData.ravagerKills = 0;
+        playerData.evokerKills = 0;
+    }
+
+    private static void resetPhase2MobKills(PlayerProgressionData playerData) {
+        playerData.blazeKills = 0;
+        playerData.witherSkeletonKills = 0;
+        playerData.piglinBruteKills = 0;
+        playerData.hoglinKills = 0;
+        playerData.zoglinKills = 0;
+        playerData.ghastKills = 0;
+        playerData.piglinKills = 0;
+    }
+
+    private static int getPhase2OverworldRequirement(int originalRequirement) {
+        return (int) Math.ceil(originalRequirement * 1.25);
+    }
+
+    private static void showGoalStatus(CommandContext<CommandSourceStack> context, String goalName, boolean completed) {
+        ChatFormatting color = completed ? ChatFormatting.GREEN : ChatFormatting.RED;
+        String status = completed ? "✅" : "❌";
+
+        context.getSource().sendSuccess(() ->
+                Component.literal(status + " " + goalName)
+                        .withStyle(color), false);
+    }
+
+    private static void debugMobComparison(CommandContext<CommandSourceStack> context, String mobName, int required, int current) {
+        boolean isComplete = current >= required;
+        ChatFormatting color = isComplete ? ChatFormatting.GREEN : ChatFormatting.RED;
+        String status = isComplete ? "✅" : "❌";
+
+        context.getSource().sendSuccess(() ->
+                Component.literal("  " + status + " " + mobName + ": " + current + "/" + required)
+                        .withStyle(color), false);
+    }
+
+    private static String capitalizeFirst(String str) {
+        if (str == null || str.isEmpty()) return str;
+        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase().replace("_", " ");
     }
 }

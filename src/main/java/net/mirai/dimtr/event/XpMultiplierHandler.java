@@ -2,7 +2,7 @@ package net.mirai.dimtr.event;
 
 import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.config.DimTrConfig;
-import net.mirai.dimtr.data.ProgressionData;
+import net.mirai.dimtr.data.ProgressionManager;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.*;
@@ -38,19 +38,30 @@ public class XpMultiplierHandler {
             return;
         }
 
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
-        double multiplier = calculateXpMultiplier(progressionData);
+        // 🎯 MUDANÇA PRINCIPAL: Usar sistema de proximidade
+        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        double multiplier = progressionManager.calculateAverageMultiplierNearPosition(
+                entity.getX(),
+                entity.getY(),
+                entity.getZ(),
+                serverLevel
+        );
 
         if (multiplier > 1.0) {
             int originalXp = event.getDroppedExperience();
             int newXp = (int) Math.ceil(originalXp * multiplier);
             event.setDroppedExperience(newXp);
+
+            DimTrMod.LOGGER.debug("Applied {}x XP multiplier to {} (Original: {}, New: {})",
+                    String.format("%.2f", multiplier),
+                    entity.getType().getDescriptionId(),
+                    originalXp,
+                    newXp);
         }
     }
 
     private static boolean isHostileMob(LivingEntity entity) {
         return entity instanceof Zombie ||
-                // REMOVIDO: entity instanceof ZombieVillager ||
                 entity instanceof Skeleton ||
                 entity instanceof Stray ||
                 entity instanceof Husk ||
@@ -76,19 +87,5 @@ public class XpMultiplierHandler {
                 entity instanceof WitherBoss ||
                 entity instanceof Warden ||
                 entity instanceof EnderDragon;
-    }
-
-    private static double calculateXpMultiplier(ProgressionData progressionData) {
-        // Usar os mesmos multiplicadores das fases como HP/Damage
-        // Fase 2 completa tem prioridade máxima
-        if (progressionData.phase2Completed) {
-            return DimTrConfig.SERVER.phase2Multiplier.get();
-        }
-        // Fase 1 completa
-        else if (progressionData.phase1Completed) {
-            return DimTrConfig.SERVER.phase1Multiplier.get();
-        }
-        // Nenhuma fase completa
-        return 1.0;
     }
 }

@@ -2,7 +2,8 @@ package net.mirai.dimtr.event;
 
 import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.config.DimTrConfig;
-import net.mirai.dimtr.data.ProgressionData;
+import net.mirai.dimtr.data.ProgressionManager;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -19,6 +20,10 @@ import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
 @EventBusSubscriber(modid = DimTrMod.MODID, bus = EventBusSubscriber.Bus.GAME)
 public class MobMultiplierHandler {
+
+    // Tag NBT para marcar que o mob já teve multiplicador aplicado
+    private static final String MULTIPLIER_APPLIED_TAG = "dimtr_multiplier_applied";
+    private static final String MULTIPLIER_VALUE_TAG = "dimtr_multiplier_value";
 
     @SubscribeEvent
     public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
@@ -37,24 +42,54 @@ public class MobMultiplierHandler {
             return;
         }
 
-        ProgressionData progressionData = ProgressionData.get(serverLevel);
-        double multiplier = calculateMultiplier(progressionData);
+        // Evitar aplicar multiplicador múltiplas vezes
+        CompoundTag persistentData = livingEntity.getPersistentData();
+        if (persistentData.getBoolean(MULTIPLIER_APPLIED_TAG)) {
+            return;
+        }
+
+        // Calcular multiplicador baseado em players próximos
+        double multiplier = calculateMultiplierForPosition(livingEntity, serverLevel);
 
         if (multiplier > 1.0) {
             applyMultiplier(livingEntity, multiplier);
+
+            // Marcar como processado
+            persistentData.putBoolean(MULTIPLIER_APPLIED_TAG, true);
+            persistentData.putDouble(MULTIPLIER_VALUE_TAG, multiplier);
+
+            DimTrMod.LOGGER.debug("Applied {}x multiplier to {} at position ({}, {}, {}) based on nearby players",
+                    String.format("%.2f", multiplier),
+                    livingEntity.getType().getDescriptionId(),
+                    (int)livingEntity.getX(),
+                    (int)livingEntity.getY(),
+                    (int)livingEntity.getZ());
         }
+    }
+
+    /**
+     * Calcula o multiplicador baseado na média dos players próximos
+     */
+    private static double calculateMultiplierForPosition(LivingEntity entity, ServerLevel level) {
+        ProgressionManager manager = ProgressionManager.get(level);
+
+        return manager.calculateAverageMultiplierNearPosition(
+                entity.getX(),
+                entity.getY(),
+                entity.getZ(),
+                level
+        );
     }
 
     private static boolean isHostileMob(LivingEntity entity) {
         return entity instanceof Zombie ||
-                // REMOVIDO: entity instanceof ZombieVillager ||
                 entity instanceof Skeleton ||
                 entity instanceof Stray ||
                 entity instanceof Husk ||
                 entity instanceof Spider ||
                 entity instanceof Creeper ||
                 entity instanceof Drowned ||
-                entity instanceof EnderMan ||  // Correto: EnderMan (não Enderman)
+                entity instanceof EnderMan ||
                 entity instanceof Witch ||
                 entity instanceof Pillager ||
                 entity instanceof Vindicator ||
@@ -70,22 +105,9 @@ public class MobMultiplierHandler {
                 entity instanceof Ghast ||
                 entity instanceof Endermite ||
                 entity instanceof Piglin ||
-                entity instanceof WitherBoss ||  // Correto: WitherBoss
+                entity instanceof WitherBoss ||
                 entity instanceof Warden ||
-                entity instanceof EnderDragon;  // Correto: EnderDragon
-    }
-
-    private static double calculateMultiplier(ProgressionData progressionData) {
-        // Fase 2 completa tem prioridade máxima
-        if (progressionData.phase2Completed) {
-            return DimTrConfig.SERVER.phase2Multiplier.get();
-        }
-        // Fase 1 completa
-        else if (progressionData.phase1Completed) {
-            return DimTrConfig.SERVER.phase1Multiplier.get();
-        }
-        // Nenhuma fase completa
-        return 1.0;
+                entity instanceof EnderDragon;
     }
 
     private static void applyMultiplier(LivingEntity entity, double multiplier) {
@@ -95,24 +117,15 @@ public class MobMultiplierHandler {
                 double originalHealth = entity.getAttribute(Attributes.MAX_HEALTH).getBaseValue();
                 double newHealth = originalHealth * multiplier;
                 entity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newHealth);
-                entity.setHealth((float) newHealth); // Setar vida atual para o máximo
+                entity.setHealth((float) newHealth);
             }
 
-            // Aplicar multiplicador de dano de ataque
+            // Aplicar multiplicador de dano
             if (entity.getAttribute(Attributes.ATTACK_DAMAGE) != null) {
                 double originalDamage = entity.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue();
                 double newDamage = originalDamage * multiplier;
                 entity.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(newDamage);
             }
-
-            DimTrMod.LOGGER.debug("Applied {}x multiplier to {} (HP: {}, DMG: {})",
-                    multiplier,
-                    entity.getType().getDescriptionId(),
-                    entity.getAttribute(Attributes.MAX_HEALTH) != null ?
-                            entity.getAttribute(Attributes.MAX_HEALTH).getBaseValue() : "N/A",
-                    entity.getAttribute(Attributes.ATTACK_DAMAGE) != null ?
-                            entity.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue() : "N/A"
-            );
 
         } catch (Exception e) {
             DimTrMod.LOGGER.warn("Failed to apply multiplier to {}: {}",

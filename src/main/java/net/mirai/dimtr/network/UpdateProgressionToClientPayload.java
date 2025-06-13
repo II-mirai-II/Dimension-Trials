@@ -95,6 +95,48 @@ public record UpdateProgressionToClientPayload(
         return TYPE;
     }
 
+    // 🎯 NOVO: Método estático para criar payload a partir de PlayerProgressionData
+    public static UpdateProgressionToClientPayload createFromPlayerData(
+            net.mirai.dimtr.data.PlayerProgressionData playerData) {
+        return new UpdateProgressionToClientPayload(
+                playerData.elderGuardianKilled, playerData.raidWon, false, false,
+                playerData.trialVaultAdvancementEarned, playerData.voluntaireExileAdvancementEarned,
+                playerData.phase1Completed, playerData.witherKilled, playerData.wardenKilled, playerData.phase2Completed,
+                playerData.zombieKills, 0, playerData.skeletonKills, playerData.strayKills, playerData.huskKills,
+                playerData.spiderKills, playerData.creeperKills, playerData.drownedKills, playerData.endermanKills,
+                playerData.witchKills, playerData.pillagerKills, playerData.captainKills, playerData.vindicatorKills,
+                playerData.boggedKills, playerData.breezeKills, playerData.ravagerKills, playerData.evokerKills,
+                playerData.blazeKills, playerData.witherSkeletonKills, playerData.piglinBruteKills,
+                playerData.hoglinKills, playerData.zoglinKills, playerData.ghastKills, 0, playerData.piglinKills,
+                // Configurações do servidor
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqZombieKills.get(), 0,
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqSkeletonKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqStrayKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqHuskKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqSpiderKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqCreeperKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqDrownedKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqEndermanKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqWitchKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqPillagerKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqCaptainKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqVindicatorKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqBoggedKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqBreezeKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqRavagerKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqEvokerKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqBlazeKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqWitherSkeletonKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqPiglinBruteKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqHoglinKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqZoglinKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqGhastKills.get(),
+                0, // endermiteKills sempre 0
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqPiglinKills.get(),
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqVoluntaryExile.get()
+        );
+    }
+
     private static void encode(ByteBuf buf, UpdateProgressionToClientPayload payload) {
         // Objetivos (booleans)
         buf.writeBoolean(payload.elderGuardianKilled);

@@ -12,7 +12,11 @@ public class Constants {
     public static final String HUD_TITLE = "hud.dimtr.title";
     public static final String PROGRESSION_BOOK_TITLE = "gui.dimtr.progression_book.title";
 
-    // Mensagens do sistema
+    // 🎯 NOVO: Mensagens do sistema individual
+    public static final String MSG_PHASE1_COMPLETE_INDIVIDUAL = "message.dimtr.phase1_complete_individual";
+    public static final String MSG_PHASE2_COMPLETE_INDIVIDUAL = "message.dimtr.phase2_complete_individual";
+
+    // Mensagens globais (mantidas para compatibilidade)
     public static final String MSG_PHASE1_UNLOCKED_GLOBAL = "message.dimtr.phase1_unlocked_global";
     public static final String MSG_PHASE1_UNLOCKED_GLOBAL_CONFIG_DISABLED = "message.dimtr.phase1_unlocked_global_config_disabled";
     public static final String MSG_PHASE2_UNLOCKED_GLOBAL = "message.dimtr.phase2_unlocked_global";
@@ -27,6 +31,18 @@ public class Constants {
     // NOVO: Mensagens de teleporte para spawn
     public static final String MSG_NETHER_LOCKED_TELEPORT = "message.dimtr.nether_locked_teleport";
     public static final String MSG_END_LOCKED_TELEPORT = "message.dimtr.end_locked_teleport";
+
+    // 🎯 NOVO: Mensagens administrativas para comandos individuais
+    public static final String MSG_ADMIN_PLAYER_PHASE1_COMPLETE = "message.dimtr.admin.player_phase1_complete";
+    public static final String MSG_ADMIN_PLAYER_PHASE2_COMPLETE = "message.dimtr.admin.player_phase2_complete";
+    public static final String MSG_ADMIN_PLAYER_PROGRESS_RESET = "message.dimtr.admin.player_progress_reset";
+    public static final String MSG_ADMIN_GOAL_SET = "message.dimtr.admin.goal_set";
+    public static final String MSG_ADMIN_MOB_KILL_SET = "message.dimtr.admin.mob_kill_set";
+
+    // 🎯 NOVO: Mensagens de notificação para jogadores
+    public static final String MSG_PLAYER_PROGRESS_RESET_BY_ADMIN = "message.dimtr.player.progress_reset_by_admin";
+    public static final String MSG_PLAYER_PHASE1_COMPLETED_BY_ADMIN = "message.dimtr.player.phase1_completed_by_admin";
+    public static final String MSG_PLAYER_PHASE2_COMPLETED_BY_ADMIN = "message.dimtr.player.phase2_completed_by_admin";
 
     // Títulos das fases
     public static final String HUD_PHASE1_TITLE = "hud.dimtr.phase1_title";
@@ -56,6 +72,11 @@ public class Constants {
     public static final String HUD_SECTION_REPEAT_OVERWORLD = "hud.dimtr.section.repeat_overworld";
     public static final String HUD_SECTION_SPECIAL_MOBS = "hud.dimtr.section.special.mobs";
 
+    // 🎯 NOVO: Indicadores de sistema individual
+    public static final String HUD_INDIVIDUAL_PROGRESS = "hud.dimtr.individual_progress";
+    public static final String HUD_YOUR_MULTIPLIER = "hud.dimtr.your_multiplier";
+    public static final String HUD_NEARBY_AVERAGE_MULTIPLIER = "hud.dimtr.nearby_average_multiplier";
+
     // Mob Names - COM EMOJIS - Fase 1 (Overworld)
     public static final String HUD_MOB_ZOMBIE = "hud.dimtr.mob.zombie";
     // REMOVIDO: HUD_MOB_ZOMBIE_VILLAGER - não é mais usado
@@ -84,10 +105,20 @@ public class Constants {
     public static final String HUD_MOB_HOGLIN = "hud.dimtr.mob.hoglin";
     public static final String HUD_MOB_ZOGLIN = "hud.dimtr.mob.zoglin";
     public static final String HUD_MOB_GHAST = "hud.dimtr.mob.ghast";
-    public static final String HUD_MOB_ENDERMITE = "hud.dimtr.mob.endermite";
+    public static final String HUD_MOB_ENDERMITE = "hud.dimtr.mob.endermite"; // Mantido para compatibilidade
     public static final String HUD_MOB_PIGLIN = "hud.dimtr.mob.piglin";
 
-    // Comandos
+    // 🎯 NOVO: Comandos individuais
+    public static final String CMD_INDIVIDUAL_RESET_SUCCESS = "cmd.dimtr.individual_reset_success";
+    public static final String CMD_INDIVIDUAL_PHASE1_COMPLETE = "cmd.dimtr.individual_phase1_complete";
+    public static final String CMD_INDIVIDUAL_PHASE2_COMPLETE = "cmd.dimtr.individual_phase2_complete";
+    public static final String CMD_INDIVIDUAL_GOAL_SET = "cmd.dimtr.individual_goal_set";
+    public static final String CMD_INDIVIDUAL_MOB_KILLS_SET = "cmd.dimtr.individual_mob_kills_set";
+    public static final String CMD_GLOBAL_STATUS = "cmd.dimtr.global_status";
+    public static final String CMD_PLAYER_NOT_FOUND = "cmd.dimtr.player_not_found";
+    public static final String CMD_MUST_BE_PLAYER = "cmd.dimtr.must_be_player";
+
+    // Comandos originais (mantidos)
     public static final String CMD_RESET_SUCCESS = "cmd.dimtr.reset_success";
     public static final String CMD_PHASE1_COMPLETE = "cmd.dimtr.phase1_complete";
     public static final String CMD_PHASE2_COMPLETE = "cmd.dimtr.phase2_complete";
@@ -172,6 +203,10 @@ public class Constants {
     public static final String CONFIG_ENABLE_XP_MULTIPLIER = "config.dimtr.server.enableXpMultiplier";
     public static final String CONFIG_ENABLE_MULTIPLIERS = "config.dimtr.server.enableMultipliers";
 
+    // 🎯 NOVO: Configurações de sistema individual
+    public static final String CONFIG_PROXIMITY_RADIUS = "config.dimtr.server.proximityRadius";
+    public static final String CONFIG_INDIVIDUAL_PROGRESSION = "config.dimtr.server.individualProgression";
+
     // Tooltips
     public static final String TOOLTIP_PROGRESSION_BOOK = "tooltip.dimtr.progression_book";
     public static final String TOOLTIP_PHASE_LOCKED = "tooltip.dimtr.phase_locked";
@@ -196,4 +231,67 @@ public class Constants {
     public static final String SECTION_SPECIAL_MOBS = "gui.dimtr.section.special.mobs";
     public static final String SECTION_COMMON_MOBS = "gui.dimtr.section.common.mobs";
     public static final String SECTION_NETHER_MOBS = "gui.dimtr.section.nether.mobs";
+
+    // NOVO: Constantes do Sistema de Sumário
+    public static final String GUI_SUMMARY_TITLE = "gui.dimtr.summary.title";
+    public static final String GUI_SUMMARY_SUBTITLE = "gui.dimtr.summary.subtitle";
+    public static final String GUI_SUMMARY_GENERAL_STATS = "gui.dimtr.summary.general_stats";
+    public static final String GUI_SUMMARY_PHASE1_STATUS = "gui.dimtr.summary.phase1_status";
+    public static final String GUI_SUMMARY_PHASE2_STATUS = "gui.dimtr.summary.phase2_status";
+
+    // Descrições das seções
+    public static final String GUI_SUMMARY_PHASE1_MAIN_DESC = "gui.dimtr.summary.phase1_main.desc";
+    public static final String GUI_SUMMARY_PHASE1_GOALS_DESC = "gui.dimtr.summary.phase1_goals.desc";
+    public static final String GUI_SUMMARY_PHASE2_MAIN_DESC = "gui.dimtr.summary.phase2_main.desc";
+    public static final String GUI_SUMMARY_PHASE2_GOALS_DESC = "gui.dimtr.summary.phase2_goals.desc";
+
+    // Instruções de navegação
+    public static final String GUI_SUMMARY_INSTRUCTIONS_CLICK = "gui.dimtr.summary.instructions.click";
+    public static final String GUI_SUMMARY_INSTRUCTIONS_CLOSE = "gui.dimtr.summary.instructions.close";
+    public static final String GUI_SECTION_INSTRUCTIONS_NAVIGATE = "gui.dimtr.section.instructions.navigate";
+    public static final String GUI_SECTION_INSTRUCTIONS_BACK = "gui.dimtr.section.instructions.back";
+    public static final String GUI_BACK_TO_SUMMARY = "gui.dimtr.back_to_summary";
+
+    // 🎯 NOVO: Sistema de proximidade
+    public static final String MSG_PROXIMITY_INFO = "message.dimtr.proximity_info";
+    public static final String MSG_MULTIPLIER_APPLIED = "message.dimtr.multiplier_applied";
+    public static final String GUI_PROXIMITY_PLAYERS = "gui.dimtr.proximity_players";
+    public static final String GUI_AVERAGE_MULTIPLIER = "gui.dimtr.average_multiplier";
+
+    // ============================================================================
+    // 🎯 SISTEMA DE PARTIES - TRANSLATION KEYS
+    // ============================================================================
+
+    // Window title para parties
+    public static final String WINDOW_PARTIES_TITLE = "gui.dimtr.window.parties.title";
+
+    // Summary description
+    public static final String GUI_SUMMARY_PARTIES_DESC = "gui.dimtr.summary.parties.desc";
+
+    // Parties section - Main content
+    public static final String GUI_PARTIES_WELCOME = "gui.dimtr.parties.welcome";
+    public static final String GUI_PARTIES_CURRENT_STATUS = "gui.dimtr.parties.current.status";
+    public static final String GUI_PARTIES_IN_PARTY = "gui.dimtr.parties.in.party";
+    public static final String GUI_PARTIES_NO_PARTY = "gui.dimtr.parties.no.party";
+
+    // Parties section - Members
+    public static final String GUI_PARTIES_MEMBERS = "gui.dimtr.parties.members";
+
+    // Parties section - Progress
+    public static final String GUI_PARTIES_SHARED_PROGRESS = "gui.dimtr.parties.shared.progress";
+    public static final String GUI_PARTIES_SHARED_MOBS = "gui.dimtr.parties.shared.mobs";
+
+    // Parties section - Actions
+    public static final String GUI_PARTIES_ACTIONS = "gui.dimtr.parties.actions";
+    public static final String GUI_PARTIES_ACTION_CREATE = "gui.dimtr.parties.action.create";
+    public static final String GUI_PARTIES_ACTION_JOIN = "gui.dimtr.parties.action.join";
+    public static final String GUI_PARTIES_ACTION_LIST = "gui.dimtr.parties.action.list";
+
+    // Parties section - Benefits
+    public static final String GUI_PARTIES_BENEFITS = "gui.dimtr.parties.benefits";
+    public static final String GUI_PARTIES_BENEFIT_SHARED = "gui.dimtr.parties.benefit.shared";
+    public static final String GUI_PARTIES_BENEFIT_MULTIPLIER = "gui.dimtr.parties.benefit.multiplier";
+
+    // Parties section - Commands
+    public static final String GUI_PARTIES_COMMANDS = "gui.dimtr.parties.commands";
 }

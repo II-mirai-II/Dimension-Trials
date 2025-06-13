@@ -1,0 +1,424 @@
+package net.mirai.dimtr.data;
+
+import net.mirai.dimtr.config.DimTrConfig;
+import net.mirai.dimtr.network.UpdatePartyToClientPayload;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Gerenciador centralizado para parties/grupos
+ */
+public class PartyManager extends SavedData {
+
+    private static final String DATA_NAME = "dimtr_party_manager";
+
+    // Dados das parties
+    private final Map<UUID, PartyData> parties = new HashMap<>();
+    private final Map<UUID, UUID> playerToParty = new HashMap<>(); // PlayerID -> PartyID
+
+    // Contexto do servidor
+    private MinecraftServer serverForContext;
+
+    public PartyManager() {
+    }
+
+    public PartyManager(MinecraftServer server) {
+        this.serverForContext = server;
+    }
+
+    public static PartyManager get(ServerLevel level) {
+        return level.getDataStorage().computeIfAbsent(
+                new SavedData.Factory<>(
+                        () -> new PartyManager(level.getServer()),
+                        (tag, registries) -> load(tag, registries, level.getServer())
+                ),
+                DATA_NAME
+        );
+    }
+
+    private static PartyManager load(CompoundTag tag, HolderLookup.Provider registries, MinecraftServer server) {
+        PartyManager manager = new PartyManager(server);
+        manager.loadData(tag, registries);
+        return manager;
+    }
+
+    @Override
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+        // Salvar parties
+        ListTag partiesList = new ListTag();
+        for (PartyData party : parties.values()) {
+            partiesList.add(party.save(registries));
+        }
+        tag.put("parties", partiesList);
+
+        // Salvar mapeamento jogador -> party
+        CompoundTag playerMappingTag = new CompoundTag();
+        for (Map.Entry<UUID, UUID> entry : playerToParty.entrySet()) {
+            playerMappingTag.putUUID(entry.getKey().toString(), entry.getValue());
+        }
+        tag.put("playerToParty", playerMappingTag);
+
+        return tag;
+    }
+
+    private void loadData(CompoundTag tag, HolderLookup.Provider registries) {
+        parties.clear();
+        playerToParty.clear();
+
+        // Carregar parties
+        if (tag.contains("parties", Tag.TAG_LIST)) {
+            ListTag partiesList = tag.getList("parties", Tag.TAG_COMPOUND);
+            for (Tag partyTag : partiesList) {
+                if (partyTag instanceof CompoundTag partyCompound) {
+                    PartyData partyData = PartyData.load(partyCompound, registries);
+                    parties.put(partyData.getPartyId(), partyData);
+                }
+            }
+        }
+
+        // Carregar mapeamento jogador -> party
+        if (tag.contains("playerToParty", Tag.TAG_COMPOUND)) {
+            CompoundTag playerMappingTag = tag.getCompound("playerToParty");
+            for (String playerIdStr : playerMappingTag.getAllKeys()) {
+                UUID playerId = UUID.fromString(playerIdStr);
+                UUID partyId = playerMappingTag.getUUID(playerIdStr);
+                playerToParty.put(playerId, partyId);
+            }
+        }
+    }
+
+    // ============================================================================
+    // 🎯 MÉTODOS PRINCIPAIS DE GERENCIAMENTO DE PARTIES
+    // ============================================================================
+
+    /**
+     * Criar nova party
+     */
+    public CreatePartyResult createParty(UUID leaderId, String partyName, String password) {
+        // Verificar se jogador já está em uma party
+        if (isPlayerInParty(leaderId)) {
+            return CreatePartyResult.ALREADY_IN_PARTY;
+        }
+
+        // Validar nome da party
+        if (partyName == null || partyName.trim().isEmpty() || partyName.length() > 20) {
+            return CreatePartyResult.INVALID_NAME;
+        }
+
+        // Verificar se nome já existe
+        boolean nameExists = parties.values().stream()
+                .anyMatch(party -> party.getName().equalsIgnoreCase(partyName.trim()));
+        if (nameExists) {
+            return CreatePartyResult.NAME_TAKEN;
+        }
+
+        // Criar party
+        UUID partyId = UUID.randomUUID();
+        PartyData newParty = new PartyData(partyId, partyName.trim(), password, leaderId);
+
+        parties.put(partyId, newParty);
+        playerToParty.put(leaderId, partyId);
+
+        setDirty();
+        syncPartyToMembers(partyId);
+
+        return CreatePartyResult.SUCCESS;
+    }
+
+    /**
+     * Entrar em party existente
+     */
+    public JoinPartyResult joinParty(UUID playerId, String partyName, String password) {
+        // Verificar se jogador já está em uma party
+        if (isPlayerInParty(playerId)) {
+            return JoinPartyResult.ALREADY_IN_PARTY;
+        }
+
+        // Encontrar party por nome
+        PartyData targetParty = parties.values().stream()
+                .filter(party -> party.getName().equalsIgnoreCase(partyName))
+                .findFirst()
+                .orElse(null);
+
+        if (targetParty == null) {
+            return JoinPartyResult.PARTY_NOT_FOUND;
+        }
+
+        // Verificar senha
+        if (!targetParty.checkPassword(password)) {
+            return JoinPartyResult.WRONG_PASSWORD;
+        }
+
+        // Verificar se party está cheia
+        if (!targetParty.addMember(playerId)) {
+            return JoinPartyResult.PARTY_FULL;
+        }
+
+        playerToParty.put(playerId, targetParty.getPartyId());
+
+        setDirty();
+        syncPartyToMembers(targetParty.getPartyId());
+
+        return JoinPartyResult.SUCCESS;
+    }
+
+    /**
+     * Sair da party
+     */
+    public LeavePartyResult leaveParty(UUID playerId) {
+        UUID partyId = playerToParty.get(playerId);
+        if (partyId == null) {
+            return LeavePartyResult.NOT_IN_PARTY;
+        }
+
+        PartyData party = parties.get(partyId);
+        if (party == null) {
+            return LeavePartyResult.NOT_IN_PARTY;
+        }
+
+        // Remover jogador da party
+        party.removeMember(playerId);
+        playerToParty.remove(playerId);
+
+        // Se a party ficou vazia, deletar
+        if (party.getMemberCount() == 0) {
+            parties.remove(partyId);
+        }
+
+        setDirty();
+        syncPartyToMembers(partyId);
+
+        return LeavePartyResult.SUCCESS;
+    }
+
+    /**
+     * Listar parties públicas
+     */
+    public List<PartyInfo> getPublicParties() {
+        return parties.values().stream()
+                .filter(PartyData::isPublic)
+                .map(party -> new PartyInfo(
+                        party.getName(),
+                        party.getMemberCount(),
+                        4, // máximo de membros
+                        party.isPublic()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    // ============================================================================
+    // 🎯 MÉTODOS DE INTEGRAÇÃO COM PROGRESSÃO
+    // ============================================================================
+
+    /**
+     * Processar kill de mob para party (se aplicável)
+     */
+    public boolean processPartyMobKill(UUID playerId, String mobType) {
+        UUID partyId = playerToParty.get(playerId);
+        if (partyId == null) return false;
+
+        PartyData party = parties.get(partyId);
+        if (party == null) return false;
+
+        // Incrementar kill compartilhado
+        boolean updated = party.incrementSharedMobKill(mobType);
+
+        if (updated) {
+            setDirty();
+            syncPartyToMembers(partyId);
+
+            // Também atualizar progressão individual de todos os membros
+            ProgressionManager progressionManager = ProgressionManager.get(
+                    (ServerLevel) serverForContext.overworld());
+
+            for (UUID memberId : party.getMembers()) {
+                progressionManager.incrementMobKill(memberId, mobType);
+            }
+        }
+
+        return updated;
+    }
+
+    /**
+     * Processar objetivo especial para party
+     */
+    public boolean processPartySpecialObjective(UUID playerId, String objectiveType) {
+        UUID partyId = playerToParty.get(playerId);
+        if (partyId == null) return false;
+
+        PartyData party = parties.get(partyId);
+        if (party == null) return false;
+
+        boolean updated = false;
+
+        switch (objectiveType.toLowerCase()) {
+            case "elder_guardian" -> {
+                if (!party.isSharedElderGuardianKilled()) {
+                    party.setSharedElderGuardianKilled(true);
+                    updated = true;
+                }
+            }
+            case "raid" -> {
+                if (!party.isSharedRaidWon()) {
+                    party.setSharedRaidWon(true);
+                    updated = true;
+                }
+            }
+            case "trial_vault" -> {
+                if (!party.isSharedTrialVaultAdvancementEarned()) {
+                    party.setSharedTrialVaultAdvancementEarned(true);
+                    updated = true;
+                }
+            }
+            case "voluntary_exile" -> {
+                if (!party.isSharedVoluntaireExileAdvancementEarned()) {
+                    party.setSharedVoluntaireExileAdvancementEarned(true);
+                    updated = true;
+                }
+            }
+            case "wither" -> {
+                if (!party.isSharedWitherKilled()) {
+                    party.setSharedWitherKilled(true);
+                    updated = true;
+                }
+            }
+            case "warden" -> {
+                if (!party.isSharedWardenKilled()) {
+                    party.setSharedWardenKilled(true);
+                    updated = true;
+                }
+            }
+        }
+
+        if (updated) {
+            setDirty();
+            syncPartyToMembers(partyId);
+
+            // Atualizar progressão individual de todos os membros
+            ProgressionManager progressionManager = ProgressionManager.get(
+                    (ServerLevel) serverForContext.overworld());
+
+            for (UUID memberId : party.getMembers()) {
+                switch (objectiveType.toLowerCase()) {
+                    case "elder_guardian" -> progressionManager.updateElderGuardianKilled(memberId);
+                    case "raid" -> progressionManager.updateRaidWon(memberId);
+                    case "trial_vault" -> progressionManager.updateTrialVaultAdvancementEarned(memberId);
+                    case "voluntary_exile" -> progressionManager.updateVoluntaireExileAdvancementEarned(memberId);
+                    case "wither" -> progressionManager.updateWitherKilled(memberId);
+                    case "warden" -> progressionManager.updateWardenKilled(memberId);
+                }
+            }
+        }
+
+        return updated;
+    }
+
+    // ============================================================================
+    // 🎯 MÉTODOS AUXILIARES
+    // ============================================================================
+
+    public boolean isPlayerInParty(UUID playerId) {
+        return playerToParty.containsKey(playerId);
+    }
+
+    public PartyData getPlayerParty(UUID playerId) {
+        UUID partyId = playerToParty.get(playerId);
+        return partyId != null ? parties.get(partyId) : null;
+    }
+
+    public int getRequiredMobKills(UUID playerId, String mobType, int baseRequirement) {
+        PartyData party = getPlayerParty(playerId);
+        if (party == null) return baseRequirement;
+
+        double multiplier = party.getRequirementMultiplier();
+        return (int) Math.ceil(baseRequirement * multiplier);
+    }
+
+    private void syncPartyToMembers(UUID partyId) {
+        PartyData party = parties.get(partyId);
+        if (party == null || serverForContext == null) return;
+
+        // Criar payload com dados da party
+        UpdatePartyToClientPayload payload = createPartyPayload(party);
+
+        // Enviar para todos os membros da party
+        for (UUID memberId : party.getMembers()) {
+            ServerPlayer player = serverForContext.getPlayerList().getPlayer(memberId);
+            if (player != null) {
+                PacketDistributor.sendToPlayer(player, payload);
+            }
+        }
+    }
+
+    private UpdatePartyToClientPayload createPartyPayload(PartyData party) {
+        return new UpdatePartyToClientPayload(
+                party.getPartyId(),
+                party.getName(),
+                party.getLeaderId(),
+                new ArrayList<>(party.getMembers()),
+                party.getRequirementMultiplier(),
+                // 🔧 ADICIONADO: Campos que estavam faltando
+                party.getMemberCount(),
+                party.getSharedMobKills(),
+                party.isSharedElderGuardianKilled(),
+                party.isSharedRaidWon(),
+                party.isSharedTrialVaultAdvancementEarned(),
+                party.isSharedVoluntaireExileAdvancementEarned(),
+                party.isSharedWitherKilled(),
+                party.isSharedWardenKilled(),
+                party.isPhase1SharedCompleted(),
+                party.isPhase2SharedCompleted()
+        );
+    }
+
+    // ============================================================================
+    // 🎯 ENUMS DE RESULTADO
+    // ============================================================================
+
+    public enum CreatePartyResult {
+        SUCCESS,
+        ALREADY_IN_PARTY,
+        INVALID_NAME,
+        NAME_TAKEN
+    }
+
+    public enum JoinPartyResult {
+        SUCCESS,
+        ALREADY_IN_PARTY,
+        PARTY_NOT_FOUND,
+        WRONG_PASSWORD,
+        PARTY_FULL
+    }
+
+    public enum LeavePartyResult {
+        SUCCESS,
+        NOT_IN_PARTY
+    }
+
+    /**
+     * Info pública de uma party
+     */
+    public static class PartyInfo {
+        public final String name;
+        public final int currentMembers;
+        public final int maxMembers;
+        public final boolean isPublic;
+
+        public PartyInfo(String name, int currentMembers, int maxMembers, boolean isPublic) {
+            this.name = name;
+            this.currentMembers = currentMembers;
+            this.maxMembers = maxMembers;
+            this.isPublic = isPublic;
+        }
+    }
+}
