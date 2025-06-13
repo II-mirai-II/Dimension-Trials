@@ -17,12 +17,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tela principal do HUD de progressão - VERSÃO MODULARIZADA COMPLETA
+ * Tela principal do HUD de progressão - VERSÃO COM SCROLL VERTICAL
  *
  * ✅ Sistema modular de seções
  * ✅ Integração com PartySystem
  * ✅ Interface de navegação intuitiva
  * ✅ Suporte completo a todas as seções
+ * 🎯 NOVO: Sistema de scroll vertical no sumário
  */
 public class ProgressionHUDScreen extends Screen {
 
@@ -43,7 +44,15 @@ public class ProgressionHUDScreen extends Screen {
     private static final int MAX_LINES_PER_COLUMN = 15;
     private static final int MAX_TOTAL_LINES = MAX_LINES_PER_COLUMN * 2;
 
-    // Cores (mantidas)
+    // 🎯 NOVAS CONSTANTES PARA SCROLL
+    private static final int SCROLL_AREA_TOP_OFFSET = 70;  // Espaço para título + subtítulo
+    private static final int SCROLL_AREA_BOTTOM_OFFSET = 85; // Espaço para estatísticas + instruções
+    private static final int SECTION_HEIGHT = 40;
+    private static final int SECTION_SPACING = 10;
+    private static final int SCROLL_SPEED = 20; // Pixels por scroll
+    private static final int SCROLLBAR_WIDTH = 6;
+
+    // Cores (mantidas + novas para scroll)
     private static final int WINDOW_BACKGROUND = 0xE0000000;
     private static final int WINDOW_BORDER = 0xFF444444;
     private static final int TITLE_COLOR = 0xFFFFD700;
@@ -51,8 +60,18 @@ public class ProgressionHUDScreen extends Screen {
     private static final int SECTION_HOVER_COLOR = 0xFFFFD700;
     private static final int SECTION_LOCKED_COLOR = 0xFF666666;
 
-    // Sistema de páginas
+    // 🎯 NOVAS CORES PARA SCROLL
+    private static final int SCROLLBAR_TRACK_COLOR = 0xFF2A2A2A;
+    private static final int SCROLLBAR_THUMB_COLOR = 0xFF5A5A5A;
+    private static final int SCROLLBAR_THUMB_HOVER_COLOR = 0xFF7A7A7A;
+
+    // Sistema de páginas (para seções específicas)
     private int currentPage = 0;
+
+    // 🎯 NOVO: Sistema de scroll para sumário
+    private int scrollOffset = 0;
+    private int maxScrollOffset = 0;
+    private boolean isScrollbarHovered = false;
 
     // Lista de seções do sumário (agora modular)
     private final List<SummarySection> summarySections;
@@ -73,10 +92,12 @@ public class ProgressionHUDScreen extends Screen {
         final HUDSection hudSection;
         int x, y, width, height;
         boolean clickable;
+        boolean visible; // 🎯 NOVO: Controle de visibilidade
 
         SummarySection(HUDSection hudSection) {
             this.hudSection = hudSection;
             this.clickable = true;
+            this.visible = true;
         }
     }
 
@@ -100,28 +121,52 @@ public class ProgressionHUDScreen extends Screen {
     protected void init() {
         super.init();
         calculateSummarySectionPositions();
+        calculateScrollLimits(); // 🎯 NOVO
         playHudOpenSound();
     }
 
     /**
-     * 🎯 MÉTODO ADAPTADO: Calcular posições das seções
+     * 🎯 MÉTODO COMPLETAMENTE REFATORADO: Calcular posições com scroll
      */
     private void calculateSummarySectionPositions() {
         int hudX = (this.width - HUD_WIDTH) / 2;
         int hudY = (this.height - HUD_HEIGHT) / 2;
 
-        int sectionStartY = hudY + CONTENT_Y_OFFSET - 10;
-        int sectionHeight = 40;
-        int sectionSpacing = 10;
-        int sectionWidth = HUD_WIDTH - (HUD_MARGIN * 2);
+        int sectionStartY = hudY + SCROLL_AREA_TOP_OFFSET;
+        int sectionWidth = HUD_WIDTH - (HUD_MARGIN * 2) - SCROLLBAR_WIDTH - 5; // Espaço para scrollbar
 
         for (int i = 0; i < summarySections.size(); i++) {
             SummarySection section = summarySections.get(i);
             section.x = hudX + HUD_MARGIN;
-            section.y = sectionStartY + (i * (sectionHeight + sectionSpacing));
+            section.y = sectionStartY + (i * (SECTION_HEIGHT + SECTION_SPACING)) - scrollOffset; // 🎯 APLICAR SCROLL
             section.width = sectionWidth;
-            section.height = sectionHeight;
+            section.height = SECTION_HEIGHT;
+
+            // 🎯 NOVO: Calcular visibilidade baseada na posição
+            int scrollAreaTop = hudY + SCROLL_AREA_TOP_OFFSET;
+            int scrollAreaBottom = hudY + HUD_HEIGHT - SCROLL_AREA_BOTTOM_OFFSET;
+
+            section.visible = (section.y + section.height >= scrollAreaTop) &&
+                    (section.y <= scrollAreaBottom);
         }
+    }
+
+    /**
+     * 🎯 NOVO: Calcular limites do scroll
+     */
+    private void calculateScrollLimits() {
+        if (summarySections.isEmpty()) {
+            maxScrollOffset = 0;
+            return;
+        }
+
+        int totalContentHeight = summarySections.size() * (SECTION_HEIGHT + SECTION_SPACING) - SECTION_SPACING;
+        int availableHeight = HUD_HEIGHT - SCROLL_AREA_TOP_OFFSET - SCROLL_AREA_BOTTOM_OFFSET;
+
+        maxScrollOffset = Math.max(0, totalContentHeight - availableHeight);
+
+        // Garantir que o scroll não ultrapasse os limites
+        scrollOffset = Math.max(0, Math.min(scrollOffset, maxScrollOffset));
     }
 
     @Override
@@ -145,7 +190,7 @@ public class ProgressionHUDScreen extends Screen {
     }
 
     /**
-     * 🎯 MÉTODO REFATORADO: Renderizar sumário usando seções modulares
+     * 🎯 MÉTODO REFATORADO: Renderizar sumário com scroll
      */
     private void renderSummaryView(GuiGraphics guiGraphics, int hudX, int hudY, int mouseX, int mouseY) {
         // Título do sumário
@@ -162,22 +207,84 @@ public class ProgressionHUDScreen extends Screen {
         int subtitleY = hudY + TITLE_Y_OFFSET + 15;
         guiGraphics.drawString(this.font, subtitle, subtitleX, subtitleY, 0xFFAAAAAA);
 
-        // Renderizar seções usando o sistema modular
+        // 🎯 NOVO: Definir área de clipping para scroll
+        int clipTop = hudY + SCROLL_AREA_TOP_OFFSET;
+        int clipBottom = hudY + HUD_HEIGHT - SCROLL_AREA_BOTTOM_OFFSET;
+
+        // Aplicar clipping
+        guiGraphics.enableScissor(hudX, clipTop, hudX + HUD_WIDTH, clipBottom);
+
+        // Renderizar seções usando o sistema modular (com scroll)
         ClientProgressionData progress = ClientProgressionData.INSTANCE;
 
         for (SummarySection section : summarySections) {
-            boolean isHovered = isMouseOverSection(mouseX, mouseY, section);
+            if (!section.visible) continue; // 🎯 Só renderizar seções visíveis
+
+            boolean isHovered = isMouseOverSection(mouseX, mouseY, section, clipTop, clipBottom);
             section.clickable = section.hudSection.isAccessible(progress);
 
             renderSummarySection(guiGraphics, section, isHovered);
         }
 
-        // Estatísticas gerais no final
+        // Desabilitar clipping
+        guiGraphics.disableScissor();
+
+        // 🎯 NOVO: Renderizar scrollbar se necessário
+        if (maxScrollOffset > 0) {
+            renderScrollbar(guiGraphics, hudX, hudY, mouseX, mouseY);
+        }
+
+        // Estatísticas gerais no final (sempre visível)
         renderGeneralStats(guiGraphics, hudX, hudY, progress);
     }
 
     /**
-     * 🎯 MÉTODO ADAPTADO: Renderizar seção individual usando sistema modular
+     * 🎯 NOVO: Renderizar scrollbar
+     */
+    private void renderScrollbar(GuiGraphics guiGraphics, int hudX, int hudY, int mouseX, int mouseY) {
+        int scrollbarX = hudX + HUD_WIDTH - HUD_MARGIN - SCROLLBAR_WIDTH;
+        int scrollbarY = hudY + SCROLL_AREA_TOP_OFFSET;
+        int scrollbarHeight = HUD_HEIGHT - SCROLL_AREA_TOP_OFFSET - SCROLL_AREA_BOTTOM_OFFSET;
+
+        // Track da scrollbar
+        guiGraphics.fill(scrollbarX, scrollbarY, scrollbarX + SCROLLBAR_WIDTH,
+                scrollbarY + scrollbarHeight, SCROLLBAR_TRACK_COLOR);
+
+        // Calcular posição e tamanho do thumb
+        float scrollPercentage = (float) scrollOffset / maxScrollOffset;
+        int availableThumbArea = scrollbarHeight - 20; // Margem para o thumb
+        int thumbY = scrollbarY + 10 + (int) (scrollPercentage * availableThumbArea);
+        int thumbHeight = Math.max(20, availableThumbArea / 3); // Altura mínima e proporcional
+
+        // Verificar se mouse está sobre a scrollbar
+        isScrollbarHovered = mouseX >= scrollbarX && mouseX <= scrollbarX + SCROLLBAR_WIDTH &&
+                mouseY >= thumbY && mouseY <= thumbY + thumbHeight;
+
+        int thumbColor = isScrollbarHovered ? SCROLLBAR_THUMB_HOVER_COLOR : SCROLLBAR_THUMB_COLOR;
+
+        // Thumb da scrollbar
+        guiGraphics.fill(scrollbarX + 1, thumbY, scrollbarX + SCROLLBAR_WIDTH - 1,
+                thumbY + thumbHeight, thumbColor);
+
+        // Indicadores de scroll
+        if (scrollOffset > 0) {
+            // Seta para cima
+            Component upArrow = Component.literal("▲").withStyle(ChatFormatting.WHITE);
+            int upArrowX = scrollbarX + (SCROLLBAR_WIDTH - this.font.width(upArrow)) / 2;
+            guiGraphics.drawString(this.font, upArrow, upArrowX, scrollbarY - 15, 0xFFFFFFFF);
+        }
+
+        if (scrollOffset < maxScrollOffset) {
+            // Seta para baixo
+            Component downArrow = Component.literal("▼").withStyle(ChatFormatting.WHITE);
+            int downArrowX = scrollbarX + (SCROLLBAR_WIDTH - this.font.width(downArrow)) / 2;
+            guiGraphics.drawString(this.font, downArrow, downArrowX,
+                    scrollbarY + scrollbarHeight + 5, 0xFFFFFFFF);
+        }
+    }
+
+    /**
+     * 🎯 MÉTODO ADAPTADO: Renderizar seção individual
      */
     private void renderSummarySection(GuiGraphics guiGraphics, SummarySection section, boolean isHovered) {
         // Determinar cores baseadas no estado
@@ -397,6 +504,11 @@ public class ProgressionHUDScreen extends Screen {
         if (currentView == ViewState.SUMMARY) {
             instructions.add(Component.translatable("gui.dimtr.summary.instructions.click"));
             instructions.add(Component.translatable("gui.dimtr.summary.instructions.close"));
+
+            // 🎯 NOVO: Instruções de scroll se necessário
+            if (maxScrollOffset > 0) {
+                instructions.add(Component.literal("Use mouse wheel or ↑/↓ to scroll").withStyle(ChatFormatting.GRAY));
+            }
         } else {
             // Verificar se há páginas
             ClientProgressionData progress = ClientProgressionData.INSTANCE;
@@ -423,15 +535,39 @@ public class ProgressionHUDScreen extends Screen {
         if (button == 0) { // Clique esquerdo
             if (currentView == ViewState.SUMMARY) {
                 // Verificar clique nas seções do sumário
+                int hudY = (this.height - HUD_HEIGHT) / 2;
+                int clipTop = hudY + SCROLL_AREA_TOP_OFFSET;
+                int clipBottom = hudY + HUD_HEIGHT - SCROLL_AREA_BOTTOM_OFFSET;
+
                 for (SummarySection section : summarySections) {
-                    if (section.clickable && isMouseOverSection((int)mouseX, (int)mouseY, section)) {
-                        navigateToSection(section.hudSection); // 🎯 CORRETO
+                    if (section.clickable && section.visible &&
+                            isMouseOverSection((int)mouseX, (int)mouseY, section, clipTop, clipBottom)) {
+                        navigateToSection(section.hudSection);
                         return true;
                     }
                 }
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    /**
+     * 🎯 NOVO: Suporte a mouse wheel para scroll
+     */
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollDeltaX, double scrollDeltaY) {
+        if (currentView == ViewState.SUMMARY && maxScrollOffset > 0) {
+            int previousOffset = scrollOffset;
+            scrollOffset -= (int) (scrollDeltaY * SCROLL_SPEED);
+            scrollOffset = Math.max(0, Math.min(scrollOffset, maxScrollOffset));
+
+            if (scrollOffset != previousOffset) {
+                calculateSummarySectionPositions(); // Recalcular posições
+                playScrollSound();
+                return true;
+            }
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollDeltaX, scrollDeltaY);
     }
 
     @Override
@@ -445,6 +581,18 @@ public class ProgressionHUDScreen extends Screen {
                 // ESC fecha o HUD
                 playHudCloseSound();
                 this.onClose();
+                return true;
+            }
+        }
+
+        // 🎯 NOVO: Navegação de scroll no sumário
+        if (currentView == ViewState.SUMMARY && maxScrollOffset > 0) {
+            if (keyCode == GLFW.GLFW_KEY_UP) {
+                scrollUp();
+                return true;
+            }
+            if (keyCode == GLFW.GLFW_KEY_DOWN) {
+                scrollDown();
                 return true;
             }
         }
@@ -465,6 +613,29 @@ public class ProgressionHUDScreen extends Screen {
     }
 
     /**
+     * 🎯 NOVOS MÉTODOS DE SCROLL
+     */
+    private void scrollUp() {
+        int previousOffset = scrollOffset;
+        scrollOffset = Math.max(0, scrollOffset - SCROLL_SPEED);
+
+        if (scrollOffset != previousOffset) {
+            calculateSummarySectionPositions();
+            playScrollSound();
+        }
+    }
+
+    private void scrollDown() {
+        int previousOffset = scrollOffset;
+        scrollOffset = Math.min(maxScrollOffset, scrollOffset + SCROLL_SPEED);
+
+        if (scrollOffset != previousOffset) {
+            calculateSummarySectionPositions();
+            playScrollSound();
+        }
+    }
+
+    /**
      * 🎯 MÉTODO CORRETO: Navegar para seção usando sistema modular
      */
     private void navigateToSection(HUDSection section) {
@@ -478,6 +649,8 @@ public class ProgressionHUDScreen extends Screen {
         currentView = ViewState.SUMMARY;
         currentSection = null;
         currentPage = 0;
+        scrollOffset = 0; // 🎯 NOVO: Resetar scroll ao voltar
+        calculateSummarySectionPositions();
         playPageTurnSound();
     }
 
@@ -501,13 +674,17 @@ public class ProgressionHUDScreen extends Screen {
         }
     }
 
-    private boolean isMouseOverSection(int mouseX, int mouseY, SummarySection section) {
+    /**
+     * 🎯 MÉTODO ATUALIZADO: Verificar mouse over com clipping
+     */
+    private boolean isMouseOverSection(int mouseX, int mouseY, SummarySection section, int clipTop, int clipBottom) {
         return mouseX >= section.x && mouseX <= section.x + section.width &&
+                mouseY >= Math.max(section.y, clipTop) && mouseY <= Math.min(section.y + section.height, clipBottom) &&
                 mouseY >= section.y && mouseY <= section.y + section.height;
     }
 
     // ============================================================================
-    // 🎯 MÉTODOS DE SONS (MANTIDOS)
+    // 🎯 MÉTODOS DE SONS (MANTIDOS + NOVO)
     // ============================================================================
 
     private void playHudOpenSound() {
@@ -535,6 +712,16 @@ public class ProgressionHUDScreen extends Screen {
         if (this.minecraft != null && this.minecraft.getSoundManager() != null) {
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(
                     SoundEvents.BOOK_PAGE_TURN, 1.0F));
+        }
+    }
+
+    /**
+     * 🎯 NOVO: Som de scroll
+     */
+    private void playScrollSound() {
+        if (this.minecraft != null && this.minecraft.getSoundManager() != null) {
+            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(
+                    SoundEvents.UI_BUTTON_CLICK.value(), 0.3F, 1.8F));
         }
     }
 
