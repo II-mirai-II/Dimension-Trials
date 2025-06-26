@@ -1,10 +1,15 @@
 # Dimension Trials 💀
 
 [![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)](https://www.minecraft.net/)
+[![Mod Version](https://img.shields.io/badge/Version-1.3-blue.svg)]()
+[![Party System](https://img.shields.io/badge/NEW-Party%20System-brightgreen.svg)]()
 
 ![HUD Preview](https://github.com/II-mirai-II/Dimension-Trials/blob/main/img_1.png?raw=true)
 
 ## **A challenging Minecraft mod that gates access to other dimensions behind specific achievements and mob elimination goals, forcing players to fully explore and master each dimension before progressing further.**
+
+### 🆕 **What's New in v1.3?**
+**Complete Party System implementation!** Team up with friends to tackle challenges together with automatic requirement scaling, persistent party management, and integrated HUD display. [See full changelog](Changelog%20v1.3.md)
 
 ## 🌟 Key Features
 
@@ -23,6 +28,7 @@
 *   **Pagination Support:** Easy navigation through extensive requirements with Q/E keys
 *   **Interactive Elements:** Click-to-navigate tabs and comprehensive tooltips
 *   **Sound Effects:** Immersive audio feedback for all interactions
+*   **Party Integration:** Displays party members, leader status, and multiplier benefits
 
 ### ⚔️ **Comprehensive Mob Elimination Goals**
 
@@ -30,6 +36,8 @@
 *   **Phase 2:** 8 new Nether mob types + increased Overworld requirements
 *   **Smart Reset System:** Phase 2 requires 125% of Phase 1 Overworld mobs
 *   **Voluntary Exile Support:** Includes Pillager Captain advancement tracking
+*   **Party System Integration:** Party multipliers reduce individual requirements
+*   **Dynamic Scaling:** Requirements adjust automatically based on party size
 *   **Fully Configurable:** Every mob count can be adjusted via server config
 
 ### ⚙️ **Highly Configurable**
@@ -47,6 +55,8 @@
 *   **Real-time Updates:** Progress syncs instantly across all players
 *   **Global Announcements:** Server-wide notifications when phases unlock
 *   **Advancement Integration:** Custom achievements for phase completion
+*   **Party System:** Team up with friends for reduced individual requirements
+*   **Persistent Party Names:** Offline party members show their actual names, not generic IDs
 
 ## 🎯 Progression Phases & Requirements
 
@@ -151,6 +161,31 @@ phase1Multiplier = 1.5
 enableXpMultiplier = true
 ```
 
+## 👥 Party System
+
+**NEW in v1.3!** Team up with friends to tackle the challenges together with reduced individual requirements.
+
+### Party Benefits:
+* **Reduced Requirements:** Mob kill requirements are divided by the number of party members
+* **Shared Progress:** All party members contribute to the same objectives
+* **Real-time HUD:** See party members, leader status, and current multipliers
+* **Persistent Names:** Offline party members show their actual usernames
+* **Dynamic Updates:** Requirements automatically adjust when members join/leave
+
+### Party Commands:
+* `/dimtr party create` - Create a new party (becomes leader)
+* `/dimtr party invite <player>` - Invite a player to your party
+* `/dimtr party accept` - Accept a party invitation
+* `/dimtr party leave` - Leave your current party
+* `/dimtr party kick <player>` - Kick a member (leaders only)
+* `/dimtr party promote <player>` - Promote to leader (leaders only)
+* `/dimtr party info` - Display detailed party information
+
+### How It Works:
+* **Example:** If a requirement is 100 zombie kills and you have 4 party members, each member only needs 25 kills
+* **Shared Pool:** All kills from party members count toward the same goal
+* **Fair Distribution:** Requirements scale down automatically, making progression achievable for teams
+
 ## 🎮 How to Play
 
 1.  **Start Your World:** Begin normally in the Overworld
@@ -172,9 +207,11 @@ enableXpMultiplier = true
 ### Pro Tips:
 
 *   **Use the HUD:** The `J` key opens a comprehensive progress tracker with detailed information
+*   **Team Up:** Create or join a party to reduce individual requirements and work together
 *   **Plan Ahead:** Some mobs are rare - prepare accordingly and explore thoroughly
 *   **Server Config:** Admins can adjust difficulty to match their community's playstyle
 *   **Multiplayer Friendly:** Progress is global - work together as a team!
+*   **Party Strategy:** Larger parties have lower individual requirements but need coordination
 *   **Command Access:** Admins can use `/dimtr` commands for progress management
 
 ## 🌍 Localization
@@ -208,6 +245,18 @@ Dimension Trials supports multiple languages:
 *   `/dimtr debug payload` - Debug client-server synchronization
 
 _Requires operator permissions_
+
+### `/dimtr party` - Party System Commands *(NEW in v1.3)*
+
+*   `/dimtr party create` - Create a new party (becomes leader)
+*   `/dimtr party invite <player>` - Invite a player to your party
+*   `/dimtr party accept` - Accept a party invitation
+*   `/dimtr party leave` - Leave your current party
+*   `/dimtr party kick <player>` - Kick a member (leaders only)
+*   `/dimtr party promote <player>` - Promote to leader (leaders only)
+*   `/dimtr party info` - Display detailed party information
+
+_Available to all players_
 
 ## 🤝 Contributing
 
