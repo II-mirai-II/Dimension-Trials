@@ -174,5 +174,102 @@
 
   "tooltip.dimtr.progression_book": "Traccia la tua progressione dimensionale",
   "tooltip.dimtr.phase_locked": "Completa i requisiti per sbloccare",
-  "tooltip.dimtr.phase_unlocked": "Requisiti della fase completati"
+  "tooltip.dimtr.phase_unlocked": "Requisiti della fase completati",
+
+  "_comment_summary_system": "=== NUOVO SISTEMA DI NAVIGAZIONE RIASSUNTO ===",
+
+  "gui.dimtr.summary.title": "📊 Riassunto Progresso",
+  "gui.dimtr.summary.subtitle": "Clicca su qualsiasi sezione per vedere i dettagli",
+  "gui.dimtr.summary.general_stats": "📈 Statistiche Generali",
+  "gui.dimtr.summary.phase1_status": "Fase 1: %s",
+  "gui.dimtr.summary.phase2_status": "Fase 2: %s",
+
+  "gui.dimtr.summary.phase1_main.desc": "Obiettivi Speciali e Panoramica Progresso",
+  "gui.dimtr.summary.phase1_goals.desc": "Obiettivi di Eliminazione Mob dell'Overworld",
+  "gui.dimtr.summary.phase2_main.desc": "Obiettivi Avanzati e Sfide",
+  "gui.dimtr.summary.phase2_goals.desc": "Mob del Nether + Reset Overworld (125%)",
+
+  "gui.dimtr.summary.instructions.click": "Clicca su qualsiasi sezione sopra per vedere i dettagli",
+  "gui.dimtr.summary.instructions.close": "Premi ESC o J per chiudere questa finestra",
+  "gui.dimtr.summary.instructions.scroll": "Rotella del mouse/↑↓ per scorrere",
+  "gui.dimtr.section.instructions.navigate": "Usa Q/E per navigare tra le pagine • ESC per tornare al riassunto",
+  "gui.dimtr.section.instructions.back": "Premi ESC per tornare al riassunto",
+  "gui.dimtr.back_to_summary": "← Torna al Riassunto",
+
+  "_comment_parties_system": "=== 👥 SISTEMA GRUPPI ===",
+
+  "gui.dimtr.window.parties.title": "Gruppi & Squadre",
+  "gui.dimtr.summary.parties.desc": "Sistema di Gruppi Collaborativo e Progresso Condiviso",
+
+  "gui.dimtr.parties.welcome": "👥 Sistema Gruppi",
+  "gui.dimtr.parties.current.status": "📊 Stato Attuale",
+  "gui.dimtr.parties.in.party": "✅ Sei in un gruppo",
+  "gui.dimtr.parties.no.party": "❌ Non sei in nessun gruppo",
+
+  "gui.dimtr.parties.members": "👥 Membri del Gruppo",
+  "gui.dimtr.parties.shared.progress": "🎯 Progresso Condiviso",
+  "gui.dimtr.parties.shared.mobs": "⚔️ Uccisioni Mob Condivise",
+
+  "gui.dimtr.parties.actions": "🎮 Azioni Disponibili",
+  "gui.dimtr.parties.action.create": "📝 Crea un gruppo:",
+  "gui.dimtr.parties.action.join": "🚪 Unisciti a un gruppo:",
+  "gui.dimtr.parties.action.list": "📋 Elenca gruppi pubblici:",
+
+  "gui.dimtr.parties.benefits": "🌟 Vantaggi del Gruppo",
+  "gui.dimtr.parties.benefit.shared": "• Condividi il progresso con tutti i membri",
+  "gui.dimtr.parties.benefit.multiplier": "• +25% aumento requisiti per membro aggiuntivo",
+
+  "gui.dimtr.parties.commands": "⚙️ Comandi Disponibili",
+
+  "_comment_party_dynamic_texts": "=== 👥 TESTI DINAMICI GRUPPI ===",
+
+  "gui.dimtr.parties.party.type": "Tipo: %s",
+  "gui.dimtr.parties.type.public": "Pubblico",
+  "gui.dimtr.parties.type.private": "Privato",
+  "gui.dimtr.parties.member.count": "Membri: %d/10",
+  "gui.dimtr.parties.multiplier": "Moltiplicatore: %.1fx (+%d%%)",
+  "gui.dimtr.parties.you.indicator": " (Tu)",
+  
+  "gui.dimtr.parties.shared.elder_guardian": "✔ Guardiano Antico (Condiviso)",
+  "gui.dimtr.parties.shared.raid": "✔ Raid Vinto (Condiviso)",
+  "gui.dimtr.parties.shared.wither": "✔ Wither Ucciso (Condiviso)",
+  "gui.dimtr.parties.shared.warden": "✔ Warden Ucciso (Condiviso)",
+  
+  "gui.dimtr.parties.max.members": "• Massimo 10 membri per gruppo",
+  "gui.dimtr.parties.progress.transferred.in": "• Progresso individuale trasferito all'ingresso",
+  "gui.dimtr.parties.progress.preserved.out": "• Progresso preservato all'uscita",
+  "gui.dimtr.parties.progress.will.transfer": "• Il progresso individuale sarà trasferito",
+  "gui.dimtr.parties.progress.will.preserve": "• Il progresso sarà preservato all'uscita",
+  
+  "gui.dimtr.parties.cmd.leave": "/dimtr party leave - Lascia gruppo",
+  "gui.dimtr.parties.cmd.info": "/dimtr party info - Info gruppo",
+  "gui.dimtr.parties.cmd.kick": "/dimtr party kick <giocatore> - Espelli",
+  "gui.dimtr.parties.cmd.promote": "/dimtr party promote <giocatore> - Promuovi",
+
+  "_comment_party_commands": "=== 👥 MESSAGGI COMANDI GRUPPI ===",
+
+  "party.dimtr.create.success": "✅ Gruppo '%s' (%s) creato con successo!",
+  "party.dimtr.create.success.leader": "👑 Sei il leader del gruppo!",
+  "party.dimtr.create.success.info": "💡 Altri giocatori possono unirsi con '/party join %s'",
+  "party.dimtr.create.success.multiplier": "⚡ Moltiplicatore attuale: +0%% (1 membro). +25%% per membro aggiuntivo!",
+  "party.dimtr.create.password_info": "🔒 Gruppo protetto da password. Condividi la password con chi vuoi invitare!",
+  
+  "party.dimtr.join.success": "✅ Ti sei unito al gruppo '%s'!",
+  "party.dimtr.join.success.benefit": "🎉 Ora condividi il progresso con i membri del gruppo!",
+  "party.dimtr.join.success.info": "💡 Usa '/party info' per vedere i dettagli del gruppo",
+  
+  "party.dimtr.leave.success": "✅ Hai lasciato il gruppo!",
+  "party.dimtr.leave.success.individual": "📊 La tua progressione ora è di nuovo individuale",
+  
+  "party.dimtr.kick.success": "✅ %s è stato espulso dal gruppo!",
+  "party.dimtr.kick.notification": "💔 Sei stato espulso dal gruppo '%s' dal leader",
+  
+  "party.dimtr.promote.success": "✅ Hai trasferito la leadership a %s",
+  "party.dimtr.promote.new_leader": "👑 Sei stato promosso a leader del gruppo '%s'!",
+  "party.dimtr.promote.old_leader": "✅ Hai trasferito la leadership a %s",
+  "party.dimtr.promote.notification": "👑 %s è il nuovo leader del gruppo!",
+  
+  "party.dimtr.disband.success": "✅ Il gruppo '%s' è stato sciolto!",
+  
+  "party.dimtr.invite.success": "✅ Invito inviato a %s!"
 }

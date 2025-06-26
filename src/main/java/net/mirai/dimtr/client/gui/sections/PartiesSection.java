@@ -66,13 +66,18 @@ public class PartiesSection implements HUDSection {
             content.add(Component.literal("Party: " + partyData.getPartyName())
                     .withStyle(ChatFormatting.WHITE));
 
-            content.add(Component.literal("Tipo: " + (partyData.isPartyPublic() ? "Pública" : "Privada"))
+            content.add(Component.translatable(Constants.GUI_PARTIES_PARTY_TYPE,
+                    Component.translatable(partyData.isPartyPublic() ? 
+                            Constants.GUI_PARTIES_TYPE_PUBLIC : Constants.GUI_PARTIES_TYPE_PRIVATE).getString())
                     .withStyle(partyData.isPartyPublic() ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
 
-            content.add(Component.literal("Membros: " + partyData.getMemberCount() + "/4")
+            content.add(Component.translatable(Constants.GUI_PARTIES_MEMBER_COUNT, 
+                    partyData.getMemberCount())
                     .withStyle(ChatFormatting.GRAY));
 
-            content.add(Component.literal("Multiplicador: " + String.format("%.1fx", partyData.getRequirementMultiplier()) + " (+" + (int)((partyData.getRequirementMultiplier() - 1.0) * 100) + "%)")
+            int percentageIncrease = (int)((partyData.getRequirementMultiplier() - 1.0) * 100);
+            content.add(Component.translatable(Constants.GUI_PARTIES_MULTIPLIER,
+                    partyData.getRequirementMultiplier(), percentageIncrease)
                     .withStyle(ChatFormatting.YELLOW));
 
             content.add(Component.empty());
@@ -90,9 +95,9 @@ public class PartiesSection implements HUDSection {
                 boolean isCurrentPlayer = memberId.equals(currentPlayerId);
 
                 Component memberComponent = Component.literal(
-                        (isLeader ? "👑 " : "👤 ") + memberName +
-                                (isCurrentPlayer ? " (Você)" : "")
-                ).withStyle(isLeader ? ChatFormatting.GOLD : ChatFormatting.WHITE);
+                        (isLeader ? "👑 " : "👤 ") + memberName)
+                        .append(isCurrentPlayer ? Component.translatable(Constants.GUI_PARTIES_YOU_INDICATOR) : Component.empty())
+                        .withStyle(isLeader ? ChatFormatting.GOLD : ChatFormatting.WHITE);
 
                 content.add(memberComponent);
             }
@@ -104,37 +109,23 @@ public class PartiesSection implements HUDSection {
                     .withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
 
             if (partyData.isSharedElderGuardianKilled()) {
-                content.add(Component.literal("✔ Elder Guardian (Compartilhado)")
+                content.add(Component.translatable(Constants.GUI_PARTIES_SHARED_ELDER_GUARDIAN)
                         .withStyle(ChatFormatting.GREEN));
             }
 
             if (partyData.isSharedRaidWon()) {
-                content.add(Component.literal("✔ Raid Vencida (Compartilhado)")
+                content.add(Component.translatable(Constants.GUI_PARTIES_SHARED_RAID)
                         .withStyle(ChatFormatting.GREEN));
             }
 
             if (partyData.isSharedWitherKilled()) {
-                content.add(Component.literal("✔ Wither Morto (Compartilhado)")
+                content.add(Component.translatable(Constants.GUI_PARTIES_SHARED_WITHER)
                         .withStyle(ChatFormatting.GREEN));
             }
 
             if (partyData.isSharedWardenKilled()) {
-                content.add(Component.literal("✔ Warden Morto (Compartilhado)")
+                content.add(Component.translatable(Constants.GUI_PARTIES_SHARED_WARDEN)
                         .withStyle(ChatFormatting.GREEN));
-            }
-
-            content.add(Component.empty());
-            // 🔧 CORRIGIDO: Usar constantes
-            content.add(Component.translatable(Constants.GUI_PARTIES_SHARED_MOBS)
-                    .withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD));
-
-            String[] importantMobs = {"zombie", "skeleton", "creeper", "blaze", "wither_skeleton"};
-            for (String mobType : importantMobs) {
-                int sharedKills = partyData.getSharedMobKillCount(mobType);
-                if (sharedKills > 0) {
-                    content.add(Component.literal("⚔ " + capitalizeFirst(mobType) + ": " + sharedKills)
-                            .withStyle(ChatFormatting.GRAY));
-                }
             }
 
         } else {
@@ -173,8 +164,21 @@ public class PartiesSection implements HUDSection {
                 .withStyle(ChatFormatting.GRAY));
         content.add(Component.translatable(Constants.GUI_PARTIES_BENEFIT_MULTIPLIER)
                 .withStyle(ChatFormatting.GRAY));
-        content.add(Component.literal("• Máximo de 4 membros por party")
+        content.add(Component.translatable(Constants.GUI_PARTIES_MAX_MEMBERS)
                 .withStyle(ChatFormatting.GRAY));
+        
+        // 🎯 NOVO: Informações sobre transferência de progresso
+        if (partyData.isInParty()) {
+            content.add(Component.translatable(Constants.GUI_PARTIES_PROGRESS_TRANSFERRED_IN)
+                    .withStyle(ChatFormatting.GREEN));
+            content.add(Component.translatable(Constants.GUI_PARTIES_PROGRESS_PRESERVED_OUT)
+                    .withStyle(ChatFormatting.GREEN));
+        } else {
+            content.add(Component.translatable(Constants.GUI_PARTIES_PROGRESS_WILL_TRANSFER)
+                    .withStyle(ChatFormatting.YELLOW));
+            content.add(Component.translatable(Constants.GUI_PARTIES_PROGRESS_WILL_PRESERVE)
+                    .withStyle(ChatFormatting.YELLOW));
+        }
 
         content.add(Component.empty());
 
@@ -182,27 +186,22 @@ public class PartiesSection implements HUDSection {
         if (partyData.isInParty()) {
             content.add(Component.translatable(Constants.GUI_PARTIES_COMMANDS)
                     .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
-            content.add(Component.literal("/dimtr party leave - Sair da party")
+            content.add(Component.translatable(Constants.GUI_PARTIES_CMD_LEAVE)
                     .withStyle(ChatFormatting.GRAY));
-            content.add(Component.literal("/dimtr party info - Info da party")
+            content.add(Component.translatable(Constants.GUI_PARTIES_CMD_INFO)
                     .withStyle(ChatFormatting.GRAY));
 
-            UUID currentPlayerId = Minecraft.getInstance().player != null ?
-                    Minecraft.getInstance().player.getUUID() : null;
+            var player = Minecraft.getInstance().player;
+            UUID currentPlayerId = player != null ? player.getUUID() : null;
 
             if (currentPlayerId != null && currentPlayerId.equals(partyData.getLeaderId())) {
-                content.add(Component.literal("/dimtr party kick <jogador> - Expulsar")
+                content.add(Component.translatable(Constants.GUI_PARTIES_CMD_KICK)
                         .withStyle(ChatFormatting.GRAY));
-                content.add(Component.literal("/dimtr party promote <jogador> - Promover")
+                content.add(Component.translatable(Constants.GUI_PARTIES_CMD_PROMOTE)
                         .withStyle(ChatFormatting.GRAY));
             }
         }
 
         return content;
-    }
-
-    private String capitalizeFirst(String str) {
-        if (str == null || str.isEmpty()) return str;
-        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
     }
 }

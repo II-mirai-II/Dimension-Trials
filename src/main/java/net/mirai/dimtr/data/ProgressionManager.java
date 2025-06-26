@@ -1,6 +1,7 @@
 package net.mirai.dimtr.data;
 
 import net.mirai.dimtr.DimTrMod;
+import net.mirai.dimtr.config.CustomRequirements;
 import net.mirai.dimtr.config.DimTrConfig;
 import net.mirai.dimtr.network.UpdateProgressionToClientPayload;
 import net.mirai.dimtr.util.Constants;
@@ -20,6 +21,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Nonnull;
 
 /**
  * Gerenciador centralizado para progressão individual de jogadores
@@ -47,7 +49,8 @@ public class ProgressionManager extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag compoundTag, HolderLookup.Provider registries) {
+    @Nonnull
+    public CompoundTag save(@Nonnull CompoundTag compoundTag, @Nonnull HolderLookup.Provider registries) {
         ListTag playerList = new ListTag();
 
         for (PlayerProgressionData playerData : playerProgressions.values()) {
@@ -249,15 +252,57 @@ public class ProgressionManager extends SavedData {
         List<ServerPlayer> nearbyPlayers = getNearbyPlayers(x, y, z, level);
 
         if (nearbyPlayers.isEmpty()) {
-            return 1.0; // Sem players próximos = multiplicador padrão
+            return 1.0; // Sem players próximos = multiplicador padrão (sem bônus)
         }
 
         double totalMultiplier = 0.0;
         int validPlayers = 0;
 
+        // 🎯 NOVO: Integração com sistema de party
+        PartyManager partyManager = PartyManager.get(level);
+
         for (ServerPlayer player : nearbyPlayers) {
             PlayerProgressionData playerData = getPlayerData(player);
-            double playerMultiplier = playerData.getProgressionMultiplier();
+            
+            // 🎯 MUDANÇA CRÍTICA: Só aplicar multiplicador se o player DEVERIA ter ele
+            double playerMultiplier = getValidatedProgressionMultiplier(playerData);
+            
+            // 🎯 NOVO: Log detalhado para debug
+            if (DimTrConfig.SERVER.enableDebugLogging.get()) {
+                DimTrMod.LOGGER.info("Player {} near mob at ({}, {}, {}) - Phase1: {}, Phase2: {}, Multiplier: {}",
+                    player.getName().getString(),
+                    (int)x, (int)y, (int)z,
+                    playerData.isPhase1EffectivelyComplete(),
+                    playerData.isPhase2EffectivelyComplete(),
+                    String.format("%.2f", playerMultiplier)
+                );
+            }
+            
+            // 🎯 NOVO: Verificar se jogador está em party e aplicar multiplicador adicional
+            if (partyManager.isPlayerInParty(player.getUUID())) {
+                PartyData party = partyManager.getPlayerParty(player.getUUID());
+                if (party != null && party.getMemberCount() > 1) {
+                    // Aplicar bônus de party baseado no número de membros próximos
+                    int nearbyPartyMembers = 0;
+                    for (UUID memberId : party.getMembers()) {
+                        ServerPlayer member = serverForContext != null ? 
+                            serverForContext.getPlayerList().getPlayer(memberId) : null;
+                        if (member != null) {
+                            double memberDistance = member.distanceToSqr(x, y, z);
+                            if (memberDistance <= PROXIMITY_RADIUS * PROXIMITY_RADIUS) {
+                                nearbyPartyMembers++;
+                            }
+                        }
+                    }
+                    
+                    // 🎯 MUDANÇA: Só aplicar bônus de party se o multiplicador base for > 1.0
+                    if (nearbyPartyMembers > 1 && playerMultiplier > 1.0) {
+                        double partyBonus = 1.0 + (nearbyPartyMembers - 1) * DimTrConfig.SERVER.partyProgressionMultiplier.get();
+                        playerMultiplier *= partyBonus;
+                    }
+                }
+            }
+            
             totalMultiplier += playerMultiplier;
             validPlayers++;
         }
@@ -267,6 +312,59 @@ public class ProgressionManager extends SavedData {
         }
 
         return totalMultiplier / validPlayers;
+    }
+
+    /**
+     * 🎯 NOVO: Obter multiplicador validado baseado na progressão real do player
+     * Só retorna multiplicador > 1.0 se o player realmente completou as fases necessárias
+     */
+    private double getValidatedProgressionMultiplier(PlayerProgressionData playerData) {
+        // Verificar multiplicadores de fases customizadas primeiro (maior prioridade)
+        // Usar a mesma lógica do método original mas de forma pública
+        double customMultiplier = getCustomPhaseMultiplierForPlayer(playerData);
+        if (customMultiplier > 1.0) {
+            return customMultiplier;
+        }
+        
+        // Verificar Fase 2 (deve ter completado Fase 1 + Fase 2)
+        if (playerData.isPhase2EffectivelyComplete()) {
+            return DimTrConfig.SERVER.phase2Multiplier.get();
+        } 
+        
+        // Verificar Fase 1 (deve ter completado todos os requisitos da Fase 1)
+        if (playerData.isPhase1EffectivelyComplete()) {
+            return DimTrConfig.SERVER.phase1Multiplier.get();
+        }
+        
+        // Nenhuma fase completa = sem multiplicador
+        return 1.0;
+    }
+
+    /**
+     * 🎯 NOVO: Obter multiplicador de fase customizada para um player específico
+     */
+    private double getCustomPhaseMultiplierForPlayer(PlayerProgressionData playerData) {
+        // Usar a mesma lógica do método privado do PlayerProgressionData
+        double highestMultiplier = 1.0;
+        
+        // Verificar todas as fases customizadas completadas
+        for (String phaseId : playerData.getCustomPhaseCompletionMap().keySet()) {
+            if (playerData.isCustomPhaseComplete(phaseId)) {
+                var customPhase = CustomRequirements.getCustomPhase(phaseId);
+                if (customPhase != null) {
+                    double phaseMultiplier = Math.max(
+                        Math.max(customPhase.healthMultiplier, customPhase.damageMultiplier),
+                        customPhase.xpMultiplier
+                    );
+                    
+                    if (phaseMultiplier > highestMultiplier) {
+                        highestMultiplier = phaseMultiplier;
+                    }
+                }
+            }
+        }
+        
+        return highestMultiplier;
     }
 
     private List<ServerPlayer> getNearbyPlayers(double x, double y, double z, ServerLevel level) {
@@ -402,5 +500,101 @@ public class ProgressionManager extends SavedData {
         playerData.phase1Completed = true;
         playerData.phase2Completed = true;
         markDirtyAndSendUpdates(playerId);
+    }
+
+    // 🎯 NOVO: Obter todos os mob kills de um jogador para transferência para party
+    public Map<String, Integer> getPlayerMobKills(UUID playerId) {
+        PlayerProgressionData playerData = getPlayerData(playerId);
+        Map<String, Integer> mobKills = new HashMap<>();
+        
+        // Fase 1 mobs
+        mobKills.put("zombie", playerData.zombieKills);
+        mobKills.put("skeleton", playerData.skeletonKills);
+        mobKills.put("stray", playerData.strayKills);
+        mobKills.put("husk", playerData.huskKills);
+        mobKills.put("spider", playerData.spiderKills);
+        mobKills.put("creeper", playerData.creeperKills);
+        mobKills.put("drowned", playerData.drownedKills);
+        mobKills.put("enderman", playerData.endermanKills);
+        mobKills.put("witch", playerData.witchKills);
+        mobKills.put("pillager", playerData.pillagerKills);
+        mobKills.put("captain", playerData.captainKills);
+        mobKills.put("vindicator", playerData.vindicatorKills);
+        mobKills.put("bogged", playerData.boggedKills);
+        mobKills.put("breeze", playerData.breezeKills);
+        mobKills.put("ravager", playerData.ravagerKills);
+        mobKills.put("evoker", playerData.evokerKills);
+        
+        // Fase 2 mobs
+        mobKills.put("blaze", playerData.blazeKills);
+        mobKills.put("wither_skeleton", playerData.witherSkeletonKills);
+        mobKills.put("piglin_brute", playerData.piglinBruteKills);
+        mobKills.put("hoglin", playerData.hoglinKills);
+        mobKills.put("zoglin", playerData.zoglinKills);
+        mobKills.put("ghast", playerData.ghastKills);
+        mobKills.put("piglin", playerData.piglinKills);
+        
+        return mobKills;
+    }
+    
+    // 🎯 NOVO: Restaurar mob kills de um jogador após sair da party
+    public void restorePlayerMobKills(UUID playerId, Map<String, Integer> mobKillsToRestore) {
+        PlayerProgressionData playerData = getPlayerData(playerId);
+        
+        // Restaurar apenas se o valor for maior que o atual
+        playerData.zombieKills = Math.max(playerData.zombieKills, mobKillsToRestore.getOrDefault("zombie", 0));
+        playerData.skeletonKills = Math.max(playerData.skeletonKills, mobKillsToRestore.getOrDefault("skeleton", 0));
+        playerData.strayKills = Math.max(playerData.strayKills, mobKillsToRestore.getOrDefault("stray", 0));
+        playerData.huskKills = Math.max(playerData.huskKills, mobKillsToRestore.getOrDefault("husk", 0));
+        playerData.spiderKills = Math.max(playerData.spiderKills, mobKillsToRestore.getOrDefault("spider", 0));
+        playerData.creeperKills = Math.max(playerData.creeperKills, mobKillsToRestore.getOrDefault("creeper", 0));
+        playerData.drownedKills = Math.max(playerData.drownedKills, mobKillsToRestore.getOrDefault("drowned", 0));
+        playerData.endermanKills = Math.max(playerData.endermanKills, mobKillsToRestore.getOrDefault("enderman", 0));
+        playerData.witchKills = Math.max(playerData.witchKills, mobKillsToRestore.getOrDefault("witch", 0));
+        playerData.pillagerKills = Math.max(playerData.pillagerKills, mobKillsToRestore.getOrDefault("pillager", 0));
+        playerData.captainKills = Math.max(playerData.captainKills, mobKillsToRestore.getOrDefault("captain", 0));
+        playerData.vindicatorKills = Math.max(playerData.vindicatorKills, mobKillsToRestore.getOrDefault("vindicator", 0));
+        playerData.boggedKills = Math.max(playerData.boggedKills, mobKillsToRestore.getOrDefault("bogged", 0));
+        playerData.breezeKills = Math.max(playerData.breezeKills, mobKillsToRestore.getOrDefault("breeze", 0));
+        playerData.ravagerKills = Math.max(playerData.ravagerKills, mobKillsToRestore.getOrDefault("ravager", 0));
+        playerData.evokerKills = Math.max(playerData.evokerKills, mobKillsToRestore.getOrDefault("evoker", 0));
+        
+        // Fase 2 mobs
+        playerData.blazeKills = Math.max(playerData.blazeKills, mobKillsToRestore.getOrDefault("blaze", 0));
+        playerData.witherSkeletonKills = Math.max(playerData.witherSkeletonKills, mobKillsToRestore.getOrDefault("wither_skeleton", 0));
+        playerData.piglinBruteKills = Math.max(playerData.piglinBruteKills, mobKillsToRestore.getOrDefault("piglin_brute", 0));
+        playerData.hoglinKills = Math.max(playerData.hoglinKills, mobKillsToRestore.getOrDefault("hoglin", 0));
+        playerData.zoglinKills = Math.max(playerData.zoglinKills, mobKillsToRestore.getOrDefault("zoglin", 0));
+        playerData.ghastKills = Math.max(playerData.ghastKills, mobKillsToRestore.getOrDefault("ghast", 0));
+        playerData.piglinKills = Math.max(playerData.piglinKills, mobKillsToRestore.getOrDefault("piglin", 0));
+        
+        // Verificar e atualizar completude das fases após restauração
+        checkAndUpdatePhaseCompletion(playerData);
+        markDirtyAndSendUpdates(playerId);
+    }
+    
+    /**
+     * 🎯 NOVO: Verificar se um player deveria ter multiplicadores aplicados
+     * baseado em sua proximidade e fase de progressão
+     */
+    public boolean shouldPlayerHaveMultipliers(UUID playerId) {
+        PlayerProgressionData playerData = getPlayerData(playerId);
+        return getValidatedProgressionMultiplier(playerData) > 1.0;
+    }
+    
+    /**
+     * 🎯 NOVO: Obter informações detalhadas sobre multiplicadores para um player
+     */
+    public String getMultiplierDebugInfo(UUID playerId) {
+        PlayerProgressionData playerData = getPlayerData(playerId);
+        double multiplier = getValidatedProgressionMultiplier(playerData);
+        
+        return String.format("Player %s: Phase1=%s, Phase2=%s, CustomPhases=%d, Multiplier=%.2f",
+            playerId.toString().substring(0, 8),
+            playerData.isPhase1EffectivelyComplete(),
+            playerData.isPhase2EffectivelyComplete(),
+            playerData.getCustomPhaseCompletionMap().size(),
+            multiplier
+        );
     }
 }

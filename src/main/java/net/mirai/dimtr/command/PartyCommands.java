@@ -221,7 +221,7 @@ public class PartyCommands {
             }
             case PARTY_FULL -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Party '" + partyName + "' está cheia! (4/4 membros)"));
+                        Component.literal("❌ Party '" + partyName + "' está cheia! (10/10 membros)"));
                 return 0;
             }
             default -> {
@@ -300,7 +300,7 @@ public class PartyCommands {
                     ChatFormatting.RED : ChatFormatting.GREEN;
 
             // 🎯 NOVO: Calcular multiplicador e mostrar informações detalhadas
-            double multiplier = 1.0 + (party.currentMembers - 1) * 0.25;
+            double multiplier = 1.0 + (party.currentMembers - 1) * 0.75;
             int multiplierPercent = (int)((multiplier - 1.0) * 100);
 
             context.getSource().sendSuccess(() ->
@@ -349,7 +349,7 @@ public class PartyCommands {
                         .withStyle(ChatFormatting.WHITE), false);
 
         context.getSource().sendSuccess(() ->
-                Component.literal("👥 Membros: " + party.getMemberCount() + "/4")
+                Component.literal("👥 Membros: " + party.getMemberCount() + "/10")
                         .withStyle(ChatFormatting.GRAY), false);
 
         context.getSource().sendSuccess(() ->
@@ -659,7 +659,7 @@ public class PartyCommands {
 
         if (party.getMemberCount() >= 4) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Sua party já está cheia! (4/4 membros)"));
+                    Component.literal("❌ Sua party já está cheia! (10/10 membros)"));
             return 0;
         }
 

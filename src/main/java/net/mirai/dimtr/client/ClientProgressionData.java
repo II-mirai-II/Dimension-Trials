@@ -270,6 +270,19 @@ public class ClientProgressionData {
 
     // CORREÇÃO PRINCIPAL: Usar valores sincronizados em vez de DimTrConfig.SERVER
     public int getMobKillRequirement(String mobType, int phase) {
+        int baseRequirement = getBaseMobKillRequirement(mobType, phase);
+        
+        // 🎯 NOVO: Aplicar multiplicador de party se o jogador estiver em uma
+        if (ClientPartyData.INSTANCE.isInParty()) {
+            double partyMultiplier = ClientPartyData.INSTANCE.getRequirementMultiplier();
+            return (int) Math.ceil(baseRequirement * partyMultiplier);
+        }
+        
+        return baseRequirement;
+    }
+    
+    // 🎯 NOVO: Método para obter requisito base sem multiplicador de party
+    private int getBaseMobKillRequirement(String mobType, int phase) {
         if (phase == 1) {
             return switch (mobType) {
                 case "zombie" -> reqZombieKills;
@@ -383,5 +396,25 @@ public class ClientProgressionData {
         // This would need to be synchronized from server data
         // For now, return false as a placeholder
         return false;
+    }
+    
+    /**
+     * 🎯 NOVO: Obter requisito de mob customizado ajustado por party
+     */
+    public int getCustomMobRequirementAdjusted(String phaseId, String mobType) {
+        var customPhase = net.mirai.dimtr.config.CustomRequirements.getCustomPhase(phaseId);
+        if (customPhase == null || customPhase.mobRequirements == null) {
+            return 0;
+        }
+        
+        int baseRequirement = customPhase.mobRequirements.getOrDefault(mobType, 0);
+        
+        // 🎯 NOVO: Aplicar multiplicador de party se o jogador estiver em uma
+        if (ClientPartyData.INSTANCE.isInParty()) {
+            double partyMultiplier = ClientPartyData.INSTANCE.getRequirementMultiplier();
+            return (int) Math.ceil(baseRequirement * partyMultiplier);
+        }
+        
+        return baseRequirement;
     }
 }

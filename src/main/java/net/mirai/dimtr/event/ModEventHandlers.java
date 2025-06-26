@@ -651,10 +651,11 @@ public class ModEventHandlers {
         if (customPhase.mobRequirements != null) {
             for (var entry : customPhase.mobRequirements.entrySet()) {
                 String mobType = entry.getKey();
-                int required = entry.getValue();
-                int current = playerData.getCustomMobKills(phaseId, mobType);
+                // 🎯 NOVO: Usar método integrado que considera party
+                boolean isComplete = net.mirai.dimtr.config.CustomRequirements.isCustomMobRequirementComplete(
+                    phaseId, mobType, playerId, serverLevel);
                 
-                if (current < required) {
+                if (!isComplete) {
                     allMobsComplete = false;
                     break;
                 }

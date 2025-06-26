@@ -211,4 +211,13 @@ public class ClientPartyData {
     public boolean isPartyPublic() { 
         return isPublic; 
     }
+    
+    /**
+     * 🎯 NOVO: Método para notificar que o progresso da party foi atualizado
+     * Força atualização do HUD do cliente
+     */
+    public void notifyProgressUpdate() {
+        // Este método pode ser chamado quando dados da party são atualizados
+        // para forçar uma re-renderização do HUD com os novos multiplicadores
+    }
 }

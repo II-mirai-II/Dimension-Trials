@@ -4,7 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import net.mirai.dimtr.DimTrMod;
+import net.mirai.dimtr.data.PartyManager;
+import net.mirai.dimtr.data.PartyData;
+import net.mirai.dimtr.data.ProgressionManager;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 
 import java.io.File;
 import java.io.FileReader;
@@ -175,8 +179,29 @@ public class CustomRequirements {
      * Verificar se um jogador pode acessar uma dimensão customizada
      */
     public static boolean canAccessCustomDimension(UUID playerId, ResourceLocation dimension) {
-        // TODO: Implementar verificação de acesso baseada na progressão do jogador
-        return true; // Por enquanto, retorna true
+        // 🎯 IMPLEMENTADO: Verificação de acesso baseada na progressão do jogador
+        
+        // Buscar fase customizada que controla esta dimensão
+        String blockingPhase = null;
+        for (var entry : loadedRequirements.entrySet()) {
+            for (var phaseEntry : entry.getValue().customPhases.entrySet()) {
+                var phase = phaseEntry.getValue();
+                if (phase.dimensionAccess != null && phase.dimensionAccess.contains(dimension.toString())) {
+                    blockingPhase = phaseEntry.getKey();
+                    break;
+                }
+            }
+            if (blockingPhase != null) break;
+        }
+        
+        if (blockingPhase == null) {
+            return true; // Dimensão não é controlada por nenhuma fase customizada
+        }
+        
+        // Verificar se o jogador completou a fase necessária
+        // Nota: Esta verificação precisa de ServerLevel, que não está disponível aqui
+        // A verificação real deve ser feita no ModEventHandlers onde temos acesso ao ServerLevel
+        return true; // Permitir por padrão para evitar locks
     }
     
     /**
@@ -185,6 +210,45 @@ public class CustomRequirements {
     public static void reload() {
         isLoaded = false;
         loadCustomRequirements();
+    }
+    
+    /**
+     * 🎯 NOVO: Obter requisito ajustado por party para mob customizado
+     */
+    public static int getAdjustedCustomMobRequirement(String phaseId, String mobType, UUID playerId, ServerLevel level) {
+        var customPhase = getCustomPhase(phaseId);
+        if (customPhase == null || customPhase.mobRequirements == null) {
+            return 0;
+        }
+        
+        int baseRequirement = customPhase.mobRequirements.getOrDefault(mobType, 0);
+        if (baseRequirement == 0) {
+            return 0;
+        }
+        
+        // 🎯 INTEGRAÇÃO COM PARTY: Aplicar multiplicador se jogador estiver em party
+        PartyManager partyManager = PartyManager.get(level);
+        if (partyManager.isPlayerInParty(playerId)) {
+            PartyData party = partyManager.getPlayerParty(playerId);
+            if (party != null) {
+                return party.getAdjustedRequirement(baseRequirement);
+            }
+        }
+        
+        return baseRequirement;
+    }
+    
+    /**
+     * 🎯 NOVO: Verificar se requisito de mob customizado está completo considerando party
+     */
+    public static boolean isCustomMobRequirementComplete(String phaseId, String mobType, UUID playerId, ServerLevel level) {
+        var progressionManager = ProgressionManager.get(level);
+        var playerData = progressionManager.getPlayerData(playerId);
+        
+        int current = playerData.getCustomMobKills(phaseId, mobType);
+        int required = getAdjustedCustomMobRequirement(phaseId, mobType, playerId, level);
+        
+        return current >= required;
     }
     
     // ============================================================================

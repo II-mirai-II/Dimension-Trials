@@ -167,6 +167,7 @@
 
   "gui.dimtr.summary.instructions.click": "Click any section above to view details",
   "gui.dimtr.summary.instructions.close": "Press ESC or J to close this window",
+  "gui.dimtr.summary.instructions.scroll": "Mouse wheel/↑↓ to scroll",
   "gui.dimtr.section.instructions.navigate": "Use Q/E to navigate pages • ESC to return to summary",
   "gui.dimtr.section.instructions.back": "Press ESC to return to the summary",
   "gui.dimtr.back_to_summary": "← Back to Summary",
@@ -195,6 +196,107 @@
   "gui.dimtr.parties.benefit.multiplier": "• +25% requirement increase per additional member",
 
   "gui.dimtr.parties.commands": "⚙️ Available Commands",
+
+  "_comment_party_dynamic_texts": "=== 👥 PARTY DYNAMIC TEXTS ===",
+
+  "gui.dimtr.parties.party.type": "Type: %s",
+  "gui.dimtr.parties.type.public": "Public",
+  "gui.dimtr.parties.type.private": "Private",
+  "gui.dimtr.parties.member.count": "Members: %d/10",
+  "gui.dimtr.parties.multiplier": "Multiplier: %.1fx (+%d%%)",
+  "gui.dimtr.parties.you.indicator": " (You)",
+  
+  "gui.dimtr.parties.shared.elder_guardian": "✔ Elder Guardian (Shared)",
+  "gui.dimtr.parties.shared.raid": "✔ Raid Won (Shared)",
+  "gui.dimtr.parties.shared.wither": "✔ Wither Killed (Shared)",
+  "gui.dimtr.parties.shared.warden": "✔ Warden Killed (Shared)",
+  
+  "gui.dimtr.parties.max.members": "• Maximum 10 members per party",
+  "gui.dimtr.parties.progress.transferred.in": "• Individual progress transferred on join",
+  "gui.dimtr.parties.progress.preserved.out": "• Progress preserved on leave",
+  "gui.dimtr.parties.progress.will.transfer": "• Individual progress will be transferred",
+  "gui.dimtr.parties.progress.will.preserve": "• Progress will be preserved on leave",
+  
+  "gui.dimtr.parties.cmd.leave": "/dimtr party leave - Leave party",
+  "gui.dimtr.parties.cmd.info": "/dimtr party info - Party info",
+  "gui.dimtr.parties.cmd.kick": "/dimtr party kick <player> - Kick",
+  "gui.dimtr.parties.cmd.promote": "/dimtr party promote <player> - Promote",
+
+  "_comment_party_commands": "=== 👥 PARTY COMMAND MESSAGES ===",
+
+  "party.dimtr.create.success": "✅ Party '%s' (%s) created successfully!",
+  "party.dimtr.create.success.leader": "👑 You are the party leader!",
+  "party.dimtr.create.success.info": "💡 Other players can join with '/party join %s'",
+  "party.dimtr.create.success.multiplier": "⚡ Current multiplier: +0%% (1 member). +25%% per additional member!",
+  "party.dimtr.create.password_info": "🔒 Password-protected party. Share the password with those you want to invite!",
+  
+  "party.dimtr.join.success": "✅ You joined party '%s'!",
+  "party.dimtr.join.success.benefit": "🎉 You now share progress with party members!",
+  "party.dimtr.join.success.info": "💡 Use '/party info' to see party details",
+  
+  "party.dimtr.leave.success": "✅ You left the party!",
+  "party.dimtr.leave.success.individual": "📊 Your progression is now individual again",
+  
+  "party.dimtr.kick.success": "✅ %s was kicked from the party!",
+  "party.dimtr.kick.notification": "💔 You were kicked from party '%s' by the leader",
+  
+  "party.dimtr.promote.success": "✅ You transferred leadership to %s",
+  "party.dimtr.promote.new_leader": "👑 You were promoted to leader of party '%s'!",
+  "party.dimtr.promote.old_leader": "✅ You transferred leadership to %s",
+  "party.dimtr.promote.notification": "👑 %s is the new party leader!",
+  
+  "party.dimtr.disband.success": "✅ Party '%s' was dissolved!",
+  
+  "party.dimtr.invite.success": "✅ Invitation sent to %s!",
+  "party.dimtr.invite.notification": "📨 %s invited you to party '%s'!",
+  "party.dimtr.invite.notification.private": "🔒 Private party - wait for password from leader",
+
+  "party.dimtr.error.not_player": "❌ Command must be executed by a player",
+  "party.dimtr.error.already_in_party": "❌ You are already in a party! Use '/party leave' first",
+  "party.dimtr.error.not_in_party": "❌ You are not in any party!",
+  "party.dimtr.error.not_leader": "❌ Only the leader can use this command!",
+  "party.dimtr.error.invalid_name": "❌ Invalid party name! Use 1-20 characters",
+  "party.dimtr.error.name_taken": "❌ A party with this name already exists!",
+  "party.dimtr.error.party_not_found": "❌ Party '%s' not found!",
+  "party.dimtr.error.wrong_password": "❌ Wrong password for party '%s'!",
+  "party.dimtr.error.party_full": "❌ Party '%s' is full! (%d/%d members)",
+  "party.dimtr.error.player_not_in_party": "❌ %s is not in your party!",
+  "party.dimtr.error.cannot_kick_self": "❌ You cannot kick yourself! Use '/party leave' or '/party disband'",
+  "party.dimtr.error.already_leader": "❌ You are already the party leader!",
+  "party.dimtr.error.cannot_promote_self": "❌ You cannot promote yourself!",
+  "party.dimtr.error.party_full_invite": "❌ Your party is full! (%d/%d members)",
+  "party.dimtr.error.player_already_in_party": "❌ %s is already in a party!",
+  "party.dimtr.error.get_party_info": "❌ Error getting party information",
+  "party.dimtr.error.unknown_create": "❌ Unknown error while creating party",
+  "party.dimtr.error.unknown_join": "❌ Unknown error while joining party",
+  "party.dimtr.error.unknown_leave": "❌ Unknown error while leaving party",
+
+  "party.dimtr.info.header": "=== PARTY INFORMATION ===",
+  "party.dimtr.info.name": "📛 Name: %s",
+  "party.dimtr.info.members": "👥 Members: %d/%d",
+  "party.dimtr.info.type": "🔒 Type: %s",
+  "party.dimtr.info.type.public": "Public",
+  "party.dimtr.info.type.private": "Private",
+  "party.dimtr.info.multiplier": "⚡ Multiplier: %.1fx",
+  "party.dimtr.info.members.header": "--- MEMBERS ---",
+  "party.dimtr.info.progress.header": "--- SHARED PROGRESS ---",
+  "party.dimtr.info.kills.header": "--- SHARED KILLS ---",
+  "party.dimtr.info.commands.header": "--- AVAILABLE COMMANDS ---",
+  "party.dimtr.info.leader.commands": "👑 Leader Commands:",
+  "party.dimtr.info.member.commands": "• /party leave - Leave the party",
+  "party.dimtr.info.member.you": " (You)",
+
+  "party.dimtr.objective.elder_guardian": "✅ Elder Guardian Killed",
+  "party.dimtr.objective.raid_won": "✅ Raid Won",
+  "party.dimtr.objective.trial_vault": "✅ Trial Vault Conquered",
+  "party.dimtr.objective.voluntary_exile": "✅ Voluntary Exile Earned",
+  "party.dimtr.objective.wither": "✅ Wither Killed",
+  "party.dimtr.objective.warden": "✅ Warden Killed",
+
+  "party.dimtr.list.header": "📋 Available Public Parties:",
+  "party.dimtr.list.empty": "📋 No public parties available",
+  "party.dimtr.list.create_suggestion": "💡 Create a party with '/party create <name>'",
+  "party.dimtr.list.join_suggestion": "💡 Use '/party join <name>' to join!",
 
   "_comment_config_system": "=== CONFIGURATION SYSTEM ===",
 

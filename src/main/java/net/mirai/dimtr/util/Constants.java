@@ -30,7 +30,7 @@ public class Constants {
     // 🎯 NOVO: Constantes de sincronização
     public static final int DEFAULT_SYNC_INTERVAL_TICKS = 100;
     public static final int DEFAULT_MAX_PARTY_SIZE = 4;
-    public static final double DEFAULT_PARTY_PROGRESSION_MULTIPLIER = 0.25;
+    public static final double DEFAULT_PARTY_PROGRESSION_MULTIPLIER = 0.75;
 
     // NOVO: Mensagens de teleporte para spawn
     public static final String MSG_NETHER_LOCKED_TELEPORT = "message.dimtr.nether_locked_teleport";
@@ -298,4 +298,110 @@ public class Constants {
 
     // Parties section - Commands
     public static final String GUI_PARTIES_COMMANDS = "gui.dimtr.parties.commands";
+
+    // 🎯 CONSTANTES PARA TEXTOS DINÂMICOS NA SEÇÃO PARTIES
+    public static final String GUI_PARTIES_PARTY_TYPE = "gui.dimtr.parties.party.type";
+    public static final String GUI_PARTIES_TYPE_PUBLIC = "gui.dimtr.parties.type.public";
+    public static final String GUI_PARTIES_TYPE_PRIVATE = "gui.dimtr.parties.type.private";
+    public static final String GUI_PARTIES_MEMBER_COUNT = "gui.dimtr.parties.member.count";
+    public static final String GUI_PARTIES_MULTIPLIER = "gui.dimtr.parties.multiplier";
+    public static final String GUI_PARTIES_YOU_INDICATOR = "gui.dimtr.parties.you.indicator";
+    
+    // Progresso compartilhado específico
+    public static final String GUI_PARTIES_SHARED_ELDER_GUARDIAN = "gui.dimtr.parties.shared.elder_guardian";
+    public static final String GUI_PARTIES_SHARED_RAID = "gui.dimtr.parties.shared.raid";
+    public static final String GUI_PARTIES_SHARED_WITHER = "gui.dimtr.parties.shared.wither";
+    public static final String GUI_PARTIES_SHARED_WARDEN = "gui.dimtr.parties.shared.warden";
+    
+    // Informações sobre transferência de progresso
+    public static final String GUI_PARTIES_MAX_MEMBERS = "gui.dimtr.parties.max.members";
+    public static final String GUI_PARTIES_PROGRESS_TRANSFERRED_IN = "gui.dimtr.parties.progress.transferred.in";
+    public static final String GUI_PARTIES_PROGRESS_PRESERVED_OUT = "gui.dimtr.parties.progress.preserved.out";
+    public static final String GUI_PARTIES_PROGRESS_WILL_TRANSFER = "gui.dimtr.parties.progress.will.transfer";
+    public static final String GUI_PARTIES_PROGRESS_WILL_PRESERVE = "gui.dimtr.parties.progress.will.preserve";
+    
+    // Comandos específicos
+    public static final String GUI_PARTIES_CMD_LEAVE = "gui.dimtr.parties.cmd.leave";
+    public static final String GUI_PARTIES_CMD_INFO = "gui.dimtr.parties.cmd.info";
+    public static final String GUI_PARTIES_CMD_KICK = "gui.dimtr.parties.cmd.kick";
+    public static final String GUI_PARTIES_CMD_PROMOTE = "gui.dimtr.parties.cmd.promote";
+
+    // ============================================================================
+    // 🎯 PARTY COMMANDS - TRANSLATION KEYS (FALTAVAM)
+    // ============================================================================
+
+    // Party command messages - Success
+    public static final String PARTY_CREATE_SUCCESS = "party.dimtr.create.success";
+    public static final String PARTY_CREATE_SUCCESS_LEADER = "party.dimtr.create.success.leader";
+    public static final String PARTY_CREATE_SUCCESS_INFO = "party.dimtr.create.success.info";
+    public static final String PARTY_CREATE_SUCCESS_MULTIPLIER = "party.dimtr.create.success.multiplier";
+    public static final String PARTY_JOIN_SUCCESS = "party.dimtr.join.success";
+    public static final String PARTY_JOIN_SUCCESS_BENEFIT = "party.dimtr.join.success.benefit";
+    public static final String PARTY_JOIN_SUCCESS_INFO = "party.dimtr.join.success.info";
+    public static final String PARTY_LEAVE_SUCCESS = "party.dimtr.leave.success";
+    public static final String PARTY_LEAVE_SUCCESS_INDIVIDUAL = "party.dimtr.leave.success.individual";
+    public static final String PARTY_KICK_SUCCESS = "party.dimtr.kick.success";
+    public static final String PARTY_KICK_NOTIFICATION = "party.dimtr.kick.notification";
+    public static final String PARTY_PROMOTE_SUCCESS = "party.dimtr.promote.success";
+    public static final String PARTY_PROMOTE_NEW_LEADER = "party.dimtr.promote.new_leader";
+    public static final String PARTY_PROMOTE_OLD_LEADER = "party.dimtr.promote.old_leader";
+    public static final String PARTY_PROMOTE_NOTIFICATION = "party.dimtr.promote.notification";
+    public static final String PARTY_DISBAND_SUCCESS = "party.dimtr.disband.success";
+    public static final String PARTY_INVITE_SUCCESS = "party.dimtr.invite.success";
+    public static final String PARTY_INVITE_NOTIFICATION = "party.dimtr.invite.notification";
+    public static final String PARTY_INVITE_NOTIFICATION_PRIVATE = "party.dimtr.invite.notification.private";
+
+    // Party command messages - Errors
+    public static final String PARTY_ERROR_NOT_PLAYER = "party.dimtr.error.not_player";
+    public static final String PARTY_ERROR_ALREADY_IN_PARTY = "party.dimtr.error.already_in_party";
+    public static final String PARTY_ERROR_NOT_IN_PARTY = "party.dimtr.error.not_in_party";
+    public static final String PARTY_ERROR_NOT_LEADER = "party.dimtr.error.not_leader";
+    public static final String PARTY_ERROR_INVALID_NAME = "party.dimtr.error.invalid_name";
+    public static final String PARTY_ERROR_NAME_TAKEN = "party.dimtr.error.name_taken";
+    public static final String PARTY_ERROR_PARTY_NOT_FOUND = "party.dimtr.error.party_not_found";
+    public static final String PARTY_ERROR_WRONG_PASSWORD = "party.dimtr.error.wrong_password";
+    public static final String PARTY_ERROR_PARTY_FULL = "party.dimtr.error.party_full";
+    public static final String PARTY_ERROR_PLAYER_NOT_IN_PARTY = "party.dimtr.error.player_not_in_party";
+    public static final String PARTY_ERROR_CANNOT_KICK_SELF = "party.dimtr.error.cannot_kick_self";
+    public static final String PARTY_ERROR_ALREADY_LEADER = "party.dimtr.error.already_leader";
+    public static final String PARTY_ERROR_CANNOT_PROMOTE_SELF = "party.dimtr.error.cannot_promote_self";
+    public static final String PARTY_ERROR_PARTY_FULL_INVITE = "party.dimtr.error.party_full_invite";
+    public static final String PARTY_ERROR_PLAYER_ALREADY_IN_PARTY = "party.dimtr.error.player_already_in_party";
+    public static final String PARTY_ERROR_GET_PARTY_INFO = "party.dimtr.error.get_party_info";
+    public static final String PARTY_ERROR_UNKNOWN_CREATE = "party.dimtr.error.unknown_create";
+    public static final String PARTY_ERROR_UNKNOWN_JOIN = "party.dimtr.error.unknown_join";
+    public static final String PARTY_ERROR_UNKNOWN_LEAVE = "party.dimtr.error.unknown_leave";
+
+    // Party info display
+    public static final String PARTY_INFO_HEADER = "party.dimtr.info.header";
+    public static final String PARTY_INFO_NAME = "party.dimtr.info.name";
+    public static final String PARTY_INFO_MEMBERS = "party.dimtr.info.members";
+    public static final String PARTY_INFO_TYPE = "party.dimtr.info.type";
+    public static final String PARTY_INFO_TYPE_PUBLIC = "party.dimtr.info.type.public";
+    public static final String PARTY_INFO_TYPE_PRIVATE = "party.dimtr.info.type.private";
+    public static final String PARTY_INFO_MULTIPLIER = "party.dimtr.info.multiplier";
+    public static final String PARTY_INFO_MEMBERS_HEADER = "party.dimtr.info.members.header";
+    public static final String PARTY_INFO_PROGRESS_HEADER = "party.dimtr.info.progress.header";
+    public static final String PARTY_INFO_KILLS_HEADER = "party.dimtr.info.kills.header";
+    public static final String PARTY_INFO_COMMANDS_HEADER = "party.dimtr.info.commands.header";
+    public static final String PARTY_INFO_LEADER_COMMANDS = "party.dimtr.info.leader.commands";
+    public static final String PARTY_INFO_MEMBER_COMMANDS = "party.dimtr.info.member.commands";
+    public static final String PARTY_INFO_MEMBER_YOU = "party.dimtr.info.member.you";
+    
+    // Party objectives status
+    public static final String PARTY_OBJECTIVE_ELDER_GUARDIAN = "party.dimtr.objective.elder_guardian";
+    public static final String PARTY_OBJECTIVE_RAID_WON = "party.dimtr.objective.raid_won";
+    public static final String PARTY_OBJECTIVE_TRIAL_VAULT = "party.dimtr.objective.trial_vault";
+    public static final String PARTY_OBJECTIVE_VOLUNTARY_EXILE = "party.dimtr.objective.voluntary_exile";
+    public static final String PARTY_OBJECTIVE_WITHER = "party.dimtr.objective.wither";
+    public static final String PARTY_OBJECTIVE_WARDEN = "party.dimtr.objective.warden";
+    
+    // Party list
+    public static final String PARTY_LIST_HEADER = "party.dimtr.list.header";
+    public static final String PARTY_LIST_EMPTY = "party.dimtr.list.empty";
+    public static final String PARTY_LIST_CREATE_SUGGESTION = "party.dimtr.list.create_suggestion";
+    public static final String PARTY_LIST_JOIN_SUGGESTION = "party.dimtr.list.join_suggestion";
+
+    // Party creation info
+    public static final String PARTY_CREATE_PASSWORD_INFO = "party.dimtr.create.password_info";
 }

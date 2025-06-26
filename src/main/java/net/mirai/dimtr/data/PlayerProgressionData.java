@@ -382,4 +382,11 @@ public class PlayerProgressionData {
         
         return maxMultiplier;
     }
+
+    /**
+     * 🎯 NOVO: Obter mapa de conclusão de fases customizadas (para ProgressionManager)
+     */
+    public Map<String, Boolean> getCustomPhaseCompletionMap() {
+        return customPhaseCompletion;
+    }
 }

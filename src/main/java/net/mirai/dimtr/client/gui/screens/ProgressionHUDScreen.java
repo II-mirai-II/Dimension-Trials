@@ -37,7 +37,6 @@ public class ProgressionHUDScreen extends Screen {
     private static final int HUD_MARGIN = 20;
     private static final int TITLE_Y_OFFSET = 10;
     private static final int CONTENT_Y_OFFSET = 45;
-    private static final int INSTRUCTIONS_Y_OFFSET = -25;
     private static final int COLUMN_GAP = 20;
     private static final int COLUMN_WIDTH = (HUD_WIDTH - (HUD_MARGIN * 2) - COLUMN_GAP) / 2;
     private static final int LINE_HEIGHT = 12;
@@ -152,7 +151,7 @@ public class ProgressionHUDScreen extends Screen {
     }
 
     /**
-     * 🎯 NOVO: Calcular limites do scroll
+     * 🎯 CORRIGIDO: Calcular limites do scroll com precisão
      */
     private void calculateScrollLimits() {
         if (summarySections.isEmpty()) {
@@ -160,9 +159,13 @@ public class ProgressionHUDScreen extends Screen {
             return;
         }
 
+        // Calcular altura total do conteúdo
         int totalContentHeight = summarySections.size() * (SECTION_HEIGHT + SECTION_SPACING) - SECTION_SPACING;
+        
+        // Calcular altura disponível para visualização
         int availableHeight = HUD_HEIGHT - SCROLL_AREA_TOP_OFFSET - SCROLL_AREA_BOTTOM_OFFSET;
 
+        // Calcular o máximo offset de scroll necessário
         maxScrollOffset = Math.max(0, totalContentHeight - availableHeight);
 
         // Garantir que o scroll não ultrapasse os limites
@@ -239,7 +242,7 @@ public class ProgressionHUDScreen extends Screen {
     }
 
     /**
-     * 🎯 NOVO: Renderizar scrollbar
+     * 🎯 CORRIGIDO: Renderizar scrollbar com posicionamento adequado
      */
     private void renderScrollbar(GuiGraphics guiGraphics, int hudX, int hudY, int mouseX, int mouseY) {
         int scrollbarX = hudX + HUD_WIDTH - HUD_MARGIN - SCROLLBAR_WIDTH;
@@ -250,36 +253,29 @@ public class ProgressionHUDScreen extends Screen {
         guiGraphics.fill(scrollbarX, scrollbarY, scrollbarX + SCROLLBAR_WIDTH,
                 scrollbarY + scrollbarHeight, SCROLLBAR_TRACK_COLOR);
 
-        // Calcular posição e tamanho do thumb
-        float scrollPercentage = (float) scrollOffset / maxScrollOffset;
-        int availableThumbArea = scrollbarHeight - 20; // Margem para o thumb
-        int thumbY = scrollbarY + 10 + (int) (scrollPercentage * availableThumbArea);
-        int thumbHeight = Math.max(20, availableThumbArea / 3); // Altura mínima e proporcional
+        // 🎯 CORRIGIDO: Calcular posição e tamanho do thumb sem margem problemática
+        if (maxScrollOffset > 0) {
+            float scrollPercentage = (float) scrollOffset / maxScrollOffset;
+            
+            // Calcular altura do thumb proporcional ao conteúdo visível
+            int totalContentHeight = summarySections.size() * (SECTION_HEIGHT + SECTION_SPACING);
+            int visibleContentHeight = scrollbarHeight;
+            float visibilityRatio = Math.min(1.0f, (float) visibleContentHeight / totalContentHeight);
+            int thumbHeight = Math.max(15, (int) (scrollbarHeight * visibilityRatio));
+            
+            // Calcular posição Y do thumb
+            int maxThumbTravel = scrollbarHeight - thumbHeight;
+            int thumbY = scrollbarY + (int) (scrollPercentage * maxThumbTravel);
 
-        // Verificar se mouse está sobre a scrollbar
-        isScrollbarHovered = mouseX >= scrollbarX && mouseX <= scrollbarX + SCROLLBAR_WIDTH &&
-                mouseY >= thumbY && mouseY <= thumbY + thumbHeight;
+            // Verificar se mouse está sobre o thumb (área correta)
+            isScrollbarHovered = mouseX >= scrollbarX && mouseX <= scrollbarX + SCROLLBAR_WIDTH &&
+                    mouseY >= thumbY && mouseY <= thumbY + thumbHeight;
 
-        int thumbColor = isScrollbarHovered ? SCROLLBAR_THUMB_HOVER_COLOR : SCROLLBAR_THUMB_COLOR;
+            int thumbColor = isScrollbarHovered ? SCROLLBAR_THUMB_HOVER_COLOR : SCROLLBAR_THUMB_COLOR;
 
-        // Thumb da scrollbar
-        guiGraphics.fill(scrollbarX + 1, thumbY, scrollbarX + SCROLLBAR_WIDTH - 1,
-                thumbY + thumbHeight, thumbColor);
-
-        // Indicadores de scroll
-        if (scrollOffset > 0) {
-            // Seta para cima
-            Component upArrow = Component.literal("▲").withStyle(ChatFormatting.WHITE);
-            int upArrowX = scrollbarX + (SCROLLBAR_WIDTH - this.font.width(upArrow)) / 2;
-            guiGraphics.drawString(this.font, upArrow, upArrowX, scrollbarY - 15, 0xFFFFFFFF);
-        }
-
-        if (scrollOffset < maxScrollOffset) {
-            // Seta para baixo
-            Component downArrow = Component.literal("▼").withStyle(ChatFormatting.WHITE);
-            int downArrowX = scrollbarX + (SCROLLBAR_WIDTH - this.font.width(downArrow)) / 2;
-            guiGraphics.drawString(this.font, downArrow, downArrowX,
-                    scrollbarY + scrollbarHeight + 5, 0xFFFFFFFF);
+            // Renderizar thumb da scrollbar (sem margens internas problemáticas)
+            guiGraphics.fill(scrollbarX, thumbY, scrollbarX + SCROLLBAR_WIDTH,
+                    thumbY + thumbHeight, thumbColor);
         }
     }
 
@@ -505,9 +501,9 @@ public class ProgressionHUDScreen extends Screen {
             instructions.add(Component.translatable("gui.dimtr.summary.instructions.click"));
             instructions.add(Component.translatable("gui.dimtr.summary.instructions.close"));
 
-            // 🎯 NOVO: Instruções de scroll se necessário
+            // 🎯 CORRIGIDO: Instruções de scroll usando tradução apropriada
             if (maxScrollOffset > 0) {
-                instructions.add(Component.literal("Use mouse wheel or ↑/↓ to scroll").withStyle(ChatFormatting.GRAY));
+                instructions.add(Component.translatable("gui.dimtr.summary.instructions.scroll").withStyle(ChatFormatting.GRAY));
             }
         } else {
             // Verificar se há páginas
@@ -521,12 +517,20 @@ public class ProgressionHUDScreen extends Screen {
             instructions.add(Component.translatable("gui.dimtr.section.instructions.back"));
         }
 
-        // Renderizar instruções
-        int instructionY = hudY + HUD_HEIGHT + INSTRUCTIONS_Y_OFFSET;
+        // 🎯 CORRIGIDO: Renderizar instruções com posicionamento dinâmico correto
+        int lineSpacing = 8; // Espaçamento compacto entre linhas
+        int totalInstructionHeight = (instructions.size() * lineSpacing) + this.font.lineHeight;
+        int instructionStartY = hudY + HUD_HEIGHT - totalInstructionHeight - 8; // 8px de margem inferior
+        
         for (int i = 0; i < instructions.size(); i++) {
             Component instruction = instructions.get(i);
             int instructionX = hudX + (HUD_WIDTH - this.font.width(instruction)) / 2;
-            guiGraphics.drawString(this.font, instruction, instructionX, instructionY + (i * 10), 0xFFFFFFFF);
+            int currentY = instructionStartY + (i * lineSpacing);
+            
+            // Renderizar apenas se estiver dentro dos limites do HUD
+            if (currentY >= hudY && currentY + this.font.lineHeight <= hudY + HUD_HEIGHT) {
+                guiGraphics.drawString(this.font, instruction, instructionX, currentY, 0xFFFFFFFF);
+            }
         }
     }
 
@@ -563,7 +567,7 @@ public class ProgressionHUDScreen extends Screen {
 
             if (scrollOffset != previousOffset) {
                 calculateSummarySectionPositions(); // Recalcular posições
-                playScrollSound();
+                // 🎯 REMOVIDO: Som de scroll removido por ser intrusivo
                 return true;
             }
         }
@@ -621,7 +625,7 @@ public class ProgressionHUDScreen extends Screen {
 
         if (scrollOffset != previousOffset) {
             calculateSummarySectionPositions();
-            playScrollSound();
+            // 🎯 REMOVIDO: Som de scroll removido por ser intrusivo
         }
     }
 
@@ -631,7 +635,7 @@ public class ProgressionHUDScreen extends Screen {
 
         if (scrollOffset != previousOffset) {
             calculateSummarySectionPositions();
-            playScrollSound();
+            // 🎯 REMOVIDO: Som de scroll removido por ser intrusivo
         }
     }
 
@@ -712,16 +716,6 @@ public class ProgressionHUDScreen extends Screen {
         if (this.minecraft != null && this.minecraft.getSoundManager() != null) {
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(
                     SoundEvents.BOOK_PAGE_TURN, 1.0F));
-        }
-    }
-
-    /**
-     * 🎯 NOVO: Som de scroll
-     */
-    private void playScrollSound() {
-        if (this.minecraft != null && this.minecraft.getSoundManager() != null) {
-            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(
-                    SoundEvents.UI_BUTTON_CLICK.value(), 0.3F, 1.8F));
         }
     }
 

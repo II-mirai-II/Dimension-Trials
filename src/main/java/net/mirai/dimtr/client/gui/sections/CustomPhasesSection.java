@@ -74,7 +74,8 @@ public class CustomPhasesSection implements HUDSection {
                 content.add(Component.literal("  Mob Requirements:").withStyle(ChatFormatting.AQUA));
                 for (Map.Entry<String, Integer> mobEntry : phase.mobRequirements.entrySet()) {
                     String mobType = mobEntry.getKey();
-                    int required = mobEntry.getValue();
+                    // 🎯 NOVO: Usar requisito ajustado por party
+                    int required = progress.getCustomMobRequirementAdjusted(phaseId, mobType);
                     int current = progress.getCustomMobKills(phaseId, mobType);
                     
                     String progressText = String.format("    %s: %d/%d", mobType, current, required);

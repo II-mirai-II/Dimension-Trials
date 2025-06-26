@@ -174,5 +174,102 @@
 
   "tooltip.dimtr.progression_book": "تتبع تقدمك البعدي",
   "tooltip.dimtr.phase_locked": "أكمل المتطلبات للفتح",
-  "tooltip.dimtr.phase_unlocked": "متطلبات المرحلة مكتملة"
+  "tooltip.dimtr.phase_unlocked": "متطلبات المرحلة مكتملة",
+
+  "_comment_summary_system": "=== نظام التنقل بالملخص الجديد ===",
+
+  "gui.dimtr.summary.title": "📊 ملخص التقدم",
+  "gui.dimtr.summary.subtitle": "انقر على أي قسم لعرض التفاصيل",
+  "gui.dimtr.summary.general_stats": "📈 الإحصائيات العامة",
+  "gui.dimtr.summary.phase1_status": "المرحلة الأولى: %s",
+  "gui.dimtr.summary.phase2_status": "المرحلة الثانية: %s",
+
+  "gui.dimtr.summary.phase1_main.desc": "الأهداف الخاصة ونظرة عامة على التقدم",
+  "gui.dimtr.summary.phase1_goals.desc": "أهداف القضاء على وحوش العالم العلوي",
+  "gui.dimtr.summary.phase2_main.desc": "الأهداف المتقدمة والتحديات",
+  "gui.dimtr.summary.phase2_goals.desc": "وحوش النذر + إعادة تعيين العالم العلوي (125%)",
+
+  "gui.dimtr.summary.instructions.click": "انقر على أي قسم أعلاه لعرض التفاصيل",
+  "gui.dimtr.summary.instructions.close": "اضغط ESC أو J لإغلاق هذه النافذة",
+  "gui.dimtr.summary.instructions.scroll": "عجلة الماوس/↑↓ للتمرير",
+  "gui.dimtr.section.instructions.navigate": "استخدم Q/E للتنقل بين الصفحات • ESC للعودة إلى الملخص",
+  "gui.dimtr.section.instructions.back": "اضغط ESC للعودة إلى الملخص",
+  "gui.dimtr.back_to_summary": "← العودة إلى الملخص",
+
+  "_comment_parties_system": "=== 👥 نظام الفرق ===",
+
+  "gui.dimtr.window.parties.title": "الفرق والمجموعات",
+  "gui.dimtr.summary.parties.desc": "نظام فريق تعاوني وتقدم مشترك",
+
+  "gui.dimtr.parties.welcome": "👥 نظام الفرق",
+  "gui.dimtr.parties.current.status": "📊 الحالة الحالية",
+  "gui.dimtr.parties.in.party": "✅ أنت في فريق",
+  "gui.dimtr.parties.no.party": "❌ لست في أي فريق",
+
+  "gui.dimtr.parties.members": "👥 أعضاء الفريق",
+  "gui.dimtr.parties.shared.progress": "🎯 التقدم المشترك",
+  "gui.dimtr.parties.shared.mobs": "⚔️ قتل الوحوش المشترك",
+
+  "gui.dimtr.parties.actions": "🎮 الإجراءات المتاحة",
+  "gui.dimtr.parties.action.create": "📝 إنشاء فريق:",
+  "gui.dimtr.parties.action.join": "🚪 الانضمام لفريق:",
+  "gui.dimtr.parties.action.list": "📋 عرض الفرق العامة:",
+
+  "gui.dimtr.parties.benefits": "🌟 فوائد الفريق",
+  "gui.dimtr.parties.benefit.shared": "• شارك التقدم مع جميع الأعضاء",
+  "gui.dimtr.parties.benefit.multiplier": "• زيادة المتطلبات بنسبة 25% لكل عضو إضافي",
+
+  "gui.dimtr.parties.commands": "⚙️ الأوامر المتاحة",
+
+  "_comment_party_dynamic_texts": "=== 👥 نصوص الفريق الديناميكية ===",
+
+  "gui.dimtr.parties.party.type": "النوع: %s",
+  "gui.dimtr.parties.type.public": "عام",
+  "gui.dimtr.parties.type.private": "خاص",
+  "gui.dimtr.parties.member.count": "الأعضاء: %d/10",
+  "gui.dimtr.parties.multiplier": "المضاعف: %.1fx (+%d%%)",
+  "gui.dimtr.parties.you.indicator": " (أنت)",
+  
+  "gui.dimtr.parties.shared.elder_guardian": "✔ الحارس الأقدم (مشترك)",
+  "gui.dimtr.parties.shared.raid": "✔ الغارة المنتصرة (مشترك)",
+  "gui.dimtr.parties.shared.wither": "✔ الويذر المقتول (مشترك)",
+  "gui.dimtr.parties.shared.warden": "✔ الحارس المقتول (مشترك)",
+  
+  "gui.dimtr.parties.max.members": "• حد أقصى 10 أعضاء لكل فريق",
+  "gui.dimtr.parties.progress.transferred.in": "• التقدم الفردي منقول عند الانضمام",
+  "gui.dimtr.parties.progress.preserved.out": "• التقدم محفوظ عند المغادرة",
+  "gui.dimtr.parties.progress.will.transfer": "• سيتم نقل التقدم الفردي",
+  "gui.dimtr.parties.progress.will.preserve": "• سيتم حفظ التقدم عند المغادرة",
+  
+  "gui.dimtr.parties.cmd.leave": "/dimtr party leave - مغادرة الفريق",
+  "gui.dimtr.parties.cmd.info": "/dimtr party info - معلومات الفريق",
+  "gui.dimtr.parties.cmd.kick": "/dimtr party kick <لاعب> - طرد",
+  "gui.dimtr.parties.cmd.promote": "/dimtr party promote <لاعب> - ترقية",
+
+  "_comment_party_commands": "=== 👥 رسائل أوامر الفريق ===",
+
+  "party.dimtr.create.success": "✅ تم إنشاء الفريق '%s' (%s) بنجاح!",
+  "party.dimtr.create.success.leader": "👑 أنت قائد الفريق!",
+  "party.dimtr.create.success.info": "💡 يمكن للاعبين الآخرين الانضمام بـ '/party join %s'",
+  "party.dimtr.create.success.multiplier": "⚡ المضاعف الحالي: +0%% (عضو واحد). +25%% لكل عضو إضافي!",
+  "party.dimtr.create.password_info": "🔒 فريق محمي بكلمة مرور. شارك كلمة المرور مع من تريد دعوتهم!",
+  
+  "party.dimtr.join.success": "✅ انضممت إلى الفريق '%s'!",
+  "party.dimtr.join.success.benefit": "🎉 أنت الآن تشارك التقدم مع أعضاء الفريق!",
+  "party.dimtr.join.success.info": "💡 استخدم '/party info' لرؤية تفاصيل الفريق",
+  
+  "party.dimtr.leave.success": "✅ غادرت الفريق!",
+  "party.dimtr.leave.success.individual": "📊 تقدمك الآن فردي مرة أخرى",
+  
+  "party.dimtr.kick.success": "✅ تم طرد %s من الفريق!",
+  "party.dimtr.kick.notification": "💔 تم طردك من الفريق '%s' بواسطة القائد",
+  
+  "party.dimtr.promote.success": "✅ نقلت القيادة إلى %s",
+  "party.dimtr.promote.new_leader": "👑 تمت ترقيتك لقائد الفريق '%s'!",
+  "party.dimtr.promote.old_leader": "✅ نقلت القيادة إلى %s",
+  "party.dimtr.promote.notification": "👑 %s هو قائد الفريق الجديد!",
+  
+  "party.dimtr.disband.success": "✅ تم حل الفريق '%s'!",
+  
+  "party.dimtr.invite.success": "✅ تم إرسال دعوة إلى %s!"
 }

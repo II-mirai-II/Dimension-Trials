@@ -302,8 +302,8 @@ public class DimTrConfig {
                     .defineInRange("maxPartySize", 4, 2, 8);
 
             partyProgressionMultiplier = builder
-                    .comment("Progression multiplier per additional party member (0.25 = 25% faster per member)")
-                    .defineInRange("partyProgressionMultiplier", 0.25, 0.0, 1.0);
+                    .comment("Progression multiplier per additional party member (0.75 = 75% faster per member)")
+                    .defineInRange("partyProgressionMultiplier", 0.75, 0.0, 2.0);
 
             partyProximityRadius = builder
                     .comment("Radius in blocks for party members to share progress (0 = unlimited)")

@@ -28,7 +28,7 @@
   "hud.dimtr.raid_won": "🏴 赢得袭击",
   "hud.dimtr.tooltip.raid_won": "成功保卫村庄免受袭击",
   "hud.dimtr.trial_vault_adv": "🗝 试炼宝库",
-  "hud.dimtr.tooltip.trial_vault_adv": "获得"锁定保管"进度",
+  "hud.dimtr.tooltip.trial_vault_adv": "获得'锁定保管'进度",
   "hud.dimtr.voluntaire_exile": "🏴 自愿流放",
   "hud.dimtr.tooltip.voluntaire_exile": "击败掠夺者队长以获得此进度",
   "hud.dimtr.wither_killed": "💀 凋灵",
@@ -174,5 +174,102 @@
 
   "tooltip.dimtr.progression_book": "追踪您的维度进度",
   "tooltip.dimtr.phase_locked": "完成要求以解锁",
-  "tooltip.dimtr.phase_unlocked": "阶段要求已完成"
+  "tooltip.dimtr.phase_unlocked": "阶段要求已完成",
+
+  "_comment_summary_system": "=== 新摘要导航系统 ===",
+
+  "gui.dimtr.summary.title": "📊 进度摘要",
+  "gui.dimtr.summary.subtitle": "点击任何部分查看详情",
+  "gui.dimtr.summary.general_stats": "📈 总体统计",
+  "gui.dimtr.summary.phase1_status": "第一阶段：%s",
+  "gui.dimtr.summary.phase2_status": "第二阶段：%s",
+
+  "gui.dimtr.summary.phase1_main.desc": "特殊目标和进度概览",
+  "gui.dimtr.summary.phase1_goals.desc": "主世界怪物消灭目标",
+  "gui.dimtr.summary.phase2_main.desc": "高级目标和挑战",
+  "gui.dimtr.summary.phase2_goals.desc": "下界怪物 + 主世界重置 (125%)",
+
+  "gui.dimtr.summary.instructions.click": "点击上方任何部分查看详情",
+  "gui.dimtr.summary.instructions.close": "按ESC或J关闭此窗口",
+  "gui.dimtr.summary.instructions.scroll": "鼠标滚轮/↑↓滚动",
+  "gui.dimtr.section.instructions.navigate": "使用Q/E翻页 • ESC返回摘要",
+  "gui.dimtr.section.instructions.back": "按ESC返回摘要",
+  "gui.dimtr.back_to_summary": "← 返回摘要",
+
+  "_comment_parties_system": "=== 👥 队伍系统 ===",
+
+  "gui.dimtr.window.parties.title": "队伍与团队",
+  "gui.dimtr.summary.parties.desc": "协作队伍系统和共享进度",
+
+  "gui.dimtr.parties.welcome": "👥 队伍系统",
+  "gui.dimtr.parties.current.status": "📊 当前状态",
+  "gui.dimtr.parties.in.party": "✅ 您在队伍中",
+  "gui.dimtr.parties.no.party": "❌ 您不在任何队伍中",
+
+  "gui.dimtr.parties.members": "👥 队伍成员",
+  "gui.dimtr.parties.shared.progress": "🎯 共享进度",
+  "gui.dimtr.parties.shared.mobs": "⚔️ 共享怪物击杀",
+
+  "gui.dimtr.parties.actions": "🎮 可用操作",
+  "gui.dimtr.parties.action.create": "📝 创建队伍：",
+  "gui.dimtr.parties.action.join": "🚪 加入队伍：",
+  "gui.dimtr.parties.action.list": "📋 列出公开队伍：",
+
+  "gui.dimtr.parties.benefits": "🌟 队伍好处",
+  "gui.dimtr.parties.benefit.shared": "• 与所有成员共享进度",
+  "gui.dimtr.parties.benefit.multiplier": "• 每增加一名成员，要求增加25%",
+
+  "gui.dimtr.parties.commands": "⚙️ 可用命令",
+
+  "_comment_party_dynamic_texts": "=== 👥 队伍动态文本 ===",
+
+  "gui.dimtr.parties.party.type": "类型：%s",
+  "gui.dimtr.parties.type.public": "公开",
+  "gui.dimtr.parties.type.private": "私密",
+  "gui.dimtr.parties.member.count": "成员：%d/10",
+  "gui.dimtr.parties.multiplier": "倍数：%.1fx (+%d%%)",
+  "gui.dimtr.parties.you.indicator": " (您)",
+  
+  "gui.dimtr.parties.shared.elder_guardian": "✔ 远古守卫者 (共享)",
+  "gui.dimtr.parties.shared.raid": "✔ 袭击获胜 (共享)",
+  "gui.dimtr.parties.shared.wither": "✔ 凋灵击杀 (共享)",
+  "gui.dimtr.parties.shared.warden": "✔ 监守者击杀 (共享)",
+  
+  "gui.dimtr.parties.max.members": "• 每队最多10名成员",
+  "gui.dimtr.parties.progress.transferred.in": "• 加入时转移个人进度",
+  "gui.dimtr.parties.progress.preserved.out": "• 离开时保留进度",
+  "gui.dimtr.parties.progress.will.transfer": "• 个人进度将被转移",
+  "gui.dimtr.parties.progress.will.preserve": "• 离开时进度将被保留",
+  
+  "gui.dimtr.parties.cmd.leave": "/dimtr party leave - 离开队伍",
+  "gui.dimtr.parties.cmd.info": "/dimtr party info - 队伍信息",
+  "gui.dimtr.parties.cmd.kick": "/dimtr party kick <玩家> - 踢出",
+  "gui.dimtr.parties.cmd.promote": "/dimtr party promote <玩家> - 提升",
+
+  "_comment_party_commands": "=== 👥 队伍命令消息 ===",
+
+  "party.dimtr.create.success": "✅ 队伍'%s' (%s)创建成功！",
+  "party.dimtr.create.success.leader": "👑 您是队伍队长！",
+  "party.dimtr.create.success.info": "💡 其他玩家可以使用'/party join %s'加入",
+  "party.dimtr.create.success.multiplier": "⚡ 当前倍数：+0%% (1名成员)。每增加一名成员+25%%！",
+  "party.dimtr.create.password_info": "🔒 受密码保护的队伍。与您想邀请的人分享密码！",
+  
+  "party.dimtr.join.success": "✅ 您加入了队伍'%s'！",
+  "party.dimtr.join.success.benefit": "🎉 您现在与队伍成员共享进度！",
+  "party.dimtr.join.success.info": "💡 使用'/party info'查看队伍详情",
+  
+  "party.dimtr.leave.success": "✅ 您离开了队伍！",
+  "party.dimtr.leave.success.individual": "📊 您的进度现在又是个人的了",
+  
+  "party.dimtr.kick.success": "✅ %s被踢出队伍！",
+  "party.dimtr.kick.notification": "💔 您被队长从队伍'%s'中踢出",
+  
+  "party.dimtr.promote.success": "✅ 您将队长转让给了%s",
+  "party.dimtr.promote.new_leader": "👑 您被提升为队伍'%s'的队长！",
+  "party.dimtr.promote.old_leader": "✅ 您将队长转让给了%s",
+  "party.dimtr.promote.notification": "👑 %s是新的队伍队长！",
+  
+  "party.dimtr.disband.success": "✅ 队伍'%s'已解散！",
+  
+  "party.dimtr.invite.success": "✅ 邀请已发送给%s！"
 }

@@ -18,6 +18,10 @@ public class PartyData {
     private UUID leaderId;
     private final Set<UUID> members;
     private final Map<String, Integer> sharedMobKills;
+    
+    // 🎯 NOVO: Rastreamento de contribuições individuais para preservar progresso
+    private final Map<UUID, Map<String, Integer>> individualContributions;
+    
     private boolean phase1SharedCompleted;
     private boolean phase2SharedCompleted;
 
@@ -30,7 +34,7 @@ public class PartyData {
     private boolean sharedWardenKilled;
 
     // 🎯 NOVO: Multiplicador dinâmico baseado no número de membros
-    private static final double BASE_MULTIPLIER_PER_MEMBER = 0.25; // 25% por membro
+    private static final double BASE_MULTIPLIER_PER_MEMBER = 0.75; // 75% por membro
 
     public PartyData(UUID partyId, String name, String password, UUID leaderId) {
         this.partyId = partyId;
@@ -40,6 +44,7 @@ public class PartyData {
         this.leaderId = leaderId;
         this.members = new HashSet<>();
         this.sharedMobKills = new HashMap<>();
+        this.individualContributions = new HashMap<>();
         this.members.add(leaderId); // Líder é sempre membro
 
         initializeMobKills();
@@ -73,8 +78,13 @@ public class PartyData {
     }
 
     public boolean addMember(UUID playerId) {
-        if (members.size() >= 4) return false; // Máximo 4 membros
-        return members.add(playerId);
+        if (members.size() >= 10) return false; // Máximo 10 membros
+        boolean added = members.add(playerId);
+        if (added) {
+            // Inicializar contribuições individuais para o novo membro
+            individualContributions.put(playerId, new HashMap<>());
+        }
+        return added;
     }
 
     public boolean removeMember(UUID playerId) {
@@ -87,20 +97,26 @@ public class PartyData {
                 leaderId = newLeader.get();
             }
         }
-        return members.remove(playerId);
+        
+        boolean removed = members.remove(playerId);
+        if (removed) {
+            // Remover contribuições individuais do membro que saiu
+            individualContributions.remove(playerId);
+        }
+        return removed;
     }
 
     /**
      * Calcular multiplicador de requisitos baseado no tamanho da party
-     * 25% adicional por membro além do primeiro
+     * 75% adicional por membro além do primeiro
      */
     public double getRequirementMultiplier() {
-        return 1.0 + (members.size() - 1) * 0.25;
+        return 1.0 + (members.size() - 1) * 0.75;
     }
 
     /**
      * 🎯 NOVO: Calcular multiplicador de metas baseado no número de membros
-     * Cada membro adiciona 25% aos requisitos
+     * Cada membro adiciona 75% aos requisitos
      */
     public double getPartyMultiplier() {
         return 1.0 + (members.size() - 1) * BASE_MULTIPLIER_PER_MEMBER;
@@ -133,6 +149,71 @@ public class PartyData {
         }
         return false;
     }
+    
+    /**
+     * 🎯 NOVO: Transferir progresso individual de um jogador para a party
+     */
+    public void transferIndividualProgress(UUID playerId, Map<String, Integer> playerProgress) {
+        // Inicializar contribuições se não existir
+        individualContributions.putIfAbsent(playerId, new HashMap<>());
+        Map<String, Integer> contributions = individualContributions.get(playerId);
+        
+        // Para cada tipo de mob no progresso do jogador
+        for (Map.Entry<String, Integer> entry : playerProgress.entrySet()) {
+            String mobType = entry.getKey();
+            int playerKills = entry.getValue();
+            
+            if (sharedMobKills.containsKey(mobType) && playerKills > 0) {
+                // Somar ao progresso compartilhado
+                sharedMobKills.put(mobType, sharedMobKills.get(mobType) + playerKills);
+                
+                // Registrar contribuição individual
+                contributions.put(mobType, contributions.getOrDefault(mobType, 0) + playerKills);
+            }
+        }
+    }
+    
+    /**
+     * 🎯 NOVO: Remover contribuições individuais quando jogador sai da party
+     */
+    public Map<String, Integer> removeIndividualContributions(UUID playerId) {
+        Map<String, Integer> contributions = individualContributions.get(playerId);
+        if (contributions == null) {
+            return new HashMap<>();
+        }
+        
+        // Subtrair contribuições do progresso compartilhado
+        for (Map.Entry<String, Integer> entry : contributions.entrySet()) {
+            String mobType = entry.getKey();
+            int contributedKills = entry.getValue();
+            
+            if (sharedMobKills.containsKey(mobType)) {
+                int newSharedValue = Math.max(0, sharedMobKills.get(mobType) - contributedKills);
+                sharedMobKills.put(mobType, newSharedValue);
+            }
+        }
+        
+        // Retornar contribuições para preservar progresso individual
+        return new HashMap<>(contributions);
+    }
+    
+    /**
+     * 🎯 NOVO: Incrementar kill e registrar contribuição individual
+     */
+    public boolean incrementSharedMobKillWithContribution(String mobType, UUID contributorId) {
+        if (sharedMobKills.containsKey(mobType)) {
+            // Incrementar progresso compartilhado
+            sharedMobKills.put(mobType, sharedMobKills.get(mobType) + 1);
+            
+            // Registrar contribuição individual
+            individualContributions.putIfAbsent(contributorId, new HashMap<>());
+            Map<String, Integer> contributions = individualContributions.get(contributorId);
+            contributions.put(mobType, contributions.getOrDefault(mobType, 0) + 1);
+            
+            return true;
+        }
+        return false;
+    }
 
     public CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
@@ -158,6 +239,17 @@ public class PartyData {
             mobKillsTag.putInt(entry.getKey(), entry.getValue());
         }
         tag.put("sharedMobKills", mobKillsTag);
+        
+        // 🎯 NOVO: Salvar contribuições individuais
+        CompoundTag contributionsTag = new CompoundTag();
+        for (Map.Entry<UUID, Map<String, Integer>> playerEntry : individualContributions.entrySet()) {
+            CompoundTag playerContributions = new CompoundTag();
+            for (Map.Entry<String, Integer> mobEntry : playerEntry.getValue().entrySet()) {
+                playerContributions.putInt(mobEntry.getKey(), mobEntry.getValue());
+            }
+            contributionsTag.put(playerEntry.getKey().toString(), playerContributions);
+        }
+        tag.put("individualContributions", contributionsTag);
 
         // Salvar objetivos especiais
         tag.putBoolean("phase1SharedCompleted", phase1SharedCompleted);
@@ -204,6 +296,26 @@ public class PartyData {
                 party.sharedMobKills.put(key, mobKillsTag.getInt(key));
             }
         }
+        
+        // 🎯 NOVO: Carregar contribuições individuais
+        if (tag.contains("individualContributions")) {
+            CompoundTag contributionsTag = tag.getCompound("individualContributions");
+            for (String playerIdStr : contributionsTag.getAllKeys()) {
+                try {
+                    UUID playerId = UUID.fromString(playerIdStr);
+                    CompoundTag playerContributions = contributionsTag.getCompound(playerIdStr);
+                    Map<String, Integer> contributions = new HashMap<>();
+                    
+                    for (String mobType : playerContributions.getAllKeys()) {
+                        contributions.put(mobType, playerContributions.getInt(mobType));
+                    }
+                    
+                    party.individualContributions.put(playerId, contributions);
+                } catch (IllegalArgumentException e) {
+                    // UUID inválido, ignorar
+                }
+            }
+        }
 
         // Carregar objetivos especiais
         party.phase1SharedCompleted = tag.getBoolean("phase1SharedCompleted");
@@ -227,6 +339,11 @@ public class PartyData {
     public int getMemberCount() { return members.size(); }
     public Map<String, Integer> getSharedMobKills() { return new HashMap<>(sharedMobKills); }
     public int getSharedMobKillCount(String mobType) { return sharedMobKills.getOrDefault(mobType, 0); }
+    
+    // 🎯 NOVO: Getter para contribuições individuais
+    public Map<String, Integer> getIndividualContributions(UUID playerId) { 
+        return new HashMap<>(individualContributions.getOrDefault(playerId, new HashMap<>())); 
+    }
 
     // Objetivos especiais getters
     public boolean isPhase1SharedCompleted() { return phase1SharedCompleted; }

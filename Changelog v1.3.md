@@ -49,11 +49,33 @@
 
 ## 🐛 **Key Bug Fixes**
 
-- **✅ Fixed:** Offline party members showing as "Player-xxxx" instead of usernames
-- **✅ Fixed:** Party requirement multipliers not updating for all members when party composition changed
-- **✅ Fixed:** Memory leaks and performance issues with large parties
-- **✅ Fixed:** UI inconsistencies in HUD updates during party membership changes
-- **✅ Improved:** Command feedback with clear success/error messages for all party operations
+### 🎮 **HUD & Interface Fixes**
+- **Scrollbar Visual Alignment:** Fixed scrollbar thumb positioning and visual synchronization
+- **Audio Volume Adjustment:** Reduced scroll sound volume from intrusive to subtle background audio
+- **Instruction Text Positioning:** Fixed instruction text overflow that extended beyond HUD boundaries
+- **Performance Optimization:** Reduced unnecessary rendering calls for better framerate
+
+### 🎯 **Multiplier System Validation**
+- **Individual Progression Enforcement:** Multipliers now only apply to players who have legitimately completed required phases
+- **Party Progression Validation:** Party bonuses correctly applied only when all members meet requirements
+- **Proximity-based Accuracy:** Multiplier calculations now precisely respect configured proximity radius
+- **Debug Logging Enhancement:** Added comprehensive logging for multiplier application tracking
+
+### 🌐 **Localization & Constants**
+- **Complete Translation Coverage:** Added 65+ missing party command translations for English and Portuguese
+- **Constants Organization:** Consolidated all hardcoded strings into organized Constants.java structure
+- **Multi-language Support:** Enhanced support for additional language packs
+
+---
+
+## 📋 **Technical Documentation Updates**
+
+### 🛠️ **Development Resources**
+- **HUD Positioning Tutorial:** Complete guide for customizing all HUD element positions (X/Y coordinates)
+- **Multiplier System Analysis:** Technical documentation of proximity-based multiplier validation
+- **Constants Reference:** Organized reference for all translation keys and system constants
+
+### 📖 **User Guides**
 
 ---
 
@@ -118,3 +140,23 @@ The v1.3 foundation enables exciting future developments:
 
 **Made with ❤️ for the Minecraft community**  
 *The future of dimensional progression is here - experience it with your friends!*
+
+---
+
+## 🔧 **v1.3.1 - Interface Polish & Bug Fixes**
+
+### 🎯 **HUD Refinements**
+- **Fixed Instruction Positioning:** Resolved issue where instruction text ("use mouse wheel...") would overflow beyond HUD boundaries
+- **Improved Text Layout:** Instructions now dynamically adjust position based on available space within the HUD container
+- **Enhanced Scroll Experience:** Dramatically reduced scroll sound volume (0.05F → 0.02F) for less intrusive user experience
+- **🔧 Fixed Language Consistency:** Corrected hardcoded Portuguese text in Parties section when game language is set to English
+
+### 🛠️ **Code Cleanup**
+- **Removed Unused Constants:** Cleaned up `INSTRUCTIONS_Y_OFFSET` and other deprecated constants
+- **Optimized Rendering:** Improved calculation for instruction text positioning with proper boundary checking
+- **Documentation Consolidation:** Merged all temporary documentation files into main README and Changelog
+
+### ✅ **Technical Fixes**
+- **Scrollbar Precision:** Thumb positioning now perfectly proportional to content size without artificial margins
+- **Dynamic Instruction Layout:** Instructions automatically fit within HUD regardless of scroll state or content
+- **Sound Balance:** Scroll feedback now subtle and non-disruptive while maintaining user awareness

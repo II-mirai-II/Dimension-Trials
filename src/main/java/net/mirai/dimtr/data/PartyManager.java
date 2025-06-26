@@ -8,9 +8,11 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,7 +54,8 @@ public class PartyManager extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    @Nonnull
+    public CompoundTag save(@Nonnull CompoundTag tag, @Nonnull HolderLookup.Provider registries) {
         // Salvar parties
         ListTag partiesList = new ListTag();
         for (PartyData party : parties.values()) {
@@ -164,6 +167,18 @@ public class PartyManager extends SavedData {
         }
 
         playerToParty.put(playerId, targetParty.getPartyId());
+        
+        // 🎯 NOVO: Transferir progresso individual do jogador para a party
+        if (serverForContext != null) {
+            ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
+            if (overworldLevel != null) {
+                ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
+                if (progressionManager != null) {
+                    Map<String, Integer> playerProgress = progressionManager.getPlayerMobKills(playerId);
+                    targetParty.transferIndividualProgress(playerId, playerProgress);
+                }
+            }
+        }
 
         setDirty();
         syncPartyToMembers(targetParty.getPartyId());
@@ -194,6 +209,20 @@ public class PartyManager extends SavedData {
             }
         }
 
+        // 🎯 NOVO: Remover contribuições individuais e restaurar progresso do jogador
+        Map<String, Integer> playerContributions = party.removeIndividualContributions(playerId);
+        
+        // Restaurar progresso individual do jogador
+        if (serverForContext != null && !playerContributions.isEmpty()) {
+            ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
+            if (overworldLevel != null) {
+                ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
+                if (progressionManager != null) {
+                    progressionManager.restorePlayerMobKills(playerId, playerContributions);
+                }
+            }
+        }
+
         // Remover jogador da party
         party.removeMember(playerId);
         playerToParty.remove(playerId);
@@ -220,7 +249,7 @@ public class PartyManager extends SavedData {
                 .map(party -> new PartyInfo(
                         party.getName(),
                         party.getMemberCount(),
-                        4, // máximo de membros
+                        10, // máximo de membros
                         party.isPublic()
                 ))
                 .collect(Collectors.toList());
@@ -240,8 +269,8 @@ public class PartyManager extends SavedData {
         PartyData party = parties.get(partyId);
         if (party == null) return false;
 
-        // Incrementar kill compartilhado
-        boolean updated = party.incrementSharedMobKill(mobType);
+        // 🎯 NOVO: Incrementar kill compartilhado e registrar contribuição individual
+        boolean updated = party.incrementSharedMobKillWithContribution(mobType, playerId);
 
         if (updated) {
             setDirty();
