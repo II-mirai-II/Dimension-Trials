@@ -85,7 +85,7 @@ public class PartiesSection implements HUDSection {
                     Minecraft.getInstance().player.getUUID() : null;
 
             for (UUID memberId : partyData.getMembers()) {
-                String memberName = getMemberName(memberId);
+                String memberName = partyData.getMemberName(memberId);
                 boolean isLeader = memberId.equals(partyData.getLeaderId());
                 boolean isCurrentPlayer = memberId.equals(currentPlayerId);
 
@@ -199,37 +199,6 @@ public class PartiesSection implements HUDSection {
         }
 
         return content;
-    }
-
-    private String getMemberName(UUID memberId) {
-        // ✅ CORREÇÃO: Obter nome real do jogador do cliente
-        Minecraft minecraft = Minecraft.getInstance();
-        
-        // Se for o próprio jogador, usar o nome do jogador atual
-        if (minecraft.player != null && memberId.equals(minecraft.player.getUUID())) {
-            return minecraft.player.getName().getString();
-        }
-        
-        // Tentar encontrar o jogador na lista de jogadores online
-        if (minecraft.level != null) {
-            for (var player : minecraft.level.players()) {
-                if (player.getUUID().equals(memberId)) {
-                    return player.getName().getString();
-                }
-            }
-        }
-        
-        // Se não encontrar, tentar o player connection info (funciona melhor para players offline/distantes)
-        var connection = minecraft.getConnection();
-        if (connection != null) {
-            var playerInfo = connection.getPlayerInfo(memberId);
-            if (playerInfo != null) {
-                return playerInfo.getProfile().getName();
-            }
-        }
-        
-        // Último recurso: usar cache interno ou parte do UUID
-        return "Player-" + memberId.toString().substring(0, 8);
     }
 
     private String capitalizeFirst(String str) {
