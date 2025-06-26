@@ -3,273 +3,156 @@
 [![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)](https://www.minecraft.net/)
 [![Mod Version](https://img.shields.io/badge/Version-1.3-blue.svg)]()
 [![Party System](https://img.shields.io/badge/NEW-Party%20System-brightgreen.svg)]()
+[![Custom Requirements](https://img.shields.io/badge/NEW-Custom%20Requirements-orange.svg)]()
 
 ![HUD Preview](https://github.com/II-mirai-II/Dimension-Trials/blob/main/img_1.png?raw=true)
 
 ## **A challenging Minecraft mod that gates access to other dimensions behind specific achievements and mob elimination goals, forcing players to fully explore and master each dimension before progressing further.**
 
 ### 🆕 **What's New in v1.3?**
-**Complete Party System implementation!** Team up with friends to tackle challenges together with automatic requirement scaling, persistent party management, and integrated HUD display. [See full changelog](Changelog%20v1.3.md)
+- **🎮 Redesigned HUD Interface** - Completely revamped progression HUD with modern design and improved navigation
+- **👥 Complete Party System** - Team up with friends for reduced individual requirements and shared progress
+- **🎨 Custom Requirements System** - Unlimited custom phases through JSON configuration
+- **🔧 Enhanced Multiplayer** - Persistent party names and real-time synchronization
 
-## 🌟 Key Features
+**[📋 View Full Changelog](Changelog%20v1.3.md)**
 
-### 🚪 **Dimensional Gating System**
+---
 
-*   **Phase 1 - THE NETHER:** Blocks Nether access until Overworld challenges are completed
-*   **Phase 2 - THE END:** Requires Phase 1 completion plus high-level Nether objectives
-*   **Progressive Difficulty:** Each phase builds upon the previous one
-*   **Smart Teleportation:** Players attempting unauthorized access are safely returned to spawn
+## 🌟 **Key Features**
 
-### 📊 **Advanced HUD System**
+### 🚪 **Progressive Dimension Access**
+- **Phase 1 → Nether:** Complete Overworld challenges first
+- **Phase 2 → The End:** Master the Nether before final dimension
+- **Custom Phases:** Create unlimited additional phases with JSON config
+- **Smart Blocking:** Safe teleportation back to spawn for unauthorized access
 
-*   **Press `J`** to open an elegant real-time progression HUD
-*   **Multi-window Interface:** Tabbed navigation between objectives and mob elimination goals
-*   **Live Progress Tracking:** Visual indicators (✔ completed, ❌ pending) with detailed counters
-*   **Pagination Support:** Easy navigation through extensive requirements with Q/E keys
-*   **Interactive Elements:** Click-to-navigate tabs and comprehensive tooltips
-*   **Sound Effects:** Immersive audio feedback for all interactions
-*   **Party Integration:** Displays party members, leader status, and multiplier benefits
+### 🎮 **Modern HUD System** *(Redesigned in v1.3)*
+- **Press `J`** to open the sleek new progression interface
+- **Tabbed Navigation:** Easy switching between objectives and progress
+- **Live Tracking:** Real-time counters with visual completion indicators
+- **Party Integration:** See team members, leader status, and shared progress
+- **Interactive Design:** Click navigation with comprehensive tooltips
 
-### ⚔️ **Comprehensive Mob Elimination Goals**
+### 👥 **Party System** *(NEW in v1.3)*
+- **Reduced Requirements:** Kill counts divided by party size
+- **Shared Progress:** All team members contribute to same objectives
+- **Real-time Updates:** Dynamic requirement scaling as members join/leave
+- **Persistent Names:** Offline members show actual usernames, not generic IDs
 
-*   **Phase 1:** 16 different Overworld mob types to defeat
-*   **Phase 2:** 8 new Nether mob types + increased Overworld requirements
-*   **Smart Reset System:** Phase 2 requires 125% of Phase 1 Overworld mobs
-*   **Voluntary Exile Support:** Includes Pillager Captain advancement tracking
-*   **Party System Integration:** Party multipliers reduce individual requirements
-*   **Dynamic Scaling:** Requirements adjust automatically based on party size
-*   **Fully Configurable:** Every mob count can be adjusted via server config
+**[📖 Full Party System Guide →](PARTY_SYSTEM.md)**
 
-### ⚙️ **Highly Configurable**
+### 🎨 **Custom Requirements** *(NEW in v1.3)*
+- **Unlimited Phases:** Create Phase 3, 4, 5+ through JSON files
+- **Mod Integration:** Full support for Twilight Forest, Aether, and any mod
+- **No Coding Required:** Easy JSON configuration system
+- **Automatic Examples:** Creates sample files on first run
 
-*   **Individual Toggles:** Enable/disable any requirement independently
-*   **Scalable Difficulty:** Adjust mob kill requirements from 0 to 1000+ per type
-*   **Phase Control:** Each phase can be completely disabled if desired
-*   **Multiplier System:** Optional mob health/damage/XP increases after phase completion
-*   **Command Support:** Administrative commands for progress management
+**[📋 Custom Requirements Guide →](CUSTOM_REQUIREMENTS.md)**
 
-### 🎮 **Enhanced User Experience**
+---
 
-*   **Dual Interface:** Modern HUD + classic Progression Book for compatibility
-*   **Multi-language Support:** Available in 9+ languages (EN, PT-BR, ES, FR, DE, IT, AR, HI, ZH-CN)
-*   **Real-time Updates:** Progress syncs instantly across all players
-*   **Global Announcements:** Server-wide notifications when phases unlock
-*   **Advancement Integration:** Custom achievements for phase completion
-*   **Party System:** Team up with friends for reduced individual requirements
-*   **Persistent Party Names:** Offline party members show their actual names, not generic IDs
+## 🎯 **Default Progression**
 
-## 🎯 Progression Phases & Requirements
+### **Phase 1: THE NETHER** 🔥
+**Requirements:** 16 Overworld mob types + special objectives
+- 🧟 Zombies: 50 kills | 💀 Skeletons: 40 kills | 🕷 Spiders: 30 kills
+- 🛡 Elder Guardian defeat | 🏴 Pillager Raid victory | 🗝 Trial Vault advancement
 
-### Phase 1 - THE NETHER 🔥 (Unlock access to the Nether)
+### **Phase 2: THE END** 🌌  
+**Requirements:** 8 Nether mob types + 125% of Phase 1 mobs
+- 🔥 Blazes: 20 kills | 💀 Wither Skeletons: 15 kills | 👻 Ghasts: 10 kills
+- 💀 Wither boss defeat | 🌑 Warden defeat
 
-_All requirements below can be individually enabled/disabled in the server config_
+*All requirements are fully configurable and can be disabled individually*
 
-#### 🎖️ Special Objectives:
+---
 
-*   🛡 **Defeat Elder Guardian:** Find and defeat an Elder Guardian in an Ocean Monument
-*   🏴 **Win a Raid:** Successfully defend a village from a Pillager raid
-*   🗝 **Trial Vault Advancement:** Complete a Trial Chamber and earn the "Under Lock and Key" advancement
-*   🏴 **Voluntary Exile:** Defeat a Pillager Captain to earn this advancement
+## 🚀 **Quick Start**
 
-#### ⚔️ Mob Elimination Goals (DEFAULT):
+1. **Install the mod** and start your world
+2. **Press `J`** to open the new HUD and see your objectives
+3. **Work through Phase 1** - complete Overworld challenges
+4. **Access the Nether** once Phase 1 is complete
+5. **Complete Phase 2** to unlock The End
+6. **Optional:** Create parties with `/dimtr party create` for team play
 
-**👥 Common Mobs:**
+### 🎮 **Navigation:**
+- **`J` Key:** Open/close progression HUD
+- **Arrow Keys:** Switch between HUD tabs
+- **Q/E Keys:** Navigate pages within tabs
+- **Mouse:** Click tabs and hover for tooltips
 
-*   🧟 **Zombies:** 50 kills
-*   💀 **Skeletons:** 40 kills
-*   🏔 **Strays:** 10 kills
-*   🏜 **Husks:** 10 kills
-*   🕷 **Spiders:** 30 kills
-*   💥 **Creepers:** 30 kills
-*   🌊 **Drowned:** 20 kills
+---
 
-**⭐ Special Mobs:**
+## ⚙️ **Configuration & Customization**
 
-*   👤 **Endermen:** 5 kills
-*   🧙 **Witches:** 5 kills
-*   🏹 **Pillagers:** 20 kills
-*   ⚔ **Vindicators:** 10 kills
-*   ☠ **Bogged:** 10 kills
-*   💨 **Breezes:** 5 kills
+### **📁 Easy Configuration**
+- **Server Config:** Adjust requirements, toggle phases, set multipliers
+- **Client Config:** Customize HUD appearance, keybinds, and UI settings
+- **Custom Requirements:** Create unlimited phases with JSON files
 
-**🎯 Goal Kills (Rare & Powerful):**
+**[📋 Complete Configuration Guide →](CONFIGURATION.md)**
 
-*   🐗 **Ravagers:** 1 kill
-*   🔮 **Evokers:** 5 kills
-
-***
-
-### Phase 2 - THE END 🌌 (Unlock access to The End)
-
-_Requires Phase 1 completion. All requirements below can be individually enabled/disabled_
-
-#### 🎖️ Special Objectives:
-
-*   💀 **Defeat Wither:** Summon and defeat the Wither boss
-*   🌑 **Defeat Warden:** Awaken and defeat the Warden in the Deep Dark
-
-#### ⚔️ Mob Elimination Goals (DEFAULT):
-
-**🔥 Nether Mobs:**
-
-*   🔥 **Blazes:** 20 kills
-*   💀 **Wither Skeletons:** 15 kills
-*   🐷 **Piglin Brutes:** 5 kills
-*   🐗 **Hoglins:** 1 kill
-*   ☠️ **Zoglins:** 1 kill
-*   👻 **Ghasts:** 10 kills
-*   🐷 **Hostile Piglins:** 30 kills
-
-**🔄 Reset Overworld Challenges:** Complete 125% of Phase 1 Overworld mob requirements
-
-## 🔧 Configuration
-
-The mod creates detailed configuration files in your `config/` folder:
-
-### Server Configuration (`dimtr-server.toml`)
-
-*   **Phase Toggles:** Enable/disable each phase independently
-*   **Special Objectives:** Toggle individual requirements (Elder Guardian, Raid, Wither, Warden, etc.)
-*   **Mob Kill Requirements:** Customize kill counts for every mob type (0-1000+ range)
-*   **Multiplier System:** Optional mob health/damage/XP increases after phase completion
-
-### Client Configuration (`dimtr-client.toml`)
-
-*   **HUD Keybind:** Customize the progression HUD key (default: J)
-*   **Interface Settings:** HUD position, scale, and display options
-
-### Configuration Examples:
-
-```
-# Disable Phase 1 entirely (open Nether access)
-enablePhase1 = false
-
-# Reduce Zombie requirement to 25 kills
-reqZombieKills = 25
-
-# Disable Wither requirement for Phase 2
-reqWither = false
-
-# Enable Voluntary Exile requirement
-reqVoluntaryExile = true
-
-# Enable 1.5x mob multiplier after Phase 1
-enableMultipliers = true
-phase1Multiplier = 1.5
-
-# Enable XP multiplier system
-enableXpMultiplier = true
+### **🎨 Popular Customizations**
+```toml
+# Quick examples
+reqZombieKills = 25          # Reduce zombie requirement
+enablePhase1 = false         # Skip Phase 1 entirely
+phase1Multiplier = 2.0       # Double mob difficulty after Phase 1
+maxPartySize = 8             # Allow larger parties
 ```
 
-## 👥 Party System
+---
 
-**NEW in v1.3!** Team up with friends to tackle the challenges together with reduced individual requirements.
+## 🔧 **Commands**
 
-### Party Benefits:
-* **Reduced Requirements:** Mob kill requirements are divided by the number of party members
-* **Shared Progress:** All party members contribute to the same objectives
-* **Real-time HUD:** See party members, leader status, and current multipliers
-* **Persistent Names:** Offline party members show their actual usernames
-* **Dynamic Updates:** Requirements automatically adjust when members join/leave
+### **Administrative Commands**
+```
+/dimtr complete phase1       # Force complete Phase 1
+/dimtr reset all            # Reset all progress  
+/dimtr status               # Show current status
+/dimtr sync                 # Force client sync
+```
 
-### Party Commands:
-* `/dimtr party create` - Create a new party (becomes leader)
-* `/dimtr party invite <player>` - Invite a player to your party
-* `/dimtr party accept` - Accept a party invitation
-* `/dimtr party leave` - Leave your current party
-* `/dimtr party kick <player>` - Kick a member (leaders only)
-* `/dimtr party promote <player>` - Promote to leader (leaders only)
-* `/dimtr party info` - Display detailed party information
+### **Party Commands** *(NEW)*
+```
+/dimtr party create         # Create new party
+/dimtr party invite <player>  # Invite player
+/dimtr party info           # Show party details
+/dimtr party leave          # Leave party
+```
 
-### How It Works:
-* **Example:** If a requirement is 100 zombie kills and you have 4 party members, each member only needs 25 kills
-* **Shared Pool:** All kills from party members count toward the same goal
-* **Fair Distribution:** Requirements scale down automatically, making progression achievable for teams
+---
 
-## 🎮 How to Play
+## 🌍 **Multiplayer & Compatibility**
 
-1.  **Start Your World:** Begin normally in the Overworld
-2.  **Get Your Book:** Craft or find a Progression Book to track your journey
-3.  **Check Progress:** Press `J` to open the comprehensive progression HUD
-4.  **Complete Phase 1:** Work through Overworld objectives and mob elimination
-5.  **Access Nether:** Becomes available once Phase 1 requirements are met
-6.  **Tackle Phase 2:** New Nether objectives plus increased Overworld requirements
-7.  **Unlock The End:** Complete Phase 2 to access the End dimension
-8.  **Enhanced Challenge:** Optional multipliers make mobs stronger and give more XP after each phase
+- **✅ Fully Multiplayer:** Global progression with party support
+- **✅ Highly Configurable:** Adapt to any server style
+- **✅ Multi-Language:** 9+ language translations
+- **✅ Mod Compatible:** Integrates with any mod through custom requirements
+- **✅ Performance Optimized:** Minimal server impact
 
-### HUD Navigation:
+---
 
-*   **Window Switching:** Use arrow keys (→/←) or click tabs to switch between windows
-*   **Page Navigation:** Use Q/E keys to navigate through pages within windows
-*   **Tooltips:** Hover over objectives for detailed descriptions
-*   **Progress Tracking:** Real-time counters show your exact progress
+## 📚 **Documentation**
 
-### Pro Tips:
+- **[👥 Party System Guide](PARTY_SYSTEM.md)** - Complete party features guide
+- **[🎨 Custom Requirements](CUSTOM_REQUIREMENTS.md)** - Create unlimited custom phases
+- **[⚙️ Configuration Guide](CONFIGURATION.md)** - Complete setup instructions
+- **[📋 Changelog v1.3](Changelog%20v1.3.md)** - All new features and fixes
 
-*   **Use the HUD:** The `J` key opens a comprehensive progress tracker with detailed information
-*   **Team Up:** Create or join a party to reduce individual requirements and work together
-*   **Plan Ahead:** Some mobs are rare - prepare accordingly and explore thoroughly
-*   **Server Config:** Admins can adjust difficulty to match their community's playstyle
-*   **Multiplayer Friendly:** Progress is global - work together as a team!
-*   **Party Strategy:** Larger parties have lower individual requirements but need coordination
-*   **Command Access:** Admins can use `/dimtr` commands for progress management
+---
 
-## 🌍 Localization
+## 🤝 **Community & Support**
 
-Dimension Trials supports multiple languages:
+- **🐛 Bug Reports:** [GitHub Issues](https://github.com/II-mirai-II/Dimension-Trials/issues)
+- **💡 Feature Requests:** [GitHub Discussions](https://github.com/II-mirai-II/Dimension-Trials/discussions)
+- **📖 Wiki:** [Complete Documentation](https://github.com/II-mirai-II/Dimension-Trials/wiki)
+- **🎮 Community Configs:** Share your custom requirements and configurations
 
-*   **English (en\_us)** - Default
-*   **Português Brasileiro (pt\_br)** - Brazilian Portuguese
-*   **Español (es\_es)** - Spanish
-*   **Français (fr\_fr)** - French
-*   **Deutsch (de\_de)** - German
-*   **Italiano (it\_it)** - Italian
-*   **العربية (ar\_sa)** - Arabic
-*   **हिन्दी (hi\_in)** - Hindi
-*   **中文 (zh\_cn)** - Chinese (Simplified)
-
-## 🔧 Commands
-
-### `/dimtr` - Administrative Commands
-
-*   `/dimtr complete phase1` - Force complete Phase 1
-*   `/dimtr complete phase2` - Force complete Phase 2
-*   `/dimtr reset all` - Reset all progress
-*   `/dimtr reset phase1` - Reset Phase 1 progress
-*   `/dimtr reset phase2` - Reset Phase 2 progress
-*   `/dimtr reset mob_kills` - Reset all mob kill counters
-*   `/dimtr set goal <goal> <true/false>` - Set specific objective completion
-*   `/dimtr set mob_kill <mob> <count>` - Set mob kill counters
-*   `/dimtr status` - Show detailed progression status
-*   `/dimtr sync` - Force synchronize progress with client
-*   `/dimtr debug payload` - Debug client-server synchronization
-
-_Requires operator permissions_
-
-### `/dimtr party` - Party System Commands *(NEW in v1.3)*
-
-*   `/dimtr party create` - Create a new party (becomes leader)
-*   `/dimtr party invite <player>` - Invite a player to your party
-*   `/dimtr party accept` - Accept a party invitation
-*   `/dimtr party leave` - Leave your current party
-*   `/dimtr party kick <player>` - Kick a member (leaders only)
-*   `/dimtr party promote <player>` - Promote to leader (leaders only)
-*   `/dimtr party info` - Display detailed party information
-
-_Available to all players_
-
-## 🤝 Contributing
-
-We welcome contributions! Feel free to:
-
-*   **Report bugs or suggest features:** [GitHub Issues](https://github.com/II-mirai-II/Dimension-Trials/issues)
-*   Submit pull requests for improvements
-*   Share configuration presets for different server types
-*   Create community content or tutorials
-*   Help with translations for additional languages
-
-***
+---
 
 **Made with ❤️ for the Minecraft community**
 
-_Perfect for survival servers looking to add meaningful progression challenges and extend gameplay time in each dimension!_
+*Perfect for survival servers seeking meaningful progression challenges with unlimited customization possibilities!*
