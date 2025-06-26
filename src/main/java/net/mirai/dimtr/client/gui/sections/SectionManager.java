@@ -21,6 +21,7 @@ public class SectionManager {
         register(new Phase2MainSection());  // ✅ ADICIONADO
         register(new Phase2GoalsSection()); // ✅ ADICIONADO
         register(new PartiesSection());     // 🎯 NOVA SEÇÃO
+        register(new CustomPhasesSection()); // 🎯 NOVA SEÇÃO CUSTOMIZADA
     }
 
     private static void register(HUDSection section) {

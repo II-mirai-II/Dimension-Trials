@@ -18,6 +18,7 @@ import java.util.UUID;
 public record UpdatePartyToClientPayload(
         UUID partyId,
         String partyName,
+        boolean isPublic, // 🎯 NOVO: Se a party é pública ou privada
         UUID leaderId,
         List<UUID> members,
         double progressionMultiplier,
@@ -38,16 +39,20 @@ public record UpdatePartyToClientPayload(
             ResourceLocation.fromNamespaceAndPath(DimTrMod.MODID, "update_party_to_client")
     );
 
-    // 🔧 CORRIGIDO: Codec personalizado para UUID
+    // ✅ CORRIGIDO: Codec personalizado para UUID com suporte a null
     private static final StreamCodec<FriendlyByteBuf, UUID> UUID_STREAM_CODEC = new StreamCodec<>() {
         @Override
         public void encode(FriendlyByteBuf buf, UUID uuid) {
-            buf.writeUUID(uuid);
+            buf.writeBoolean(uuid != null);
+            if (uuid != null) {
+                buf.writeUUID(uuid);
+            }
         }
 
         @Override
         public UUID decode(FriendlyByteBuf buf) {
-            return buf.readUUID();
+            boolean hasValue = buf.readBoolean();
+            return hasValue ? buf.readUUID() : null;
         }
     };
 
@@ -57,6 +62,7 @@ public record UpdatePartyToClientPayload(
             // Dados básicos da party
             UUID_STREAM_CODEC.encode(buf, payload.partyId);
             ByteBufCodecs.STRING_UTF8.encode(buf, payload.partyName);
+            buf.writeBoolean(payload.isPublic); // 🎯 ADICIONADO: Encode isPublic
             UUID_STREAM_CODEC.encode(buf, payload.leaderId);
 
             // Lista de membros
@@ -91,6 +97,7 @@ public record UpdatePartyToClientPayload(
             // Dados básicos da party
             UUID partyId = UUID_STREAM_CODEC.decode(buf);
             String partyName = ByteBufCodecs.STRING_UTF8.decode(buf);
+            boolean isPublic = buf.readBoolean(); // 🎯 ADICIONADO: Decode isPublic
             UUID leaderId = UUID_STREAM_CODEC.decode(buf);
 
             // Lista de membros
@@ -123,7 +130,7 @@ public record UpdatePartyToClientPayload(
             boolean phase2SharedCompleted = buf.readBoolean();
 
             return new UpdatePartyToClientPayload(
-                    partyId, partyName, leaderId, members, progressionMultiplier,
+                    partyId, partyName, isPublic, leaderId, members, progressionMultiplier,
                     memberCount, sharedMobKills, sharedElderGuardianKilled, sharedRaidWon,
                     sharedTrialVaultAdvancementEarned, sharedVoluntaireExileAdvancementEarned,
                     sharedWitherKilled, sharedWardenKilled, phase1SharedCompleted, phase2SharedCompleted

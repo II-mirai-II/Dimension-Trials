@@ -22,11 +22,15 @@ public class Constants {
     public static final String MSG_PHASE2_UNLOCKED_GLOBAL = "message.dimtr.phase2_unlocked_global";
     public static final String MSG_PHASE2_UNLOCKED_GLOBAL_CONFIG_DISABLED = "message.dimtr.phase2_unlocked_global_config_disabled";
 
-    // CORREÇÃO: Mensagens de bloqueio de portal
-    public static final String MSG_NETHER_LOCKED = "message.dimtr.nether_locked";
-    public static final String MSG_END_LOCKED = "message.dimtr.end_locked";
-    public static final String MSG_NETHER_PORTAL_BLOCKED = "message.dimtr.nether_portal_blocked";
-    public static final String MSG_END_PORTAL_BLOCKED = "message.dimtr.end_portal_blocked";
+    // 🎯 NOVO: Constantes de configuração
+    public static final double DEFAULT_PROXIMITY_RADIUS = 48.0;
+    public static final int DEFAULT_PORTAL_SOUND_COOLDOWN_TICKS = 40;
+    public static final double DEFAULT_PHASE2_OVERWORLD_MULTIPLIER = 1.25;
+    
+    // 🎯 NOVO: Constantes de sincronização
+    public static final int DEFAULT_SYNC_INTERVAL_TICKS = 100;
+    public static final int DEFAULT_MAX_PARTY_SIZE = 4;
+    public static final double DEFAULT_PARTY_PROGRESSION_MULTIPLIER = 0.25;
 
     // NOVO: Mensagens de teleporte para spawn
     public static final String MSG_NETHER_LOCKED_TELEPORT = "message.dimtr.nether_locked_teleport";

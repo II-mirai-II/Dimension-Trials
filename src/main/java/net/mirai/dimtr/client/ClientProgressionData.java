@@ -353,4 +353,35 @@ public class ClientProgressionData {
     public boolean isPhase1EffectivelyComplete() {
         return phase1Completed;
     }
+
+    // ============================================================================
+    // 🎯 NOVO: Custom Phase Support
+    // ============================================================================
+    
+    /**
+     * Check if a custom phase is completed
+     */
+    public boolean isCustomPhaseComplete(String phaseId) {
+        // This would need to be synchronized from server data
+        // For now, return false as a placeholder
+        return false;
+    }
+    
+    /**
+     * Get custom mob kills for a specific phase and mob type
+     */
+    public int getCustomMobKills(String phaseId, String mobType) {
+        // This would need to be synchronized from server data
+        // For now, return 0 as a placeholder
+        return 0;
+    }
+    
+    /**
+     * Check if a custom objective is completed
+     */
+    public boolean isCustomObjectiveComplete(String phaseId, String objectiveId) {
+        // This would need to be synchronized from server data
+        // For now, return false as a placeholder
+        return false;
+    }
 }

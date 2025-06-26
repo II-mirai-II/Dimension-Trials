@@ -5,6 +5,8 @@ import net.mirai.dimtr.command.DimTrCommands;
 import net.mirai.dimtr.command.PartyCommands;
 import net.mirai.dimtr.data.PartyManager;
 import net.mirai.dimtr.data.ProgressionManager;
+import net.mirai.dimtr.data.ProgressionCoordinator;
+import net.mirai.dimtr.util.Constants;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -59,8 +61,8 @@ public class ModEventHandlers {
     public static final String NBT_MOD_SUBTAG_KEY = DimTrMod.MODID;
     public static final String NBT_FLAG_RECEIVED_BOOK = "received_progression_book";
 
-    // Cooldowns para sons de portais
-    private static final int PORTAL_SOUND_COOLDOWN_TICKS = 40;
+    // CORREÇÃO: Usar constantes ao invés de valores hardcoded
+    private static final int PORTAL_SOUND_COOLDOWN_TICKS = Constants.DEFAULT_PORTAL_SOUND_COOLDOWN_TICKS;
     private static final Map<UUID, Long> netherPortalSoundCooldowns = new HashMap<>();
     private static final Map<UUID, Long> endPortalSoundCooldowns = new HashMap<>();
 
@@ -75,8 +77,8 @@ public class ModEventHandlers {
         PartyCommands.register(event.getDispatcher()); // ✅ CORRIGIDO
 
         DimTrMod.LOGGER.info("✅ Registered all DimTr commands:");
-        DimTrMod.LOGGER.info("   • /dimtr (Administrative & individual commands)");
-        DimTrMod.LOGGER.info("   • /dimtr party (Party management commands)");
+        DimTrMod.LOGGER.info("   • /dimtr (Administrative & individual commands - OP required)");
+        DimTrMod.LOGGER.info("   • /party (Party management commands - No OP required)");
     }
 
     // ============================================================================
@@ -99,76 +101,30 @@ public class ModEventHandlers {
         }
 
         UUID playerId = player.getUUID();
-        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
-        PartyManager partyManager = PartyManager.get(serverLevel);
-
+        
+        // CORREÇÃO: Usar sistema coordenado para evitar double-counting
         // 🎯 OBJETIVOS ESPECIAIS (Elder Guardian, Wither, Warden)
         if (killedEntity.getType() == EntityType.ELDER_GUARDIAN) {
-            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "elder_guardian");
-            if (!processedByParty) {
-                progressionManager.updateElderGuardianKilled(playerId);
-            }
+            ProgressionCoordinator.processSpecialObjective(playerId, "elder_guardian", serverLevel);
         } else if (killedEntity.getType() == EntityType.WITHER) {
-            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "wither");
-            if (!processedByParty) {
-                progressionManager.updateWitherKilled(playerId);
-            }
+            ProgressionCoordinator.processSpecialObjective(playerId, "wither", serverLevel);
         } else if (killedEntity.getType() == EntityType.WARDEN) {
-            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "warden");
-            if (!processedByParty) {
-                progressionManager.updateWardenKilled(playerId);
-            }
+            ProgressionCoordinator.processSpecialObjective(playerId, "warden", serverLevel);
         }
 
-        // 🎯 CONTADORES DE MOBS
-        String mobType = getMobTypeFromEntity(killedEntity);
+        // 🎯 CONTADORES DE MOBS (SISTEMA COORDENADO)
+        String mobType = getMobType(killedEntity);
         if (mobType != null) {
-            // PRIMEIRO: Tentar processar via party
-            boolean processedByParty = partyManager.processPartyMobKill(playerId, mobType);
-
-            // SEGUNDO: Se não foi processado por party, processar individualmente
-            if (!processedByParty) {
-                progressionManager.incrementMobKill(playerId, mobType);
-            }
+            ProgressionCoordinator.processMobKill(playerId, mobType, serverLevel);
         }
+
+        // 🎯 NOVO: PROCESSAR MOBS CUSTOMIZADOS
+        processCustomMobKill(playerId, killedEntity, serverLevel);
     }
 
     /**
-     * 🎯 MÉTODO ATUALIZADO: Obter tipo de mob a partir da entidade
-     */
-    private static String getMobTypeFromEntity(LivingEntity entity) {
-        return switch (entity.getType().toString()) {
-            case "zombie" -> "zombie";
-            case "skeleton" -> "skeleton";
-            case "stray" -> "stray";
-            case "husk" -> "husk";
-            case "spider" -> "spider";
-            case "creeper" -> "creeper";
-            case "drowned" -> "drowned";
-            case "enderman" -> "enderman";
-            case "witch" -> "witch";
-            case "pillager" -> "pillager";
-            case "vindicator" -> "vindicator";
-            case "bogged" -> "bogged";
-            case "breeze" -> "breeze";
-            case "ravager" -> "ravager";
-            case "evoker" -> "evoker";
-            case "blaze" -> "blaze";
-            case "wither_skeleton" -> "wither_skeleton";
-            case "piglin_brute" -> "piglin_brute";
-            case "hoglin" -> "hoglin";
-            case "zoglin" -> "zoglin";
-            case "ghast" -> "ghast";
-            case "piglin" -> "piglin";
-            case "wither" -> "wither";
-            case "warden" -> "warden";
-            case "elder_guardian" -> "elder_guardian";
-            default -> null;
-        };
-    }
-
-    /**
-     * 🎯 MÉTODO MANTIDO: Detecção detalhada de tipos de mobs
+     * 🎯 MÉTODO UNIFICADO: Detecção robusta de tipos de mobs
+     * CORREÇÃO: Removido método duplicado getMobTypeFromEntity()
      */
     private static String getMobType(LivingEntity entity) {
         // CORREÇÃO 1: DROWNED DEVE VIR ANTES DE ZOMBIE
@@ -409,7 +365,7 @@ public class ModEventHandlers {
         ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
         UUID playerId = player.getUUID();
 
-        // 🎯 MUDANÇA: Verificar acesso individual do jogador
+        // 🎯 VERIFICAR ACESSO PADRÃO (Nether/End)
         if (event.getDimension() == Level.NETHER) {
             if (!progressionManager.canPlayerAccessNether(playerId)) {
                 event.setCanceled(true);
@@ -426,6 +382,26 @@ public class ModEventHandlers {
                 player.sendSystemMessage(Component.translatable("message.dimtr.end_locked")
                         .withStyle(ChatFormatting.RED));
                 playDenialEffects(serverLevel, player, "end");
+                return;
+            }
+        }
+
+        // 🎯 NOVO: VERIFICAR ACESSO A DIMENSÕES CUSTOMIZADAS
+        String dimensionString = event.getDimension().location().toString();
+        if (!net.mirai.dimtr.config.CustomRequirements.canAccessCustomDimension(playerId, event.getDimension().location())) {
+            // Encontrar qual fase customizada bloqueia esta dimensão
+            String blockingPhase = findBlockingCustomPhase(playerId, dimensionString, serverLevel);
+            if (blockingPhase != null) {
+                event.setCanceled(true);
+                var customPhase = net.mirai.dimtr.config.CustomRequirements.getCustomPhase(blockingPhase);
+                String phaseName = customPhase != null ? customPhase.name : blockingPhase;
+                
+                player.sendSystemMessage(Component.literal("🔒 " + phaseName + " Required")
+                        .withStyle(ChatFormatting.RED));
+                player.sendSystemMessage(Component.literal("Complete " + phaseName + " to access this dimension")
+                        .withStyle(ChatFormatting.GRAY));
+                        
+                playDenialEffects(serverLevel, player, "custom");
                 return;
             }
         }
@@ -532,13 +508,15 @@ public class ModEventHandlers {
             }
         }
 
-        if (isInEndPortal) {
-            // Teletransportar jogador para fora do portal
-            BlockPos safePos = findSafePositionNearPortal(serverLevel, portalPos);
-            if (safePos != null) {
-                player.teleportTo(safePos.getX() + 0.5, safePos.getY(), safePos.getZ() + 0.5);
-            }
-
+        if (isInEndPortal && portalPos != null) {
+            // CORREÇÃO: Não teleportar mais - apenas impedir permanência no portal
+            // Empurrar jogador suavemente para fora
+            double pushX = (player.getX() - (portalPos.getX() + 0.5)) * 0.3;
+            double pushZ = (player.getZ() - (portalPos.getZ() + 0.5)) * 0.3;
+            
+            // Aplicar pequeno impulso para fora
+            player.push(pushX, 0.1, pushZ);
+            
             player.sendSystemMessage(Component.translatable("message.dimtr.end_locked")
                     .withStyle(ChatFormatting.RED));
 
@@ -550,28 +528,32 @@ public class ModEventHandlers {
     // 🎯 MÉTODOS AUXILIARES
     // ============================================================================
 
-    private static BlockPos findSafePositionNearPortal(ServerLevel level, BlockPos portalPos) {
-        // Procurar posição segura em um raio de 5 blocos
-        for (int x = -5; x <= 5; x++) {
-            for (int z = -5; z <= 5; z++) {
-                for (int y = -2; y <= 2; y++) {
-                    BlockPos checkPos = portalPos.offset(x, y, z);
-                    if (isSafePosition(level, checkPos)) {
-                        return checkPos;
-                    }
+    /**
+     * 🎯 NOVO: Encontra qual fase customizada está bloqueando o acesso a uma dimensão
+     */
+    private static String findBlockingCustomPhase(UUID playerId, String dimensionString, ServerLevel serverLevel) {
+        var customPhases = net.mirai.dimtr.config.CustomRequirements.getAllCustomPhases();
+        if (customPhases.isEmpty()) {
+            return null;
+        }
+
+        var progressionManager = ProgressionManager.get(serverLevel);
+        var playerData = progressionManager.getPlayerData(playerId);
+
+        for (var entry : customPhases.entrySet()) {
+            String phaseId = entry.getKey();
+            var phase = entry.getValue();
+            
+            // Check if this phase blocks the dimension
+            if (phase.dimensionAccess != null && phase.dimensionAccess.contains(dimensionString)) {
+                // Check if phase is completed
+                if (!playerData.isCustomPhaseComplete(phaseId)) {
+                    return phaseId;
                 }
             }
         }
-        return portalPos.above(3); // Fallback
-    }
 
-    private static boolean isSafePosition(ServerLevel level, BlockPos pos) {
-        BlockState groundState = level.getBlockState(pos.below());
-        BlockState feetState = level.getBlockState(pos);
-        BlockState headState = level.getBlockState(pos.above());
-
-        return groundState.isSolid() && !feetState.isSolid() && !headState.isSolid() &&
-                !groundState.is(Blocks.END_PORTAL) && !feetState.is(Blocks.END_PORTAL) && !headState.is(Blocks.END_PORTAL);
+        return null;
     }
 
     private static void playDenialEffects(ServerLevel serverLevel, Player player, String portalType) {
@@ -601,6 +583,112 @@ public class ModEventHandlers {
             serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
                     player.getX(), player.getY() + 1, player.getZ(),
                     20, 0.3, 0.3, 0.3, 0.1);
+        } else if ("custom".equals(portalType)) {
+            // Custom portal denial effects
+            serverLevel.playSound(null, player.blockPosition(), SoundEvents.BEACON_DEACTIVATE,
+                    SoundSource.PLAYERS, 0.8F, 0.8F);
+
+            serverLevel.sendParticles(ParticleTypes.ANGRY_VILLAGER,
+                    player.getX(), player.getY() + 1, player.getZ(),
+                    15, 0.4, 0.4, 0.4, 0.1);
+        }
+    }
+
+    /**
+     * 🎯 NOVO: Processar mobs customizados
+     */
+    private static void processCustomMobKill(UUID playerId, LivingEntity killedEntity, ServerLevel serverLevel) {
+        String entityType = killedEntity.getType().toString();
+        String entityId = entityType.toLowerCase();
+        
+        // Check if any custom phases require this mob
+        var customPhases = net.mirai.dimtr.config.CustomRequirements.getAllCustomPhases();
+        if (customPhases.isEmpty()) {
+            return;
+        }
+        
+        var progressionManager = ProgressionManager.get(serverLevel);
+        var playerData = progressionManager.getPlayerData(playerId);
+        
+        for (var entry : customPhases.entrySet()) {
+            String phaseId = entry.getKey();
+            var phase = entry.getValue();
+            
+            // Skip if phase is already completed
+            if (playerData.isCustomPhaseComplete(phaseId)) {
+                continue;
+            }
+            
+            // Check if this phase requires this mob type
+            if (phase.mobRequirements != null && phase.mobRequirements.containsKey(entityId)) {
+                int required = phase.mobRequirements.get(entityId);
+                int current = playerData.getCustomMobKills(phaseId, entityId);
+                
+                if (current < required) {
+                    playerData.incrementCustomMobKill(phaseId, entityId);
+                    
+                    // Check if phase is now complete
+                    checkCustomPhaseCompletion(playerId, phaseId, serverLevel);
+                }
+            }
+        }
+    }
+    
+    /**
+     * 🎯 NOVO: Verificar se uma fase customizada foi completada
+     */
+    private static void checkCustomPhaseCompletion(UUID playerId, String phaseId, ServerLevel serverLevel) {
+        var customPhase = net.mirai.dimtr.config.CustomRequirements.getCustomPhase(phaseId);
+        if (customPhase == null) {
+            return;
+        }
+        
+        var progressionManager = ProgressionManager.get(serverLevel);
+        var playerData = progressionManager.getPlayerData(playerId);
+        
+        // Check if all mob requirements are met
+        boolean allMobsComplete = true;
+        if (customPhase.mobRequirements != null) {
+            for (var entry : customPhase.mobRequirements.entrySet()) {
+                String mobType = entry.getKey();
+                int required = entry.getValue();
+                int current = playerData.getCustomMobKills(phaseId, mobType);
+                
+                if (current < required) {
+                    allMobsComplete = false;
+                    break;
+                }
+            }
+        }
+        
+        // Check if all special objectives are met
+        boolean allObjectivesComplete = true;
+        if (customPhase.specialObjectives != null) {
+            for (var entry : customPhase.specialObjectives.entrySet()) {
+                String objectiveId = entry.getKey();
+                var objective = entry.getValue();
+                
+                if (objective.required && !playerData.isCustomObjectiveComplete(phaseId, objectiveId)) {
+                    allObjectivesComplete = false;
+                    break;
+                }
+            }
+        }
+        
+        // Complete the phase if all requirements are met
+        if (allMobsComplete && allObjectivesComplete) {
+            playerData.setCustomPhaseComplete(phaseId, true);
+            
+            // Notify player
+            var player = serverLevel.getPlayerByUUID(playerId);
+            if (player != null) {
+                player.sendSystemMessage(Component.literal("🎉 " + customPhase.name + " Complete!")
+                        .withStyle(ChatFormatting.GOLD));
+                player.sendSystemMessage(Component.literal("You have unlocked new content!")
+                        .withStyle(ChatFormatting.YELLOW));
+            }
+            
+            progressionManager.setDirty(); // Mark for saving
         }
     }
 }

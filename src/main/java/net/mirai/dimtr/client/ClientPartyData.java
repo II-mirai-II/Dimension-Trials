@@ -14,6 +14,7 @@ public class ClientPartyData {
     // Dados da party atual
     private UUID partyId = null;
     private String partyName = "";
+    private boolean isPublic = true; // 🎯 NOVO: Se a party é pública ou privada
     private UUID leaderId = null;
     private List<UUID> members = new ArrayList<>();
     private int memberCount = 0;
@@ -32,10 +33,17 @@ public class ClientPartyData {
 
     private ClientPartyData() {}
 
-    // 🔧 CORRIGIDO: Método updateData com campos corretos
+    // ✅ CORRIGIDO: Método updateData com detecção de dados vazios
     public void updateData(UpdatePartyToClientPayload payload) {
+        // ✅ CORREÇÃO: Se partyId é null, significa que o jogador saiu da party
+        if (payload.partyId() == null) {
+            clearData();
+            return;
+        }
+        
         this.partyId = payload.partyId();
         this.partyName = payload.partyName();
+        this.isPublic = payload.isPublic(); // ✅ CORRIGIDO: Atualizar isPublic
         this.leaderId = payload.leaderId();
         this.members = new ArrayList<>(payload.members());
         this.memberCount = payload.memberCount();
@@ -55,6 +63,7 @@ public class ClientPartyData {
     public void clearData() {
         this.partyId = null;
         this.partyName = "";
+        this.isPublic = true; // ✅ CORRIGIDO: Resetar isPublic
         this.leaderId = null;
         this.members.clear();
         this.memberCount = 0;
@@ -103,4 +112,8 @@ public class ClientPartyData {
     public boolean isSharedWardenKilled() { return sharedWardenKilled; }
     public boolean isPhase1SharedCompleted() { return phase1SharedCompleted; }
     public boolean isPhase2SharedCompleted() { return phase2SharedCompleted; }
+
+    public boolean isPartyPublic() { 
+        return isPublic; 
+    }
 }

@@ -3,7 +3,10 @@ package net.mirai.dimtr.data;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.HolderLookup;
 import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 import net.mirai.dimtr.config.DimTrConfig;
+
 
 /**
  * Dados de progressão individual de um jogador
@@ -47,6 +50,11 @@ public class PlayerProgressionData {
     public int zoglinKills = 0;
     public int ghastKills = 0;
     public int piglinKills = 0;
+
+    // Sistema de fases customizadas
+    private Map<String, Boolean> customPhaseCompletion = new HashMap<>();
+    private Map<String, Map<String, Boolean>> customObjectiveCompletion = new HashMap<>();
+    private Map<String, Map<String, Integer>> customMobKills = new HashMap<>();
 
     public PlayerProgressionData(UUID playerId) {
         this.playerId = playerId;
@@ -100,6 +108,35 @@ public class PlayerProgressionData {
         tag.putInt("ghastKills", ghastKills);
         tag.putInt("piglinKills", piglinKills);
 
+        // Salvar fases customizadas
+        CompoundTag customPhasesTag = new CompoundTag();
+        for (Map.Entry<String, Boolean> entry : customPhaseCompletion.entrySet()) {
+            customPhasesTag.putBoolean(entry.getKey(), entry.getValue());
+        }
+        tag.put("customPhases", customPhasesTag);
+
+        // Salvar objetivos customizados
+        CompoundTag customObjectivesTag = new CompoundTag();
+        for (Map.Entry<String, Map<String, Boolean>> entry : customObjectiveCompletion.entrySet()) {
+            CompoundTag objectiveTag = new CompoundTag();
+            for (Map.Entry<String, Boolean> objEntry : entry.getValue().entrySet()) {
+                objectiveTag.putBoolean(objEntry.getKey(), objEntry.getValue());
+            }
+            customObjectivesTag.put(entry.getKey(), objectiveTag);
+        }
+        tag.put("customObjectives", customObjectivesTag);
+
+        // Salvar contadores de mobs customizados
+        CompoundTag customMobKillsTag = new CompoundTag();
+        for (Map.Entry<String, Map<String, Integer>> entry : customMobKills.entrySet()) {
+            CompoundTag mobKillTag = new CompoundTag();
+            for (Map.Entry<String, Integer> mobEntry : entry.getValue().entrySet()) {
+                mobKillTag.putInt(mobEntry.getKey(), mobEntry.getValue());
+            }
+            customMobKillsTag.put(entry.getKey(), mobKillTag);
+        }
+        tag.put("customMobKills", customMobKillsTag);
+
         return tag;
     }
 
@@ -143,6 +180,40 @@ public class PlayerProgressionData {
         data.zoglinKills = tag.getInt("zoglinKills");
         data.ghastKills = tag.getInt("ghastKills");
         data.piglinKills = tag.getInt("piglinKills");
+
+        // Carregar fases customizadas
+        if (tag.contains("customPhases", 10)) {
+            CompoundTag customPhasesTag = tag.getCompound("customPhases");
+            for (String key : customPhasesTag.getAllKeys()) {
+                data.customPhaseCompletion.put(key, customPhasesTag.getBoolean(key));
+            }
+        }
+
+        // Carregar objetivos customizados
+        if (tag.contains("customObjectives", 10)) {
+            CompoundTag customObjectivesTag = tag.getCompound("customObjectives");
+            for (String key : customObjectivesTag.getAllKeys()) {
+                CompoundTag objectiveTag = customObjectivesTag.getCompound(key);
+                Map<String, Boolean> objectiveMap = new HashMap<>();
+                for (String objKey : objectiveTag.getAllKeys()) {
+                    objectiveMap.put(objKey, objectiveTag.getBoolean(objKey));
+                }
+                data.customObjectiveCompletion.put(key, objectiveMap);
+            }
+        }
+
+        // Carregar contadores de mobs customizados
+        if (tag.contains("customMobKills", 10)) {
+            CompoundTag customMobKillsTag = tag.getCompound("customMobKills");
+            for (String key : customMobKillsTag.getAllKeys()) {
+                CompoundTag mobKillTag = customMobKillsTag.getCompound(key);
+                Map<String, Integer> mobKillMap = new HashMap<>();
+                for (String mobKey : mobKillTag.getAllKeys()) {
+                    mobKillMap.put(mobKey, mobKillTag.getInt(mobKey));
+                }
+                data.customMobKills.put(key, mobKillMap);
+            }
+        }
 
         return data;
     }
@@ -223,11 +294,92 @@ public class PlayerProgressionData {
 
     // Calcular multiplicador baseado na progressão individual
     public double getProgressionMultiplier() {
+        // Verificar multiplicadores de fases customizadas primeiro
+        double customMultiplier = getCustomPhaseMultiplier();
+        if (customMultiplier > 1.0) {
+            return customMultiplier;
+        }
+        
         if (isPhase2EffectivelyComplete()) {
             return DimTrConfig.SERVER.phase2Multiplier.get();
         } else if (isPhase1EffectivelyComplete()) {
             return DimTrConfig.SERVER.phase1Multiplier.get();
         }
         return 1.0;
+    }
+    
+    // ============================================================================
+    // MÉTODOS PARA FASES CUSTOMIZADAS
+    // ============================================================================
+    
+    /**
+     * Verificar se uma fase customizada está completa
+     */
+    public boolean isCustomPhaseComplete(String phaseId) {
+        return customPhaseCompletion.getOrDefault(phaseId, false);
+    }
+    
+    /**
+     * Marcar fase customizada como completa
+     */
+    public void setCustomPhaseComplete(String phaseId, boolean complete) {
+        customPhaseCompletion.put(phaseId, complete);
+    }
+    
+    /**
+     * Verificar se um objetivo customizado foi completado
+     */
+    public boolean isCustomObjectiveComplete(String phaseId, String objectiveId) {
+        return customObjectiveCompletion
+                .getOrDefault(phaseId, new HashMap<>())
+                .getOrDefault(objectiveId, false);
+    }
+    
+    /**
+     * Marcar objetivo customizado como completo
+     */
+    public void setCustomObjectiveComplete(String phaseId, String objectiveId, boolean complete) {
+        customObjectiveCompletion.computeIfAbsent(phaseId, k -> new HashMap<>()).put(objectiveId, complete);
+    }
+    
+    /**
+     * Obter contagem de kills de mob customizado
+     */
+    public int getCustomMobKills(String phaseId, String mobType) {
+        return customMobKills
+                .getOrDefault(phaseId, new HashMap<>())
+                .getOrDefault(mobType, 0);
+    }
+    
+    /**
+     * Incrementar kill de mob customizado
+     */
+    public void incrementCustomMobKill(String phaseId, String mobType) {
+        customMobKills.computeIfAbsent(phaseId, k -> new HashMap<>())
+                .merge(mobType, 1, Integer::sum);
+    }
+    
+    /**
+     * Obter o maior multiplicador de fases customizadas completadas
+     */
+    private double getCustomPhaseMultiplier() {
+        double maxMultiplier = 1.0;
+        
+        for (Map.Entry<String, Boolean> entry : customPhaseCompletion.entrySet()) {
+            if (entry.getValue()) { // Se a fase está completa
+                String phaseId = entry.getKey();
+                var customPhase = net.mirai.dimtr.config.CustomRequirements.getCustomPhase(phaseId);
+                if (customPhase != null) {
+                    // Usar o maior multiplicador entre health, damage e xp
+                    double phaseMultiplier = Math.max(
+                        Math.max(customPhase.healthMultiplier, customPhase.damageMultiplier),
+                        customPhase.xpMultiplier
+                    );
+                    maxMultiplier = Math.max(maxMultiplier, phaseMultiplier);
+                }
+            }
+        }
+        
+        return maxMultiplier;
     }
 }

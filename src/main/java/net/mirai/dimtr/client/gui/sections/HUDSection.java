@@ -50,7 +50,8 @@ public interface HUDSection {
         PHASE2_MAIN(Constants.WINDOW_PHASE2_MAIN_TITLE, "🌌"),
         PHASE2_GOALS(Constants.WINDOW_PHASE2_GOALS_TITLE, "👹"),
         // 🔧 CORRIGIDO: Usar constante definida em Constants.java
-        PARTIES(Constants.WINDOW_PARTIES_TITLE, "👥");
+        PARTIES(Constants.WINDOW_PARTIES_TITLE, "👥"),
+        CUSTOM_PHASES("Custom Phases", "🔧");
 
         private final String titleKey;
         private final String icon;

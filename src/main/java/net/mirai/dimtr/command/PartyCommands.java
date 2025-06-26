@@ -31,72 +31,74 @@ import java.util.UUID;
 public class PartyCommands {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        // ✅ CORREÇÃO: Registrar comandos de party separadamente sem necessidade de OP
         dispatcher.register(
-                Commands.literal("dimtr")
-                        .then(Commands.literal("party")
-                                // /dimtr party create <nome> [senha]
-                                .then(Commands.literal("create")
-                                        .then(Commands.argument("name", StringArgumentType.string())
-                                                .executes(PartyCommands::executeCreateParty)
-                                                .then(Commands.argument("password", StringArgumentType.string())
-                                                        .executes(PartyCommands::executeCreatePartyWithPassword))))
+                Commands.literal("party")
+                        .requires(source -> source.getEntity() instanceof ServerPlayer) // Apenas jogadores, sem OP
+                        
+                        // /party create <nome> [senha]
+                        .then(Commands.literal("create")
+                                .then(Commands.argument("name", StringArgumentType.string())
+                                        .executes(PartyCommands::executeCreatePublicParty)
+                                        .then(Commands.argument("password", StringArgumentType.string())
+                                                .executes(PartyCommands::executeCreatePrivateParty))))
 
-                                // /dimtr party join <nome> [senha]
-                                .then(Commands.literal("join")
-                                        .then(Commands.argument("name", StringArgumentType.string())
-                                                .executes(PartyCommands::executeJoinParty)
-                                                .then(Commands.argument("password", StringArgumentType.string())
-                                                        .executes(PartyCommands::executeJoinPartyWithPassword))))
+                        // /party join <nome> [senha]
+                        .then(Commands.literal("join")
+                                .then(Commands.argument("name", StringArgumentType.string())
+                                        .executes(PartyCommands::executeJoinParty)
+                                        .then(Commands.argument("password", StringArgumentType.string())
+                                                .executes(PartyCommands::executeJoinPartyWithPassword))))
 
-                                // /dimtr party leave
-                                .then(Commands.literal("leave")
-                                        .executes(PartyCommands::executeLeaveParty))
+                        // /party leave
+                        .then(Commands.literal("leave")
+                                .executes(PartyCommands::executeLeaveParty))
 
-                                // /dimtr party list
-                                .then(Commands.literal("list")
-                                        .executes(PartyCommands::executeListParties))
+                        // /party list
+                        .then(Commands.literal("list")
+                                .executes(PartyCommands::executeListParties))
 
-                                // /dimtr party info
-                                .then(Commands.literal("info")
-                                        .executes(PartyCommands::executePartyInfo))
+                        // /party info
+                        .then(Commands.literal("info")
+                                .executes(PartyCommands::executePartyInfo))
 
-                                // /dimtr party disband (apenas líder)
-                                .then(Commands.literal("disband")
-                                        .executes(PartyCommands::executeDisbandParty))
+                        // /party disband (apenas líder)
+                        .then(Commands.literal("disband")
+                                .executes(PartyCommands::executeDisbandParty))
 
-                                // /dimtr party kick <jogador> (apenas líder)
-                                .then(Commands.literal("kick")
-                                        .then(Commands.argument("player", EntityArgument.player())
-                                                .executes(PartyCommands::executeKickPlayer)))
+                        // /party kick <jogador> (apenas líder)
+                        .then(Commands.literal("kick")
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .executes(PartyCommands::executeKickPlayer)))
 
-                                // /dimtr party promote <jogador> (apenas líder)
-                                .then(Commands.literal("promote")
-                                        .then(Commands.argument("player", EntityArgument.player())
-                                                .executes(PartyCommands::executePromotePlayer)))
+                        // /party promote <jogador> (apenas líder)
+                        .then(Commands.literal("promote")
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .executes(PartyCommands::executePromotePlayer)))
 
-                                // /dimtr party invite <jogador> (apenas líder)
-                                .then(Commands.literal("invite")
-                                        .then(Commands.argument("player", EntityArgument.player())
-                                                .executes(PartyCommands::executeInvitePlayer))))
+                        // /party invite <jogador> (apenas líder)
+                        .then(Commands.literal("invite")
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .executes(PartyCommands::executeInvitePlayer)))
         );
     }
 
     // ============================================================================
-    // 🎯 COMANDOS DE CRIAÇÃO E ENTRADA
+    // 🎯 COMANDOS DE CRIAÇÃO E ENTRADA (VERSÃO ATUALIZADA)
     // ============================================================================
 
-    private static int executeCreateParty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int executeCreatePublicParty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String partyName = StringArgumentType.getString(context, "name");
-        return createParty(context, partyName, null);
+        return createParty(context, partyName, null, true);
     }
 
-    private static int executeCreatePartyWithPassword(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int executeCreatePrivateParty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String partyName = StringArgumentType.getString(context, "name");
         String password = StringArgumentType.getString(context, "password");
-        return createParty(context, partyName, password);
+        return createParty(context, partyName, password, false);
     }
 
-    private static int createParty(CommandContext<CommandSourceStack> context, String partyName, String password) {
+    private static int createParty(CommandContext<CommandSourceStack> context, String partyName, String password, boolean isPublic) {
         ServerPlayer player = (ServerPlayer) context.getSource().getEntity();
         if (player == null) {
             context.getSource().sendFailure(Component.literal("❌ Comando deve ser executado por um jogador"));
@@ -111,7 +113,7 @@ public class PartyCommands {
 
         switch (result) {
             case SUCCESS -> {
-                String typeText = password == null ? "pública" : "privada";
+                String typeText = isPublic ? "pública" : "privada";
                 context.getSource().sendSuccess(() ->
                         Component.literal("✅ Party '" + partyName + "' (" + typeText + ") criada com sucesso!")
                                 .withStyle(ChatFormatting.GREEN), true);
@@ -121,7 +123,7 @@ public class PartyCommands {
                         Component.literal("👑 Você é o líder da party!")
                                 .withStyle(ChatFormatting.GOLD), false);
 
-                if (password == null) {
+                if (isPublic) {
                     context.getSource().sendSuccess(() ->
                             Component.literal("💡 Outros jogadores podem entrar com '/dimtr party join " + partyName + "'")
                                     .withStyle(ChatFormatting.GRAY), false);
@@ -130,6 +132,11 @@ public class PartyCommands {
                             Component.literal("🔒 Party protegida por senha. Compartilhe a senha com quem quiser convidar!")
                                     .withStyle(ChatFormatting.GRAY), false);
                 }
+                
+                // 🎯 NOVO: Informar sobre multiplicador
+                context.getSource().sendSuccess(() ->
+                        Component.literal("⚡ Multiplicador atual: +0% (1 membro). +25% por cada membro adicional!")
+                                .withStyle(ChatFormatting.AQUA), false);
 
                 return 1;
             }
@@ -292,8 +299,12 @@ public class PartyCommands {
             ChatFormatting statusColor = party.currentMembers >= party.maxMembers ?
                     ChatFormatting.RED : ChatFormatting.GREEN;
 
+            // 🎯 NOVO: Calcular multiplicador e mostrar informações detalhadas
+            double multiplier = 1.0 + (party.currentMembers - 1) * 0.25;
+            int multiplierPercent = (int)((multiplier - 1.0) * 100);
+
             context.getSource().sendSuccess(() ->
-                    Component.literal("• " + party.name + " (" + party.currentMembers + "/" + party.maxMembers + ")")
+                    Component.literal("• " + party.name + " (" + party.currentMembers + "/" + party.maxMembers + ") [+" + multiplierPercent + "%]")
                             .withStyle(statusColor), false);
         }
 

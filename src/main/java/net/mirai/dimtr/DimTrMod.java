@@ -43,6 +43,15 @@ public class DimTrMod {
         LOGGER.info("✅ Registered networking system with party support");
 
         // ============================================================================
+        // 🎯 CUSTOM REQUIREMENTS (NOVO SISTEMA)
+        // ============================================================================
+        modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent event) -> {
+            net.mirai.dimtr.config.CustomRequirements.loadCustomRequirements();
+        });
+
+        LOGGER.info("✅ Initialized custom requirements system");
+
+        // ============================================================================
         // 🎯 LOG DE INICIALIZAÇÃO COMPLETA
         // ============================================================================
         LOGGER.info("🎯 Dimension Trials Mod initialization complete!");
@@ -54,5 +63,6 @@ public class DimTrMod {
         LOGGER.info("   • Party management (/dimtr party) ✅");
         LOGGER.info("   • Individual progression tracking ✅");
         LOGGER.info("   • Proximity-based multipliers ✅");
+        LOGGER.info("   • Custom requirements system 🎯 NEW");
     }
 }

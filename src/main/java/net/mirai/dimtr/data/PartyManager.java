@@ -1,6 +1,5 @@
 package net.mirai.dimtr.data;
 
-import net.mirai.dimtr.config.DimTrConfig;
 import net.mirai.dimtr.network.UpdatePartyToClientPayload;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -186,6 +185,15 @@ public class PartyManager extends SavedData {
             return LeavePartyResult.NOT_IN_PARTY;
         }
 
+        // ✅ CORREÇÃO: Sincronizar com o jogador que está saindo ANTES de remover
+        if (serverForContext != null) {
+            ServerPlayer leavingPlayer = serverForContext.getPlayerList().getPlayer(playerId);
+            if (leavingPlayer != null) {
+                // Enviar dados vazios para limpar o HUD do cliente
+                sendEmptyPartyDataToClient(leavingPlayer);
+            }
+        }
+
         // Remover jogador da party
         party.removeMember(playerId);
         playerToParty.remove(playerId);
@@ -193,10 +201,12 @@ public class PartyManager extends SavedData {
         // Se a party ficou vazia, deletar
         if (party.getMemberCount() == 0) {
             parties.remove(partyId);
+        } else {
+            // Sincronizar com os membros restantes da party
+            syncPartyToMembers(partyId);
         }
 
         setDirty();
-        syncPartyToMembers(partyId);
 
         return LeavePartyResult.SUCCESS;
     }
@@ -364,6 +374,7 @@ public class PartyManager extends SavedData {
         return new UpdatePartyToClientPayload(
                 party.getPartyId(),
                 party.getName(),
+                party.isPublic(), // 🎯 ADICIONADO: isPublic field
                 party.getLeaderId(),
                 new ArrayList<>(party.getMembers()),
                 party.getRequirementMultiplier(),
@@ -379,6 +390,23 @@ public class PartyManager extends SavedData {
                 party.isPhase1SharedCompleted(),
                 party.isPhase2SharedCompleted()
         );
+    }
+
+    // ✅ NOVO: Método para enviar dados vazios para limpar party do cliente
+    private void sendEmptyPartyDataToClient(ServerPlayer player) {
+        UpdatePartyToClientPayload emptyPayload = new UpdatePartyToClientPayload(
+                null, // partyId
+                "", // partyName  
+                true, // isPublic (default)
+                null, // leaderId
+                new ArrayList<>(), // members (vazio)
+                1.0, // progressionMultiplier (default)
+                0, // memberCount
+                new HashMap<>(), // sharedMobKills (vazio)
+                false, false, false, false, false, false, false, false // todos objetivos false
+        );
+        
+        PacketDistributor.sendToPlayer(player, emptyPayload);
     }
 
     // ============================================================================

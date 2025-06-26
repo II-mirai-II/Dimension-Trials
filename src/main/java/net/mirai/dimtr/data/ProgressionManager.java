@@ -28,8 +28,8 @@ public class ProgressionManager extends SavedData {
     private final Map<UUID, PlayerProgressionData> playerProgressions = new ConcurrentHashMap<>();
     private MinecraftServer serverForContext;
 
-    // Raio para considerar jogadores próximos (em blocos)
-    public static final double PROXIMITY_RADIUS = 48.0;
+    // CORREÇÃO: Usar constante ao invés de valor hardcoded
+    public static final double PROXIMITY_RADIUS = Constants.DEFAULT_PROXIMITY_RADIUS;
 
     public ProgressionManager() {
     }
@@ -181,21 +181,34 @@ public class ProgressionManager extends SavedData {
             return true;
         }
 
-        return playerData.zombieKills >= DimTrConfig.SERVER.reqZombieKills.get() &&
-                playerData.skeletonKills >= DimTrConfig.SERVER.reqSkeletonKills.get() &&
-                playerData.strayKills >= DimTrConfig.SERVER.reqStrayKills.get() &&
-                playerData.huskKills >= DimTrConfig.SERVER.reqHuskKills.get() &&
-                playerData.spiderKills >= DimTrConfig.SERVER.reqSpiderKills.get() &&
-                playerData.creeperKills >= DimTrConfig.SERVER.reqCreeperKills.get() &&
-                playerData.drownedKills >= DimTrConfig.SERVER.reqDrownedKills.get() &&
-                playerData.endermanKills >= DimTrConfig.SERVER.reqEndermanKills.get() &&
-                playerData.witchKills >= DimTrConfig.SERVER.reqWitchKills.get() &&
-                playerData.pillagerKills >= DimTrConfig.SERVER.reqPillagerKills.get() &&
-                playerData.vindicatorKills >= DimTrConfig.SERVER.reqVindicatorKills.get() &&
-                playerData.boggedKills >= DimTrConfig.SERVER.reqBoggedKills.get() &&
-                playerData.breezeKills >= DimTrConfig.SERVER.reqBreezeKills.get() &&
-                playerData.ravagerKills >= DimTrConfig.SERVER.reqRavagerKills.get() &&
-                playerData.evokerKills >= DimTrConfig.SERVER.reqEvokerKills.get();
+        // 🎯 NOVO: Usar requisitos ajustados por party se aplicável
+        UUID playerId = playerData.getPlayerId();
+        
+        return playerData.zombieKills >= getAdjustedRequirement(playerId, "zombie", DimTrConfig.SERVER.reqZombieKills.get()) &&
+                playerData.skeletonKills >= getAdjustedRequirement(playerId, "skeleton", DimTrConfig.SERVER.reqSkeletonKills.get()) &&
+                playerData.strayKills >= getAdjustedRequirement(playerId, "stray", DimTrConfig.SERVER.reqStrayKills.get()) &&
+                playerData.huskKills >= getAdjustedRequirement(playerId, "husk", DimTrConfig.SERVER.reqHuskKills.get()) &&
+                playerData.spiderKills >= getAdjustedRequirement(playerId, "spider", DimTrConfig.SERVER.reqSpiderKills.get()) &&
+                playerData.creeperKills >= getAdjustedRequirement(playerId, "creeper", DimTrConfig.SERVER.reqCreeperKills.get()) &&
+                playerData.drownedKills >= getAdjustedRequirement(playerId, "drowned", DimTrConfig.SERVER.reqDrownedKills.get()) &&
+                playerData.endermanKills >= getAdjustedRequirement(playerId, "enderman", DimTrConfig.SERVER.reqEndermanKills.get()) &&
+                playerData.witchKills >= getAdjustedRequirement(playerId, "witch", DimTrConfig.SERVER.reqWitchKills.get()) &&
+                playerData.pillagerKills >= getAdjustedRequirement(playerId, "pillager", DimTrConfig.SERVER.reqPillagerKills.get()) &&
+                playerData.vindicatorKills >= getAdjustedRequirement(playerId, "vindicator", DimTrConfig.SERVER.reqVindicatorKills.get()) &&
+                playerData.boggedKills >= getAdjustedRequirement(playerId, "bogged", DimTrConfig.SERVER.reqBoggedKills.get()) &&
+                playerData.breezeKills >= getAdjustedRequirement(playerId, "breeze", DimTrConfig.SERVER.reqBreezeKills.get()) &&
+                playerData.ravagerKills >= getAdjustedRequirement(playerId, "ravager", DimTrConfig.SERVER.reqRavagerKills.get()) &&
+                playerData.evokerKills >= getAdjustedRequirement(playerId, "evoker", DimTrConfig.SERVER.reqEvokerKills.get());
+    }
+
+    /**
+     * 🎯 NOVO: Obter requisito ajustado por multiplicador de party
+     */
+    private int getAdjustedRequirement(UUID playerId, String mobType, int baseRequirement) {
+        if (serverForContext == null) return baseRequirement;
+        
+        PartyManager partyManager = PartyManager.get((ServerLevel) serverForContext.overworld());
+        return partyManager.getRequiredMobKills(playerId, mobType, baseRequirement);
     }
 
     private boolean checkPhase2MobRequirements(PlayerProgressionData playerData) {
@@ -203,27 +216,32 @@ public class ProgressionManager extends SavedData {
             return true;
         }
 
+        // 🎯 NOVO: Usar requisitos ajustados por party se aplicável
+        UUID playerId = playerData.getPlayerId();
+
         // Verificar mobs do Nether
-        boolean netherMobsMet = playerData.blazeKills >= DimTrConfig.SERVER.reqBlazeKills.get() &&
-                playerData.witherSkeletonKills >= DimTrConfig.SERVER.reqWitherSkeletonKills.get() &&
-                playerData.piglinBruteKills >= DimTrConfig.SERVER.reqPiglinBruteKills.get() &&
-                playerData.hoglinKills >= DimTrConfig.SERVER.reqHoglinKills.get() &&
-                playerData.zoglinKills >= DimTrConfig.SERVER.reqZoglinKills.get() &&
-                playerData.ghastKills >= DimTrConfig.SERVER.reqGhastKills.get() &&
-                playerData.piglinKills >= DimTrConfig.SERVER.reqPiglinKills.get();
+        boolean netherMobsMet = 
+                playerData.blazeKills >= getAdjustedRequirement(playerId, "blaze", DimTrConfig.SERVER.reqBlazeKills.get()) &&
+                playerData.witherSkeletonKills >= getAdjustedRequirement(playerId, "wither_skeleton", DimTrConfig.SERVER.reqWitherSkeletonKills.get()) &&
+                playerData.piglinBruteKills >= getAdjustedRequirement(playerId, "piglin_brute", DimTrConfig.SERVER.reqPiglinBruteKills.get()) &&
+                playerData.hoglinKills >= getAdjustedRequirement(playerId, "hoglin", DimTrConfig.SERVER.reqHoglinKills.get()) &&
+                playerData.zoglinKills >= getAdjustedRequirement(playerId, "zoglin", DimTrConfig.SERVER.reqZoglinKills.get()) &&
+                playerData.ghastKills >= getAdjustedRequirement(playerId, "ghast", DimTrConfig.SERVER.reqGhastKills.get()) &&
+                playerData.piglinKills >= getAdjustedRequirement(playerId, "piglin", DimTrConfig.SERVER.reqPiglinKills.get());
 
         // Verificar mobs do Overworld com 125%
-        boolean overworldMobsMet = playerData.zombieKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqZombieKills.get()) &&
-                playerData.skeletonKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqSkeletonKills.get()) &&
-                playerData.creeperKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqCreeperKills.get()) &&
-                playerData.spiderKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqSpiderKills.get()) &&
-                playerData.endermanKills >= getPhase2OverworldRequirement(DimTrConfig.SERVER.reqEndermanKills.get());
+        boolean overworldMobsMet = 
+                playerData.zombieKills >= getAdjustedRequirement(playerId, "zombie", getPhase2OverworldRequirement(DimTrConfig.SERVER.reqZombieKills.get())) &&
+                playerData.skeletonKills >= getAdjustedRequirement(playerId, "skeleton", getPhase2OverworldRequirement(DimTrConfig.SERVER.reqSkeletonKills.get())) &&
+                playerData.creeperKills >= getAdjustedRequirement(playerId, "creeper", getPhase2OverworldRequirement(DimTrConfig.SERVER.reqCreeperKills.get())) &&
+                playerData.spiderKills >= getAdjustedRequirement(playerId, "spider", getPhase2OverworldRequirement(DimTrConfig.SERVER.reqSpiderKills.get())) &&
+                playerData.endermanKills >= getAdjustedRequirement(playerId, "enderman", getPhase2OverworldRequirement(DimTrConfig.SERVER.reqEndermanKills.get()));
 
         return netherMobsMet && overworldMobsMet;
     }
 
     private int getPhase2OverworldRequirement(int originalRequirement) {
-        return (int) Math.ceil(originalRequirement * 1.25);
+        return (int) Math.ceil(originalRequirement * Constants.DEFAULT_PHASE2_OVERWORLD_MULTIPLIER);
     }
 
     // Calcular multiplicador médio para jogadores próximos

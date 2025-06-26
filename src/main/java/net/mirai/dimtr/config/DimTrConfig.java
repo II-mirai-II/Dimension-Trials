@@ -277,12 +277,13 @@ public class DimTrConfig {
             // ========================================================================
             builder.push("Difficulty Multipliers");
 
+            // CORREÇÃO: Multiplicadores devem ser >= 1.0 (não podem reduzir dificuldade)
             phase1Multiplier = builder
-                    .comment("Mob health/damage multiplier when Phase 1 is completed")
+                    .comment("Mob health/damage multiplier when Phase 1 is completed (minimum 1.0)")
                     .defineInRange("phase1Multiplier", 1.5, 1.0, 10.0);
 
             phase2Multiplier = builder
-                    .comment("Mob health/damage multiplier when Phase 2 is completed")
+                    .comment("Mob health/damage multiplier when Phase 2 is completed (minimum 1.0)")
                     .defineInRange("phase2Multiplier", 2.0, 1.0, 10.0);
 
             builder.pop();

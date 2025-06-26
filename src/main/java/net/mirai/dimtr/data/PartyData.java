@@ -8,12 +8,13 @@ import net.minecraft.nbt.StringTag;
 import java.util.*;
 
 /**
- * Dados de uma party/grupo
+ * Dados de uma party/grupo - VERSÃO EXPANDIDA
  */
 public class PartyData {
     private final UUID partyId;
     private String name;
     private String password; // null se pública
+    private boolean isPublic; // true = pública, false = privada
     private UUID leaderId;
     private final Set<UUID> members;
     private final Map<String, Integer> sharedMobKills;
@@ -28,10 +29,14 @@ public class PartyData {
     private boolean sharedWitherKilled;
     private boolean sharedWardenKilled;
 
+    // 🎯 NOVO: Multiplicador dinâmico baseado no número de membros
+    private static final double BASE_MULTIPLIER_PER_MEMBER = 0.25; // 25% por membro
+
     public PartyData(UUID partyId, String name, String password, UUID leaderId) {
         this.partyId = partyId;
         this.name = name;
         this.password = password;
+        this.isPublic = (password == null); // Público se não tem senha
         this.leaderId = leaderId;
         this.members = new HashSet<>();
         this.sharedMobKills = new HashMap<>();
@@ -59,7 +64,7 @@ public class PartyData {
     }
 
     public boolean isPublic() {
-        return password == null || password.isEmpty();
+        return isPublic && (password == null || password.isEmpty());
     }
 
     public boolean checkPassword(String inputPassword) {
@@ -94,6 +99,31 @@ public class PartyData {
     }
 
     /**
+     * 🎯 NOVO: Calcular multiplicador de metas baseado no número de membros
+     * Cada membro adiciona 25% aos requisitos
+     */
+    public double getPartyMultiplier() {
+        return 1.0 + (members.size() - 1) * BASE_MULTIPLIER_PER_MEMBER;
+    }
+
+    /**
+     * 🎯 NOVO: Definir se a party é pública ou privada
+     */
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+        if (isPublic) {
+            this.password = null; // Remove senha se tornar pública
+        }
+    }
+
+    /**
+     * 🎯 NOVO: Calcular requisito ajustado por multiplicador de party
+     */
+    public int getAdjustedRequirement(int baseRequirement) {
+        return (int) Math.ceil(baseRequirement * getPartyMultiplier());
+    }
+
+    /**
      * Incrementar kill compartilhado
      */
     public boolean incrementSharedMobKill(String mobType) {
@@ -112,6 +142,7 @@ public class PartyData {
         if (password != null) {
             tag.putString("password", password);
         }
+        tag.putBoolean("isPublic", isPublic); // 🎯 NOVO: Salvar campo isPublic
         tag.putUUID("leaderId", leaderId);
 
         // Salvar membros
@@ -148,6 +179,14 @@ public class PartyData {
         UUID leaderId = tag.getUUID("leaderId");
 
         PartyData party = new PartyData(partyId, name, password, leaderId);
+
+        // 🎯 NOVO: Carregar campo isPublic
+        if (tag.contains("isPublic")) {
+            party.isPublic = tag.getBoolean("isPublic");
+        } else {
+            // Compatibilidade: se não tem o campo, determinar pelo password
+            party.isPublic = (password == null || password.isEmpty());
+        }
 
         // Carregar membros
         party.members.clear();

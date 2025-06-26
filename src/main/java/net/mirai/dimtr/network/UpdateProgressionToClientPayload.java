@@ -302,10 +302,26 @@ public record UpdateProgressionToClientPayload(
     public static void handle(UpdateProgressionToClientPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             try {
+                // CORREÇÃO: Adicionar validação básica do payload
+                if (payload == null) {
+                    System.err.println("❌ Received null progression payload!");
+                    return;
+                }
+                
+                // Validar valores razoáveis para contadores
+                if (payload.zombieKills < 0 || payload.zombieKills > 10000 ||
+                    payload.skeletonKills < 0 || payload.skeletonKills > 10000) {
+                    System.err.println("❌ Invalid kill counts in progression payload!");
+                    return;
+                }
+                
                 ClientProgressionData.INSTANCE.updateData(payload);
             } catch (Exception e) {
-                // Manter apenas log de erro crítico
+                // Log de erro crítico com mais detalhes
                 System.err.println("❌ Failed to update ClientProgressionData: " + e.getMessage());
+                if (payload != null) {
+                    System.err.println("❌ Payload data: " + payload.toString());
+                }
                 e.printStackTrace();
             }
         });
