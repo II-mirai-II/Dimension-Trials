@@ -114,9 +114,10 @@ public class Phase1GoalsSection implements HUDSection {
         ChatFormatting summaryColor = completedTypes == totalTypes ?
                 ChatFormatting.GREEN : ChatFormatting.YELLOW;
 
-        content.add(Component.translatable("gui.dimtr.total.kills", totalKills, totalRequired)
+        // Formatação manual para garantir que os valores apareçam corretamente
+        content.add(Component.literal("Total Kills: " + totalKills + "/" + totalRequired)
                 .withStyle(summaryColor));
-        content.add(Component.translatable("gui.dimtr.types.completed", completedTypes, totalTypes)
+        content.add(Component.literal(completedTypes + "/" + totalTypes + " Types Complete")
                 .withStyle(summaryColor));
 
         return content;

@@ -120,8 +120,8 @@ public class Phase1MainSection implements HUDSection {
             }
 
             if (totalMobsRequired > 0) {
-                content.add(Component.translatable("gui.dimtr.mobs.completed",
-                                totalMobsCompleted, totalMobsRequired)
+                // Formatação manual para garantir que os valores apareçam corretamente
+                content.add(Component.literal(totalMobsCompleted + "/" + totalMobsRequired + " Mobs Completed")
                         .withStyle(totalMobsCompleted == totalMobsRequired ?
                                 ChatFormatting.GREEN : ChatFormatting.YELLOW));
             }

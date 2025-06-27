@@ -124,9 +124,10 @@ public class Phase2GoalsSection implements HUDSection {
         ChatFormatting netherColor = netherCompleted == netherTotal ? ChatFormatting.GREEN : ChatFormatting.RED;
         ChatFormatting overworldColor = overworldCompleted == overworldTotal ? ChatFormatting.GREEN : ChatFormatting.YELLOW;
 
-        content.add(Component.translatable("gui.dimtr.nether.progress", netherCompleted, netherTotal)
+        // Formatação manual para garantir que os valores apareçam corretamente
+        content.add(Component.literal("🔥 Nether Progress: " + netherCompleted + "/" + netherTotal)
                 .withStyle(netherColor));
-        content.add(Component.translatable("gui.dimtr.overworld.progress", overworldCompleted, overworldTotal)
+        content.add(Component.literal("🌍 Overworld Progress: " + overworldCompleted + "/" + overworldTotal)
                 .withStyle(overworldColor));
 
         return content;

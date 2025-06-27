@@ -46,7 +46,7 @@ public interface HUDSection {
      */
     enum SectionType {
         PHASE1_MAIN(Constants.WINDOW_PHASE1_MAIN_TITLE, "📊"),
-        PHASE1_GOALS(Constants.WINDOW_PHASE1_GOALS_TITLE, "⚔️"),
+        PHASE1_GOALS(Constants.WINDOW_PHASE1_GOALS_TITLE, "⚔"),
         PHASE2_MAIN(Constants.WINDOW_PHASE2_MAIN_TITLE, "🌌"),
         PHASE2_GOALS(Constants.WINDOW_PHASE2_GOALS_TITLE, "👹"),
         // 🔧 CORRIGIDO: Usar constante definida em Constants.java

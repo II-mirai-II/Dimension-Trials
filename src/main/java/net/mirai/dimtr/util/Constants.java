@@ -483,13 +483,13 @@ public class Constants {
     // Status icons and prefixes
     public static final String ICON_COMPLETED = "✅ ";
     public static final String ICON_PENDING = "⏳ ";
-    public static final String ICON_COMBAT = "⚔️ ";
+    public static final String ICON_COMBAT = "⚔ ";
     public static final String ICON_TARGET = "🎯 ";
     public static final String ICON_PARTY = "👥 ";
     public static final String ICON_HELP = "💡 ";
     public static final String ICON_ERROR = "❌ ";
     public static final String ICON_INFO = "📋 ";
-    public static final String ICON_SETTINGS = "⚙️ ";
+    public static final String ICON_SETTINGS = "⚙ ";
     public static final String ICON_MULTIPLIER = "⚡ ";
     public static final String ICON_LOCK = "🔒 ";
     public static final String ICON_NAME = "📛 ";
@@ -748,8 +748,8 @@ public class Constants {
     
     // Notification type icons (from enum)
     public static final String NOTIFICATION_ICON_SUCCESS = "✅";
-    public static final String NOTIFICATION_ICON_INFO = "ℹ️";
-    public static final String NOTIFICATION_ICON_WARNING = "⚠️";
+    public static final String NOTIFICATION_ICON_INFO = "ℹ";
+    public static final String NOTIFICATION_ICON_WARNING = "⚠";
     public static final String NOTIFICATION_ICON_ERROR = "❌";
     public static final String NOTIFICATION_ICON_ACHIEVEMENT = "🏆";
     public static final String NOTIFICATION_ICON_PARTY = "👥";
@@ -814,7 +814,7 @@ public class Constants {
     public static final String HELP_PRESS_J_CONTENT = "• Press 'J' to open your progression HUD";
     public static final String HELP_COMPLETE_PHASE1_CONTENT = "• Complete Phase 1 objectives to unlock the Nether";
     public static final String HELP_COMPLETE_PHASE2_CONTENT = "• Complete Phase 2 objectives to unlock The End";
-    public static final String HELP_PLAYER_COMMANDS_CONTENT = "⚙️ Player Commands:";
+    public static final String HELP_PLAYER_COMMANDS_CONTENT = "⚙ Player Commands:";
     public static final String HELP_PARTY_CREATE_CONTENT = "• /dimtr party create <n> [password] - Create a party";
     public static final String HELP_PARTY_JOIN_CONTENT = "• /dimtr party join <n> [password] - Join a party";
     public static final String HELP_PARTY_LEAVE_CONTENT = "• /dimtr party leave - Leave your party";
@@ -873,7 +873,7 @@ public class Constants {
     public static final String MULTIPLIER_DISPLAY = "⚡ Multiplier: %.1fx";
     public static final String SPECIAL_OBJECTIVES_HEADER = "--- SPECIAL OBJECTIVES ---";
     public static final String MAIN_COUNTERS_HEADER = "--- MAIN COUNTERS ---";
-    public static final String MOB_KILL_DISPLAY = "⚔️ %s: %d";
+    public static final String MOB_KILL_DISPLAY = "⚔ %s: %d";
     
     // Phase status values
     public static final String PHASE_COMPLETE = "COMPLETE";
