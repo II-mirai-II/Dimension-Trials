@@ -409,7 +409,7 @@ public class ProgressionCoordinator {
                 ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
                 if (member != null) {
                     net.mirai.dimtr.util.I18nHelper.sendMessage(member, 
-                            net.mirai.dimtr.util.I18nHelper.Events.PHASE_COMPLETE, 
+                            net.mirai.dimtr.util.Constants.EVENT_PHASE_COMPLETE, 
                             customPhase.name);
                 }
             }

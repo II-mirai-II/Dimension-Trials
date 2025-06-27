@@ -217,7 +217,7 @@ public record UpdatePartyToClientPayload(
                 DimTrMod.LOGGER.info(Constants.LOG_PARTY_DATA_UPDATED,
                         payload.partyName, payload.members.size());
             } catch (Exception e) {
-                DimTrMod.LOGGER.error("❌ Failed to update party data on client", e);
+                DimTrMod.LOGGER.error("Failed to update party data on client", e);
             }
         });
     }

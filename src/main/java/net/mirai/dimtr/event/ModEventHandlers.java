@@ -434,8 +434,8 @@ public class ModEventHandlers {
                 String phaseName = customPhase != null ? customPhase.name : blockingPhase;
                 
                 if (player instanceof ServerPlayer serverPlayer) {
-                    I18nHelper.sendMessage(serverPlayer, I18nHelper.Events.DIMENSION_REQUIRED, phaseName);
-                    I18nHelper.sendMessage(serverPlayer, I18nHelper.Events.DIMENSION_COMPLETE, phaseName);
+                    I18nHelper.sendMessage(serverPlayer, Constants.EVENT_DIMENSION_REQUIRED, phaseName);
+                    I18nHelper.sendMessage(serverPlayer, Constants.EVENT_DIMENSION_COMPLETE, phaseName);
                 }
                         
                 playDenialEffects(serverLevel, player, Constants.DIMENSION_TYPE_CUSTOM);

@@ -392,14 +392,14 @@ public record UpdateProgressionToClientPayload(
             try {
                 // CORREÇÃO: Adicionar validação básica do payload
                 if (payload == null) {
-                    System.err.println("❌ Received null progression payload!");
+                    net.mirai.dimtr.DimTrMod.LOGGER.error("Received null progression payload!");
                     return;
                 }
                 
                 // Validar valores razoáveis para contadores
                 if (payload.zombieKills < 0 || payload.zombieKills > 10000 ||
                     payload.skeletonKills < 0 || payload.skeletonKills > 10000) {
-                    System.err.println("❌ Invalid kill counts in progression payload!");
+                    net.mirai.dimtr.DimTrMod.LOGGER.error("Invalid kill counts in progression payload!");
                     return;
                 }
                 

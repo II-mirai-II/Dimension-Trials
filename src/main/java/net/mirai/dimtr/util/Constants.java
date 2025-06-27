@@ -453,6 +453,12 @@ public class Constants {
     public static final String PARTY_MEMBER_LEADER_PREFIX = "party.dimtr.member.leader.prefix";
     public static final String PARTY_MEMBER_REGULAR_PREFIX = "party.dimtr.member.regular.prefix";
 
+    // Event handler constants
+    public static final String EVENT_DIMENSION_REQUIRED = "event.dimtr.dimension.required";
+    public static final String EVENT_DIMENSION_COMPLETE = "event.dimtr.dimension.complete";
+    public static final String EVENT_PHASE_COMPLETE = "event.dimtr.phase.complete";
+    public static final String EVENT_CONTENT_UNLOCKED = "event.dimtr.content.unlocked";
+
     // ============================================================================
     // 🎯 CONFIGURATION FILES
     // ============================================================================
@@ -707,22 +713,6 @@ public class Constants {
     public static final String ADVANCEMENT_VOLUNTARY_EXILE = "minecraft:adventure/voluntary_exile";
     public static final String ADVANCEMENT_HERO_OF_VILLAGE = "minecraft:adventure/hero_of_the_village";
     public static final String ADVANCEMENT_UNDER_LOCK_AND_KEY = "minecraft:adventure/under_lock_and_key";
-
-    // ============================================================================
-    // 🎯 HARDCODED STRINGS THAT SHOULD REMAIN AS CONSTANTS (ENGLISH)
-    // ============================================================================
-    
-    // Party command error messages (hardcoded in English for default fallback)
-    public static final String ERROR_MUST_BE_PLAYER = "❌ Command must be executed by a player";
-    public static final String ERROR_NOT_IN_PARTY = "❌ You are not in any party!";
-    public static final String ERROR_ONLY_LEADER_PROMOTE = "❌ Only the leader can promote members!";
-    public static final String ERROR_PLAYER_NOT_IN_YOUR_PARTY = "❌ %s is not in your party!";
-    public static final String ERROR_ALREADY_LEADER = "❌ You are already the party leader!";
-    public static final String ERROR_ONLY_LEADER_INVITE = "❌ Only the leader can invite players!";
-    public static final String ERROR_PLAYER_ALREADY_IN_PARTY = "❌ %s is already in a party!";
-    public static final String ERROR_COMMAND_PLAYER_ONLY = "❌ This command must be executed by a player";
-    public static final String ERROR_NO_PLAYERS_ONLINE = "❌ No players online";
-    public static final String ERROR_DEBUG_PAYLOAD = "❌ Error creating debug payload: %s";
 
     // ============================================================================
     // 🎯 DIMENSION LOCKS - TRANSLATION KEYS (FALTAVAM)
