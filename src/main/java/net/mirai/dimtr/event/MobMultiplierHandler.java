@@ -3,17 +3,11 @@ package net.mirai.dimtr.event;
 import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.config.DimTrConfig;
 import net.mirai.dimtr.data.ProgressionManager;
+import net.mirai.dimtr.util.MobUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.*;
-import net.minecraft.world.entity.monster.piglin.Piglin;
-import net.minecraft.world.entity.monster.piglin.PiglinBrute;
-import net.minecraft.world.entity.monster.hoglin.Hoglin;
-import net.minecraft.world.entity.monster.warden.Warden;
-import net.minecraft.world.entity.boss.wither.WitherBoss;
-import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -38,7 +32,7 @@ public class MobMultiplierHandler {
         }
 
         // Só aplicar em mobs hostis específicos
-        if (!(event.getEntity() instanceof LivingEntity livingEntity) || !isHostileMob(livingEntity)) {
+        if (!(event.getEntity() instanceof LivingEntity livingEntity) || !MobUtils.isHostileMob(livingEntity)) {
             return;
         }
 
@@ -79,35 +73,6 @@ public class MobMultiplierHandler {
                 entity.getZ(),
                 level
         );
-    }
-
-    private static boolean isHostileMob(LivingEntity entity) {
-        return entity instanceof Zombie ||
-                entity instanceof Skeleton ||
-                entity instanceof Stray ||
-                entity instanceof Husk ||
-                entity instanceof Spider ||
-                entity instanceof Creeper ||
-                entity instanceof Drowned ||
-                entity instanceof EnderMan ||
-                entity instanceof Witch ||
-                entity instanceof Pillager ||
-                entity instanceof Vindicator ||
-                entity instanceof Evoker ||
-                entity instanceof Ravager ||
-                entity instanceof ElderGuardian ||
-                entity instanceof Guardian ||
-                entity instanceof Blaze ||
-                entity instanceof WitherSkeleton ||
-                entity instanceof PiglinBrute ||
-                entity instanceof Hoglin ||
-                entity instanceof Zoglin ||
-                entity instanceof Ghast ||
-                entity instanceof Endermite ||
-                entity instanceof Piglin ||
-                entity instanceof WitherBoss ||
-                entity instanceof Warden ||
-                entity instanceof EnderDragon;
     }
 
     private static void applyMultiplier(LivingEntity entity, double multiplier) {

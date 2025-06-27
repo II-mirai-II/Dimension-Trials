@@ -6,6 +6,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.mirai.dimtr.data.PartyData;
 import net.mirai.dimtr.data.PartyManager;
+import net.mirai.dimtr.util.Constants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -101,7 +102,7 @@ public class PartyCommands {
     private static int createParty(CommandContext<CommandSourceStack> context, String partyName, String password, boolean isPublic) {
         ServerPlayer player = (ServerPlayer) context.getSource().getEntity();
         if (player == null) {
-            context.getSource().sendFailure(Component.literal("❌ Comando deve ser executado por um jogador"));
+            context.getSource().sendFailure(Component.translatable(Constants.PARTY_ERROR_COMMAND_PLAYER_ONLY));
             return 0;
         }
 
@@ -113,51 +114,51 @@ public class PartyCommands {
 
         switch (result) {
             case SUCCESS -> {
-                String typeText = isPublic ? "pública" : "privada";
+                String typeText = isPublic ? Component.translatable(Constants.PARTY_CREATE_TYPE_PUBLIC).getString() : Component.translatable(Constants.PARTY_CREATE_TYPE_PRIVATE).getString();
                 context.getSource().sendSuccess(() ->
-                        Component.literal("✅ Party '" + partyName + "' (" + typeText + ") criada com sucesso!")
+                        Component.translatable(Constants.PARTY_CREATE_SUCCESS_FORMAT_NEW, partyName, typeText)
                                 .withStyle(ChatFormatting.GREEN), true);
 
-                // Mostrar informações da party criada
+                // Show party created information
                 context.getSource().sendSuccess(() ->
-                        Component.literal("👑 Você é o líder da party!")
+                        Component.translatable(Constants.PARTY_CREATE_LEADER_NOTIFICATION)
                                 .withStyle(ChatFormatting.GOLD), false);
 
                 if (isPublic) {
                     context.getSource().sendSuccess(() ->
-                            Component.literal("💡 Outros jogadores podem entrar com '/dimtr party join " + partyName + "'")
+                            Component.translatable(Constants.PARTY_CREATE_JOIN_INFO_PUBLIC, partyName)
                                     .withStyle(ChatFormatting.GRAY), false);
                 } else {
                     context.getSource().sendSuccess(() ->
-                            Component.literal("🔒 Party protegida por senha. Compartilhe a senha com quem quiser convidar!")
+                            Component.translatable(Constants.PARTY_CREATE_PASSWORD_INFO_NEW)
                                     .withStyle(ChatFormatting.GRAY), false);
                 }
                 
                 // 🎯 NOVO: Informar sobre multiplicador
                 context.getSource().sendSuccess(() ->
-                        Component.literal("⚡ Multiplicador atual: +0% (1 membro). +25% por cada membro adicional!")
+                        Component.translatable(Constants.PARTY_CREATE_MULTIPLIER_INFO)
                                 .withStyle(ChatFormatting.AQUA), false);
 
                 return 1;
             }
             case ALREADY_IN_PARTY -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Você já está em uma party! Use '/dimtr party leave' primeiro"));
+                        Component.translatable(Constants.PARTY_ERROR_ALREADY_IN_PARTY_LEAVE_FIRST));
                 return 0;
             }
             case INVALID_NAME -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Nome da party inválido! Use 1-20 caracteres"));
+                        Component.translatable(Constants.PARTY_ERROR_INVALID_NAME_LENGTH_RANGE));
                 return 0;
             }
             case NAME_TAKEN -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Já existe uma party com esse nome!"));
+                        Component.translatable(Constants.PARTY_ERROR_NAME_ALREADY_EXISTS_SIMPLE));
                 return 0;
             }
             default -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Erro desconhecido ao criar party"));
+                        Component.translatable(Constants.PARTY_ERROR_UNKNOWN_CREATE_ERROR));
                 return 0;
             }
         }
@@ -177,7 +178,7 @@ public class PartyCommands {
     private static int joinParty(CommandContext<CommandSourceStack> context, String partyName, String password) {
         ServerPlayer player = (ServerPlayer) context.getSource().getEntity();
         if (player == null) {
-            context.getSource().sendFailure(Component.literal("❌ Comando deve ser executado por um jogador"));
+            context.getSource().sendFailure(Component.translatable(Constants.PARTY_ERROR_COMMAND_PLAYER_ONLY));
             return 0;
         }
 
@@ -190,43 +191,43 @@ public class PartyCommands {
         switch (result) {
             case SUCCESS -> {
                 context.getSource().sendSuccess(() ->
-                        Component.literal("✅ Você entrou na party '" + partyName + "'!")
+                        Component.translatable(Constants.PARTY_JOIN_SUCCESS_FORMAT, partyName)
                                 .withStyle(ChatFormatting.GREEN), true);
 
                 // Mostrar benefícios da party
                 context.getSource().sendSuccess(() ->
-                        Component.literal("🎉 Agora você compartilha progresso com os membros da party!")
+                        Component.translatable(Constants.PARTY_JOIN_PROGRESS_SHARING_INFO)
                                 .withStyle(ChatFormatting.GOLD), false);
 
                 context.getSource().sendSuccess(() ->
-                        Component.literal("💡 Use '/dimtr party info' para ver detalhes da party")
+                        Component.translatable(Constants.PARTY_JOIN_INFO_COMMAND_TIP)
                                 .withStyle(ChatFormatting.GRAY), false);
 
                 return 1;
             }
             case ALREADY_IN_PARTY -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Você já está em uma party! Use '/dimtr party leave' primeiro"));
+                        Component.translatable(Constants.PARTY_ERROR_ALREADY_IN_PARTY_LEAVE_FIRST));
                 return 0;
             }
             case PARTY_NOT_FOUND -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Party '" + partyName + "' não encontrada!"));
+                        Component.translatable(Constants.PARTY_ERROR_PARTY_NOT_FOUND_FORMAT, partyName));
                 return 0;
             }
             case WRONG_PASSWORD -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Senha incorreta para a party '" + partyName + "'!"));
+                        Component.translatable(Constants.PARTY_ERROR_WRONG_PASSWORD, partyName));
                 return 0;
             }
             case PARTY_FULL -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Party '" + partyName + "' está cheia! (10/10 membros)"));
+                        Component.translatable(Constants.PARTY_ERROR_PARTY_FULL, partyName));
                 return 0;
             }
             default -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Erro desconhecido ao entrar na party"));
+                        Component.translatable(Constants.PARTY_ERROR_UNKNOWN_JOIN));
                 return 0;
             }
         }
@@ -239,7 +240,7 @@ public class PartyCommands {
     private static int executeLeaveParty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = (ServerPlayer) context.getSource().getEntity();
         if (player == null) {
-            context.getSource().sendFailure(Component.literal("❌ Comando deve ser executado por um jogador"));
+            context.getSource().sendFailure(Component.translatable(Constants.PARTY_ERROR_NOT_PLAYER));
             return 0;
         }
 
@@ -251,23 +252,23 @@ public class PartyCommands {
         switch (result) {
             case SUCCESS -> {
                 context.getSource().sendSuccess(() ->
-                        Component.literal("✅ Você saiu da party!")
+                        Component.translatable(Constants.PARTY_LEAVE_SUCCESS)
                                 .withStyle(ChatFormatting.GREEN), true);
 
                 context.getSource().sendSuccess(() ->
-                        Component.literal("📊 Sua progressão agora é individual novamente")
+                        Component.translatable(Constants.PARTY_LEAVE_SUCCESS_INDIVIDUAL)
                                 .withStyle(ChatFormatting.YELLOW), false);
 
                 return 1;
             }
             case NOT_IN_PARTY -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Você não está em nenhuma party!"));
+                        Component.translatable(Constants.PARTY_ERROR_NOT_IN_PARTY));
                 return 0;
             }
             default -> {
                 context.getSource().sendFailure(
-                        Component.literal("❌ Erro desconhecido ao sair da party"));
+                        Component.translatable(Constants.PARTY_ERROR_UNKNOWN_LEAVE));
                 return 0;
             }
         }
@@ -281,18 +282,18 @@ public class PartyCommands {
 
         if (publicParties.isEmpty()) {
             context.getSource().sendSuccess(() ->
-                    Component.literal("📋 Nenhuma party pública disponível")
+                    Component.translatable(Constants.PARTY_LIST_EMPTY)
                             .withStyle(ChatFormatting.YELLOW), false);
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("💡 Crie uma party com '/dimtr party create <nome>'")
+                    Component.translatable(Constants.PARTY_LIST_EMPTY_TIP)
                             .withStyle(ChatFormatting.GRAY), false);
 
             return 1;
         }
 
         context.getSource().sendSuccess(() ->
-                Component.literal("📋 Parties Públicas Disponíveis:")
+                Component.translatable(Constants.PARTY_LIST_HEADER)
                         .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
 
         for (PartyManager.PartyInfo party : publicParties) {
@@ -304,12 +305,12 @@ public class PartyCommands {
             int multiplierPercent = (int)((multiplier - 1.0) * 100);
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("• " + party.name + " (" + party.currentMembers + "/" + party.maxMembers + ") [+" + multiplierPercent + "%]")
+                    Component.translatable(Constants.PARTY_LIST_ENTRY, party.name, party.currentMembers, party.maxMembers, multiplierPercent)
                             .withStyle(statusColor), false);
         }
 
         context.getSource().sendSuccess(() ->
-                Component.literal("💡 Use '/dimtr party join <nome>' para entrar!")
+                Component.translatable(Constants.PARTY_LIST_JOIN_TIP)
                         .withStyle(ChatFormatting.GRAY), false);
 
         return 1;
@@ -318,7 +319,7 @@ public class PartyCommands {
     private static int executePartyInfo(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = (ServerPlayer) context.getSource().getEntity();
         if (player == null) {
-            context.getSource().sendFailure(Component.literal("❌ Comando deve ser executado por um jogador"));
+            context.getSource().sendFailure(Component.translatable(Constants.PARTY_ERROR_NOT_PLAYER));
             return 0;
         }
 
@@ -327,107 +328,117 @@ public class PartyCommands {
 
         if (!partyManager.isPlayerInParty(player.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Você não está em nenhuma party!"));
+                    Component.translatable(Constants.PARTY_ERROR_NOT_IN_PARTY));
             return 0;
         }
 
         PartyData party = partyManager.getPlayerParty(player.getUUID());
         if (party == null) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Erro ao obter informações da party"));
+                    Component.translatable(Constants.PARTY_ERROR_GET_PARTY_INFO));
             return 0;
         }
 
         // Cabeçalho da party
         context.getSource().sendSuccess(() ->
-                Component.literal("=== INFORMAÇÕES DA PARTY ===")
+                Component.translatable(Constants.PARTY_INFO_HEADER)
                         .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
 
         // Informações básicas
         context.getSource().sendSuccess(() ->
-                Component.literal("📛 Nome: " + party.getName())
+                Component.translatable(Constants.PARTY_INFO_NAME, party.getName())
                         .withStyle(ChatFormatting.WHITE), false);
 
         context.getSource().sendSuccess(() ->
-                Component.literal("👥 Membros: " + party.getMemberCount() + "/10")
+                Component.translatable(Constants.PARTY_INFO_MEMBERS, party.getMemberCount(), 10)
                         .withStyle(ChatFormatting.GRAY), false);
 
         context.getSource().sendSuccess(() ->
-                Component.literal("🔒 Tipo: " + (party.isPublic() ? "Pública" : "Privada"))
+                Component.translatable(Constants.PARTY_INFO_TYPE, party.isPublic() ? 
+                    Component.translatable(Constants.PARTY_INFO_TYPE_PUBLIC) : 
+                    Component.translatable(Constants.PARTY_INFO_TYPE_PRIVATE))
                         .withStyle(party.isPublic() ? ChatFormatting.GREEN : ChatFormatting.YELLOW), false);
 
         // Multiplicador
         double multiplier = party.getRequirementMultiplier();
         context.getSource().sendSuccess(() ->
-                Component.literal("⚡ Multiplicador: " + String.format("%.1fx", multiplier))
+                Component.translatable(Constants.PARTY_INFO_MULTIPLIER, String.format("%.1fx", multiplier))
                         .withStyle(multiplier > 1.0 ? ChatFormatting.RED : ChatFormatting.GREEN), false);
 
         // Lista de membros
         context.getSource().sendSuccess(() ->
-                Component.literal("--- MEMBROS ---")
+                Component.translatable(Constants.PARTY_INFO_MEMBERS_HEADER)
                         .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD), false);
 
         for (UUID memberId : party.getMembers()) {
             ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
-            String memberName = member != null ? member.getName().getString() : "Jogador Offline";
+            String memberName = member != null ? member.getName().getString() : 
+                Component.translatable(Constants.PARTY_MEMBER_OFFLINE).getString();
             boolean isLeader = memberId.equals(party.getLeaderId());
             boolean isCurrentPlayer = memberId.equals(player.getUUID());
 
-            String prefix = isLeader ? "👑 " : "👤 ";
-            String suffix = isCurrentPlayer ? " (Você)" : "";
+            Component prefix = isLeader ? 
+                Component.translatable(Constants.PARTY_MEMBER_LEADER_PREFIX) : 
+                Component.translatable(Constants.PARTY_MEMBER_REGULAR_PREFIX);
+            Component suffix = isCurrentPlayer ? 
+                Component.translatable(Constants.PARTY_MEMBER_YOU_SUFFIX) : 
+                Component.empty();
             ChatFormatting color = isLeader ? ChatFormatting.GOLD : ChatFormatting.WHITE;
 
             context.getSource().sendSuccess(() ->
-                    Component.literal(prefix + memberName + suffix)
+                    Component.empty()
+                            .append(prefix)
+                            .append(Component.literal(memberName))
+                            .append(suffix)
                             .withStyle(color), false);
         }
 
         // Progresso compartilhado
         context.getSource().sendSuccess(() ->
-                Component.literal("--- PROGRESSO COMPARTILHADO ---")
+                Component.translatable(Constants.PARTY_INFO_PROGRESS_HEADER)
                         .withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD), false);
 
         // Objetivos especiais
         if (party.isSharedElderGuardianKilled()) {
             context.getSource().sendSuccess(() ->
-                    Component.literal("✅ Elder Guardian Morto")
+                    Component.translatable(Constants.PARTY_PROGRESS_ELDER_GUARDIAN)
                             .withStyle(ChatFormatting.GREEN), false);
         }
 
         if (party.isSharedRaidWon()) {
             context.getSource().sendSuccess(() ->
-                    Component.literal("✅ Raid Vencida")
+                    Component.translatable(Constants.PARTY_PROGRESS_RAID_WON)
                             .withStyle(ChatFormatting.GREEN), false);
         }
 
         if (party.isSharedTrialVaultAdvancementEarned()) {
             context.getSource().sendSuccess(() ->
-                    Component.literal("✅ Trial Vault Conquistado")
+                    Component.translatable(Constants.PARTY_PROGRESS_TRIAL_VAULT)
                             .withStyle(ChatFormatting.GREEN), false);
         }
 
         if (party.isSharedVoluntaireExileAdvancementEarned()) {
             context.getSource().sendSuccess(() ->
-                    Component.literal("✅ Voluntary Exile Conquistado")
+                    Component.translatable(Constants.PARTY_PROGRESS_VOLUNTARY_EXILE)
                             .withStyle(ChatFormatting.GREEN), false);
         }
 
         if (party.isSharedWitherKilled()) {
             context.getSource().sendSuccess(() ->
-                    Component.literal("✅ Wither Morto")
+                    Component.translatable(Constants.PARTY_PROGRESS_WITHER_KILLED)
                             .withStyle(ChatFormatting.GREEN), false);
         }
 
         if (party.isSharedWardenKilled()) {
             context.getSource().sendSuccess(() ->
-                    Component.literal("✅ Warden Morto")
+                    Component.translatable(Constants.PARTY_PROGRESS_WARDEN_KILLED)
                             .withStyle(ChatFormatting.GREEN), false);
         }
 
-        // Kills compartilhados (apenas os mais importantes)
+        // Shared kills (only the most important ones)
         Map<String, Integer> sharedKills = party.getSharedMobKills();
         context.getSource().sendSuccess(() ->
-                Component.literal("--- KILLS COMPARTILHADOS ---")
+                Component.translatable(Constants.PARTY_INFO_KILLS_HEADER)
                         .withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD), false);
 
         String[] importantMobs = {"zombie", "skeleton", "creeper", "spider", "blaze", "wither_skeleton", "ravager", "evoker"};
@@ -435,34 +446,34 @@ public class PartyCommands {
             int kills = sharedKills.getOrDefault(mobType, 0);
             if (kills > 0) {
                 context.getSource().sendSuccess(() ->
-                        Component.literal("⚔ " + capitalizeFirst(mobType) + ": " + kills)
+                        Component.translatable(Constants.PARTY_INFO_KILL_ENTRY, capitalizeFirst(mobType), kills)
                                 .withStyle(ChatFormatting.GRAY), false);
             }
         }
 
         // Comandos disponíveis
         context.getSource().sendSuccess(() ->
-                Component.literal("--- COMANDOS DISPONÍVEIS ---")
+                Component.translatable(Constants.PARTY_INFO_COMMANDS_HEADER)
                         .withStyle(ChatFormatting.BLUE, ChatFormatting.BOLD), false);
 
         if (party.getLeaderId().equals(player.getUUID())) {
             // Comandos de líder
             context.getSource().sendSuccess(() ->
-                    Component.literal("👑 Comandos de Líder:")
+                    Component.translatable(Constants.PARTY_INFO_LEADER_COMMANDS)
                             .withStyle(ChatFormatting.GOLD), false);
             context.getSource().sendSuccess(() ->
-                    Component.literal("• /dimtr party kick <jogador> - Expulsar membro")
+                    Component.translatable(Constants.PARTY_INFO_LEADER_KICK)
                             .withStyle(ChatFormatting.GRAY), false);
             context.getSource().sendSuccess(() ->
-                    Component.literal("• /dimtr party promote <jogador> - Transferir liderança")
+                    Component.translatable(Constants.PARTY_INFO_LEADER_PROMOTE)
                             .withStyle(ChatFormatting.GRAY), false);
             context.getSource().sendSuccess(() ->
-                    Component.literal("• /dimtr party disband - Dissolver party")
+                    Component.translatable(Constants.PARTY_INFO_LEADER_DISBAND)
                             .withStyle(ChatFormatting.GRAY), false);
         }
 
         context.getSource().sendSuccess(() ->
-                Component.literal("• /dimtr party leave - Sair da party")
+                Component.translatable(Constants.PARTY_INFO_MEMBER_LEAVE)
                         .withStyle(ChatFormatting.GRAY), false);
 
         return 1;
@@ -475,7 +486,7 @@ public class PartyCommands {
     private static int executeDisbandParty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = (ServerPlayer) context.getSource().getEntity();
         if (player == null) {
-            context.getSource().sendFailure(Component.literal("❌ Comando deve ser executado por um jogador"));
+            context.getSource().sendFailure(Component.translatable(Constants.PARTY_ERROR_NOT_PLAYER));
             return 0;
         }
 
@@ -484,14 +495,14 @@ public class PartyCommands {
 
         if (!partyManager.isPlayerInParty(player.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Você não está em nenhuma party!"));
+                    Component.translatable(Constants.PARTY_ERROR_NOT_IN_PARTY));
             return 0;
         }
 
         PartyData party = partyManager.getPlayerParty(player.getUUID());
         if (party == null || !party.getLeaderId().equals(player.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Apenas o líder pode dissolver a party!"));
+                    Component.translatable(Constants.PARTY_ERROR_NOT_LEADER));
             return 0;
         }
 
@@ -501,7 +512,7 @@ public class PartyCommands {
         for (UUID memberId : party.getMembers()) {
             ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
             if (member != null && !member.equals(player)) {
-                member.sendSystemMessage(Component.literal("💔 A party '" + partyName + "' foi dissolvida pelo líder")
+                member.sendSystemMessage(Component.translatable(Constants.PARTY_DISBAND_NOTIFICATION, partyName)
                         .withStyle(ChatFormatting.RED));
             }
         }
@@ -512,7 +523,7 @@ public class PartyCommands {
         }
 
         context.getSource().sendSuccess(() ->
-                Component.literal("✅ Party '" + partyName + "' foi dissolvida!")
+                Component.translatable(Constants.PARTY_DISBAND_SUCCESS, partyName)
                         .withStyle(ChatFormatting.GREEN), true);
 
         return 1;
@@ -521,7 +532,7 @@ public class PartyCommands {
     private static int executeKickPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = (ServerPlayer) context.getSource().getEntity();
         if (player == null) {
-            context.getSource().sendFailure(Component.literal("❌ Comando deve ser executado por um jogador"));
+            context.getSource().sendFailure(Component.translatable(Constants.PARTY_ERROR_NOT_PLAYER));
             return 0;
         }
 
@@ -531,37 +542,37 @@ public class PartyCommands {
 
         if (!partyManager.isPlayerInParty(player.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Você não está em nenhuma party!"));
+                    Component.translatable(Constants.PARTY_ERROR_NOT_IN_PARTY));
             return 0;
         }
 
         PartyData party = partyManager.getPlayerParty(player.getUUID());
         if (party == null || !party.getLeaderId().equals(player.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Apenas o líder pode expulsar membros!"));
+                    Component.translatable(Constants.PARTY_ERROR_NOT_LEADER));
             return 0;
         }
 
         if (!party.getMembers().contains(targetPlayer.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ " + targetPlayer.getName().getString() + " não está na sua party!"));
+                    Component.translatable(Constants.PARTY_ERROR_PLAYER_NOT_IN_PARTY, targetPlayer.getName().getString()));
             return 0;
         }
 
         if (targetPlayer.getUUID().equals(player.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Você não pode se expulsar! Use '/dimtr party leave' ou '/dimtr party disband'"));
+                    Component.translatable(Constants.PARTY_ERROR_CANNOT_KICK_SELF));
             return 0;
         }
 
         partyManager.leaveParty(targetPlayer.getUUID());
 
         // Notificar o jogador expulso
-        targetPlayer.sendSystemMessage(Component.literal("💔 Você foi expulso da party '" + party.getName() + "' pelo líder")
+        targetPlayer.sendSystemMessage(Component.translatable(Constants.PARTY_KICK_NOTIFICATION, party.getName())
                 .withStyle(ChatFormatting.RED));
 
         context.getSource().sendSuccess(() ->
-                Component.literal("✅ " + targetPlayer.getName().getString() + " foi expulso da party!")
+                Component.translatable(Constants.PARTY_KICK_SUCCESS, targetPlayer.getName().getString())
                         .withStyle(ChatFormatting.GREEN), true);
 
         return 1;
@@ -570,7 +581,7 @@ public class PartyCommands {
     private static int executePromotePlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = (ServerPlayer) context.getSource().getEntity();
         if (player == null) {
-            context.getSource().sendFailure(Component.literal("❌ Comando deve ser executado por um jogador"));
+            context.getSource().sendFailure(Component.translatable(Constants.PARTY_ERROR_NOT_PLAYER));
             return 0;
         }
 
@@ -580,26 +591,26 @@ public class PartyCommands {
 
         if (!partyManager.isPlayerInParty(player.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Você não está em nenhuma party!"));
+                    Component.translatable(Constants.PARTY_ERROR_NOT_IN_PARTY));
             return 0;
         }
 
         PartyData party = partyManager.getPlayerParty(player.getUUID());
         if (party == null || !party.getLeaderId().equals(player.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Apenas o líder pode promover membros!"));
+                    Component.translatable(Constants.PARTY_ERROR_NOT_LEADER));
             return 0;
         }
 
         if (!party.getMembers().contains(targetPlayer.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ " + targetPlayer.getName().getString() + " não está na sua party!"));
+                    Component.translatable(Constants.PARTY_ERROR_PLAYER_NOT_IN_PARTY, targetPlayer.getName().getString()));
             return 0;
         }
 
         if (targetPlayer.getUUID().equals(player.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Você já é o líder da party!"));
+                    Component.translatable(Constants.PARTY_ERROR_ALREADY_LEADER));
             return 0;
         }
 
@@ -612,13 +623,13 @@ public class PartyCommands {
             ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
             if (member != null) {
                 if (member.equals(targetPlayer)) {
-                    member.sendSystemMessage(Component.literal("👑 Você foi promovido a líder da party '" + party.getName() + "'!")
+                    member.sendSystemMessage(Component.translatable(Constants.PARTY_PROMOTE_NEW_LEADER, party.getName())
                             .withStyle(ChatFormatting.GOLD));
                 } else if (member.equals(player)) {
-                    member.sendSystemMessage(Component.literal("✅ Você transferiu a liderança para " + targetPlayer.getName().getString())
+                    member.sendSystemMessage(Component.translatable(Constants.PARTY_PROMOTE_OLD_LEADER, targetPlayer.getName().getString())
                             .withStyle(ChatFormatting.GREEN));
                 } else {
-                    member.sendSystemMessage(Component.literal("👑 " + targetPlayer.getName().getString() + " é o novo líder da party!")
+                    member.sendSystemMessage(Component.translatable(Constants.PARTY_PROMOTE_NOTIFICATION, targetPlayer.getName().getString())
                             .withStyle(ChatFormatting.YELLOW));
                 }
             }
@@ -630,7 +641,7 @@ public class PartyCommands {
     private static int executeInvitePlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = (ServerPlayer) context.getSource().getEntity();
         if (player == null) {
-            context.getSource().sendFailure(Component.literal("❌ Comando deve ser executado por um jogador"));
+            context.getSource().sendFailure(Component.translatable(Constants.PARTY_ERROR_NOT_PLAYER));
             return 0;
         }
 
@@ -640,43 +651,43 @@ public class PartyCommands {
 
         if (!partyManager.isPlayerInParty(player.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Você não está em nenhuma party!"));
+                    Component.translatable(Constants.PARTY_ERROR_NOT_IN_PARTY));
             return 0;
         }
 
         PartyData party = partyManager.getPlayerParty(player.getUUID());
         if (party == null || !party.getLeaderId().equals(player.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Apenas o líder pode convidar jogadores!"));
+                    Component.translatable(Constants.PARTY_ERROR_NOT_LEADER));
             return 0;
         }
 
         if (partyManager.isPlayerInParty(targetPlayer.getUUID())) {
             context.getSource().sendFailure(
-                    Component.literal("❌ " + targetPlayer.getName().getString() + " já está em uma party!"));
+                    Component.translatable(Constants.PARTY_ERROR_PLAYER_ALREADY_IN_PARTY, targetPlayer.getName().getString()));
             return 0;
         }
 
         if (party.getMemberCount() >= 4) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Sua party já está cheia! (10/10 membros)"));
+                    Component.translatable(Constants.PARTY_ERROR_PARTY_FULL_INVITE));
             return 0;
         }
 
         // Enviar convite
-        targetPlayer.sendSystemMessage(Component.literal("📨 " + player.getName().getString() + " convidou você para a party '" + party.getName() + "'!")
+        targetPlayer.sendSystemMessage(Component.translatable(Constants.PARTY_INVITE_RECEIVED, player.getName().getString(), party.getName())
                 .withStyle(ChatFormatting.GOLD));
 
         if (party.isPublic()) {
-            targetPlayer.sendSystemMessage(Component.literal("💡 Use '/dimtr party join " + party.getName() + "' para aceitar")
+            targetPlayer.sendSystemMessage(Component.translatable(Constants.PARTY_INVITE_JOIN_PUBLIC, party.getName())
                     .withStyle(ChatFormatting.GRAY));
         } else {
-            targetPlayer.sendSystemMessage(Component.literal("🔒 Party privada - aguarde a senha do líder")
+            targetPlayer.sendSystemMessage(Component.translatable(Constants.PARTY_INVITE_JOIN_PRIVATE)
                     .withStyle(ChatFormatting.GRAY));
         }
 
         context.getSource().sendSuccess(() ->
-                Component.literal("✅ Convite enviado para " + targetPlayer.getName().getString() + "!")
+                Component.translatable(Constants.PARTY_INVITE_SUCCESS, targetPlayer.getName().getString())
                         .withStyle(ChatFormatting.GREEN), false);
 
         return 1;

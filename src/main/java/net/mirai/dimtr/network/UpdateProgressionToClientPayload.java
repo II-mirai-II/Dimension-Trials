@@ -3,10 +3,16 @@ package net.mirai.dimtr.network;
 import io.netty.buffer.ByteBuf;
 import net.mirai.dimtr.client.ClientProgressionData;
 import net.mirai.dimtr.util.Constants;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.util.Map;
+import java.util.HashMap;
+
+import java.util.Map;
 
 public record UpdateProgressionToClientPayload(
         // Objetivos originais (mantidos para compatibilidade)
@@ -81,7 +87,12 @@ public record UpdateProgressionToClientPayload(
         int reqEndermiteKills,
         int reqPiglinKills,
         // NOVO: Configuração específica para Voluntary Exile
-        boolean serverReqVoluntaryExile
+        boolean serverReqVoluntaryExile,
+
+        // 🎯 NOVO: Dados de Custom Phases
+        Map<String, Boolean> customPhaseCompletion,
+        Map<String, Map<String, Integer>> customMobKills,
+        Map<String, Map<String, Boolean>> customObjectiveCompletion
 ) implements CustomPacketPayload {
 
     public static final Type<UpdateProgressionToClientPayload> TYPE =
@@ -133,7 +144,11 @@ public record UpdateProgressionToClientPayload(
                 net.mirai.dimtr.config.DimTrConfig.SERVER.reqGhastKills.get(),
                 0, // endermiteKills sempre 0
                 net.mirai.dimtr.config.DimTrConfig.SERVER.reqPiglinKills.get(),
-                net.mirai.dimtr.config.DimTrConfig.SERVER.reqVoluntaryExile.get()
+                net.mirai.dimtr.config.DimTrConfig.SERVER.reqVoluntaryExile.get(),
+                // 🎯 NOVO: Custom phase data from player
+                playerData.getCustomPhaseCompletionMap(),
+                playerData.getCustomMobKillsMap(),
+                playerData.getCustomObjectiveCompletionMap()
         );
     }
 
@@ -208,6 +223,37 @@ public record UpdateProgressionToClientPayload(
 
         // NOVO: Configuração Voluntary Exile
         buf.writeBoolean(payload.serverReqVoluntaryExile);
+
+        // NOVO: Dados de Custom Phases
+        buf.writeInt(payload.customPhaseCompletion.size());
+        for (Map.Entry<String, Boolean> entry : payload.customPhaseCompletion.entrySet()) {
+            ByteBufCodecs.STRING_UTF8.encode(buf, entry.getKey());
+            buf.writeBoolean(entry.getValue());
+        }
+
+        // NOVO: Dados de Custom Mob Kills
+        buf.writeInt(payload.customMobKills.size());
+        for (Map.Entry<String, Map<String, Integer>> entry : payload.customMobKills.entrySet()) {
+            ByteBufCodecs.STRING_UTF8.encode(buf, entry.getKey());
+            Map<String, Integer> mobKills = entry.getValue();
+            buf.writeInt(mobKills.size());
+            for (Map.Entry<String, Integer> mobEntry : mobKills.entrySet()) {
+                ByteBufCodecs.STRING_UTF8.encode(buf, mobEntry.getKey());
+                buf.writeInt(mobEntry.getValue());
+            }
+        }
+
+        // NOVO: Dados de Custom Objective Completion
+        buf.writeInt(payload.customObjectiveCompletion.size());
+        for (Map.Entry<String, Map<String, Boolean>> entry : payload.customObjectiveCompletion.entrySet()) {
+            ByteBufCodecs.STRING_UTF8.encode(buf, entry.getKey());
+            Map<String, Boolean> objectiveCompletion = entry.getValue();
+            buf.writeInt(objectiveCompletion.size());
+            for (Map.Entry<String, Boolean> objEntry : objectiveCompletion.entrySet()) {
+                ByteBufCodecs.STRING_UTF8.encode(buf, objEntry.getKey());
+                buf.writeBoolean(objEntry.getValue());
+            }
+        }
     }
 
     private static UpdateProgressionToClientPayload decode(ByteBuf buf) {
@@ -282,6 +328,45 @@ public record UpdateProgressionToClientPayload(
         // NOVO: Configuração Voluntary Exile
         boolean serverReqVoluntaryExile = buf.readBoolean();
 
+        // NOVO: Dados de Custom Phases
+        int customPhaseCompletionSize = buf.readInt();
+        Map<String, Boolean> customPhaseCompletion = new HashMap<>();
+        for (int i = 0; i < customPhaseCompletionSize; i++) {
+            String key = ByteBufCodecs.STRING_UTF8.decode(buf);
+            boolean value = buf.readBoolean();
+            customPhaseCompletion.put(key, value);
+        }
+
+        // NOVO: Dados de Custom Mob Kills
+        int customMobKillsSize = buf.readInt();
+        Map<String, Map<String, Integer>> customMobKills = new HashMap<>();
+        for (int i = 0; i < customMobKillsSize; i++) {
+            String key = ByteBufCodecs.STRING_UTF8.decode(buf);
+            int mobKillsSize = buf.readInt();
+            Map<String, Integer> mobKills = new HashMap<>();
+            for (int j = 0; j < mobKillsSize; j++) {
+                String mobKey = ByteBufCodecs.STRING_UTF8.decode(buf);
+                int mobValue = buf.readInt();
+                mobKills.put(mobKey, mobValue);
+            }
+            customMobKills.put(key, mobKills);
+        }
+
+        // NOVO: Dados de Custom Objective Completion
+        int customObjectiveCompletionSize = buf.readInt();
+        Map<String, Map<String, Boolean>> customObjectiveCompletion = new HashMap<>();
+        for (int i = 0; i < customObjectiveCompletionSize; i++) {
+            String key = ByteBufCodecs.STRING_UTF8.decode(buf);
+            int objectiveCompletionSize = buf.readInt();
+            Map<String, Boolean> objectiveCompletion = new HashMap<>();
+            for (int j = 0; j < objectiveCompletionSize; j++) {
+                String objKey = ByteBufCodecs.STRING_UTF8.decode(buf);
+                boolean objValue = buf.readBoolean();
+                objectiveCompletion.put(objKey, objValue);
+            }
+            customObjectiveCompletion.put(key, objectiveCompletion);
+        }
+
         return new UpdateProgressionToClientPayload(
                 elderGuardianKilled, raidWon, ravagerKilled, evokerKilled, trialVaultAdvancementEarned,
                 voluntaireExileAdvancementEarned, phase1Completed, witherKilled, wardenKilled, phase2Completed,
@@ -295,7 +380,10 @@ public record UpdateProgressionToClientPayload(
                 reqPillagerKills, reqCaptainKills, reqVindicatorKills, reqBoggedKills, reqBreezeKills,
                 reqRavagerKills, reqEvokerKills, reqBlazeKills, reqWitherSkeletonKills, reqPiglinBruteKills,
                 reqHoglinKills, reqZoglinKills, reqGhastKills, reqEndermiteKills, reqPiglinKills,
-                serverReqVoluntaryExile
+                serverReqVoluntaryExile,
+                customPhaseCompletion,
+                customMobKills,
+                customObjectiveCompletion
         );
     }
 
@@ -317,12 +405,12 @@ public record UpdateProgressionToClientPayload(
                 
                 ClientProgressionData.INSTANCE.updateData(payload);
             } catch (Exception e) {
-                // Log de erro crítico com mais detalhes
-                System.err.println("❌ Failed to update ClientProgressionData: " + e.getMessage());
+                // Log erro usando logger apropriado ao invés de System.err/printStackTrace
+                net.mirai.dimtr.DimTrMod.LOGGER.error("Failed to update ClientProgressionData: {}", e.getMessage());
                 if (payload != null) {
-                    System.err.println("❌ Payload data: " + payload.toString());
+                    net.mirai.dimtr.DimTrMod.LOGGER.error("Payload data: {}", payload.toString());
                 }
-                e.printStackTrace();
+                net.mirai.dimtr.DimTrMod.LOGGER.error("Exception details:", e);
             }
         });
     }

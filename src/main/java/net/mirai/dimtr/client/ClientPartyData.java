@@ -35,6 +35,11 @@ public class ClientPartyData {
     private boolean phase1SharedCompleted = false;
     private boolean phase2SharedCompleted = false;
 
+    // 🎯 NOVO: Custom Phases data compartilhado
+    private Map<String, Boolean> sharedCustomPhaseCompletion = new HashMap<>();
+    private Map<String, Map<String, Integer>> sharedCustomMobKills = new HashMap<>();
+    private Map<String, Map<String, Boolean>> sharedCustomObjectiveCompletion = new HashMap<>();
+
     private ClientPartyData() {}
 
     // ✅ CORRIGIDO: Método updateData com detecção de dados vazios
@@ -63,6 +68,16 @@ public class ClientPartyData {
         this.phase1SharedCompleted = payload.phase1SharedCompleted();
         this.phase2SharedCompleted = payload.phase2SharedCompleted();
 
+        // 🎯 NOVO: Sincronizar dados de Custom Phases compartilhados
+        this.sharedCustomPhaseCompletion.clear();
+        this.sharedCustomPhaseCompletion.putAll(payload.sharedCustomPhaseCompletion());
+        
+        this.sharedCustomMobKills.clear();
+        this.sharedCustomMobKills.putAll(payload.sharedCustomMobKills());
+        
+        this.sharedCustomObjectiveCompletion.clear();
+        this.sharedCustomObjectiveCompletion.putAll(payload.sharedCustomObjectiveCompletion());
+
         // ✅ NOVO: Atualizar cache de nomes para membros online
         updateMemberNameCache();
     }
@@ -75,14 +90,15 @@ public class ClientPartyData {
             String currentName = null;
             
             // Tentar obter nome do jogador atual
-            if (minecraft.player != null && memberId.equals(minecraft.player.getUUID())) {
-                currentName = minecraft.player.getName().getString();
+            var player = minecraft.player;
+            if (player != null && memberId.equals(player.getUUID())) {
+                currentName = player.getName().getString();
             }
             // Tentar encontrar jogador online no mundo
             else if (minecraft.level != null) {
-                for (var player : minecraft.level.players()) {
-                    if (player.getUUID().equals(memberId)) {
-                        currentName = player.getName().getString();
+                for (var levelPlayer : minecraft.level.players()) {
+                    if (levelPlayer.getUUID().equals(memberId)) {
+                        currentName = levelPlayer.getName().getString();
                         break;
                     }
                 }
@@ -129,6 +145,11 @@ public class ClientPartyData {
         this.sharedWardenKilled = false;
         this.phase1SharedCompleted = false;
         this.phase2SharedCompleted = false;
+
+        // 🎯 NOVO: Limpar dados de Custom Phases
+        this.sharedCustomPhaseCompletion.clear();
+        this.sharedCustomMobKills.clear();
+        this.sharedCustomObjectiveCompletion.clear();
     }
 
     // ============================================================================
@@ -152,15 +173,16 @@ public class ClientPartyData {
         Minecraft minecraft = Minecraft.getInstance();
         
         // Se for o próprio jogador
-        if (minecraft.player != null && memberId.equals(minecraft.player.getUUID())) {
-            return minecraft.player.getName().getString();
+        var currentPlayer = minecraft.player;
+        if (currentPlayer != null && memberId.equals(currentPlayer.getUUID())) {
+            return currentPlayer.getName().getString();
         }
         
         // Tentar encontrar jogador online no mundo
         if (minecraft.level != null) {
-            for (var player : minecraft.level.players()) {
-                if (player.getUUID().equals(memberId)) {
-                    String name = player.getName().getString();
+            for (var levelPlayer : minecraft.level.players()) {
+                if (levelPlayer.getUUID().equals(memberId)) {
+                    String name = levelPlayer.getName().getString();
                     // Atualizar cache
                     memberNameCache.put(memberId, name);
                     return name;
@@ -219,5 +241,51 @@ public class ClientPartyData {
     public void notifyProgressUpdate() {
         // Este método pode ser chamado quando dados da party são atualizados
         // para forçar uma re-renderização do HUD com os novos multiplicadores
+    }
+
+    // ============================================================================
+    // 🎯 NOVO: Custom Phases Support
+    // ============================================================================
+    
+    /**
+     * Check if a custom phase is completed in the party
+     */
+    public boolean isSharedCustomPhaseComplete(String phaseId) {
+        return sharedCustomPhaseCompletion.getOrDefault(phaseId, false);
+    }
+    
+    /**
+     * Get shared custom mob kills for a specific phase and mob type
+     */
+    public int getSharedCustomMobKills(String phaseId, String mobType) {
+        return sharedCustomMobKills.getOrDefault(phaseId, new HashMap<>()).getOrDefault(mobType, 0);
+    }
+    
+    /**
+     * Check if a shared custom objective is completed
+     */
+    public boolean isSharedCustomObjectiveComplete(String phaseId, String objectiveId) {
+        return sharedCustomObjectiveCompletion.getOrDefault(phaseId, new HashMap<>()).getOrDefault(objectiveId, false);
+    }
+    
+    /**
+     * Get all shared custom phase completion data
+     */
+    public Map<String, Boolean> getSharedCustomPhaseCompletion() {
+        return new HashMap<>(sharedCustomPhaseCompletion);
+    }
+    
+    /**
+     * Get all shared custom mob kills data
+     */
+    public Map<String, Map<String, Integer>> getSharedCustomMobKills() {
+        return new HashMap<>(sharedCustomMobKills);
+    }
+    
+    /**
+     * Get all shared custom objective completion data
+     */
+    public Map<String, Map<String, Boolean>> getSharedCustomObjectiveCompletion() {
+        return new HashMap<>(sharedCustomObjectiveCompletion);
     }
 }

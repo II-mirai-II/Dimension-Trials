@@ -1,6 +1,7 @@
 package net.mirai.dimtr.network;
 
 import net.mirai.dimtr.DimTrMod;
+import net.mirai.dimtr.util.Constants;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -45,9 +46,9 @@ public class ModNetworking {
         // ============================================================================
         // 🎯 LOG DE CONFIRMAÇÃO
         // ============================================================================
-        DimTrMod.LOGGER.info("✅ Network payloads registered successfully:");
-        DimTrMod.LOGGER.info("   • UpdateProgressionToClientPayload (Individual progression sync)");
-        DimTrMod.LOGGER.info("   • UpdatePartyToClientPayload (Party system sync)");
-        DimTrMod.LOGGER.info("🎯 All networking systems are operational!");
+        DimTrMod.LOGGER.info(Constants.LOG_NETWORK_PAYLOADS_REGISTERED);
+        DimTrMod.LOGGER.info(Constants.LOG_NETWORK_PROGRESSION_PAYLOAD);
+        DimTrMod.LOGGER.info(Constants.LOG_NETWORK_PARTY_PAYLOAD);
+        DimTrMod.LOGGER.info(Constants.LOG_NETWORK_OPERATIONAL);
     }
 }

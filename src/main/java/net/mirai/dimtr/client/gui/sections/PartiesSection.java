@@ -63,7 +63,7 @@ public class PartiesSection implements HUDSection {
             content.add(Component.translatable(Constants.GUI_PARTIES_IN_PARTY)
                     .withStyle(ChatFormatting.GREEN));
 
-            content.add(Component.literal("Party: " + partyData.getPartyName())
+            content.add(Component.translatable(Constants.GUI_PARTY_NAME_PREFIX, partyData.getPartyName())
                     .withStyle(ChatFormatting.WHITE));
 
             content.add(Component.translatable(Constants.GUI_PARTIES_PARTY_TYPE,
@@ -75,10 +75,21 @@ public class PartiesSection implements HUDSection {
                     partyData.getMemberCount())
                     .withStyle(ChatFormatting.GRAY));
 
-            int percentageIncrease = (int)((partyData.getRequirementMultiplier() - 1.0) * 100);
-            content.add(Component.translatable(Constants.GUI_PARTIES_MULTIPLIER,
-                    partyData.getRequirementMultiplier(), percentageIncrease)
-                    .withStyle(ChatFormatting.YELLOW));
+            // 🎯 CORREÇÃO: Mostrar aumento de requisitos para trabalho em equipe
+            double multiplier = partyData.getRequirementMultiplier();
+            int percentageIncrease = (int)((multiplier - 1.0) * 100);
+            
+            if (multiplier > 1.0) {
+                // Aumento dos requisitos devido ao trabalho em equipe
+                content.add(Component.translatable(Constants.GUI_REQUIREMENTS_INCREASED,
+                        percentageIncrease)
+                        .withStyle(ChatFormatting.YELLOW));
+            } else {
+                // Solo (multiplicador = 1.0)
+                content.add(Component.translatable(Constants.GUI_PARTIES_MULTIPLIER,
+                        multiplier, 0)
+                        .withStyle(ChatFormatting.YELLOW));
+            }
 
             content.add(Component.empty());
 
@@ -86,8 +97,8 @@ public class PartiesSection implements HUDSection {
             content.add(Component.translatable(Constants.GUI_PARTIES_MEMBERS)
                     .withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD));
 
-            UUID currentPlayerId = Minecraft.getInstance().player != null ?
-                    Minecraft.getInstance().player.getUUID() : null;
+            var currentPlayer = Minecraft.getInstance().player;
+            UUID currentPlayerId = currentPlayer != null ? currentPlayer.getUUID() : null;
 
             for (UUID memberId : partyData.getMembers()) {
                 String memberName = partyData.getMemberName(memberId);
@@ -128,6 +139,23 @@ public class PartiesSection implements HUDSection {
                         .withStyle(ChatFormatting.GREEN));
             }
 
+            // 🎯 NOVO: Mostrar progresso de Custom Phases compartilhado
+            var sharedCustomPhases = partyData.getSharedCustomPhaseCompletion();
+            if (!sharedCustomPhases.isEmpty()) {
+                content.add(Component.empty());
+                content.add(Component.translatable(Constants.GUI_CUSTOM_PHASES_SHARED)
+                        .withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
+                
+                for (var entry : sharedCustomPhases.entrySet()) {
+                    String phaseId = entry.getKey();
+                    boolean completed = entry.getValue();
+                    String status = completed ? Constants.ICON_COMPLETED.trim() : Constants.ICON_PENDING.trim();
+                    ChatFormatting color = completed ? ChatFormatting.GREEN : ChatFormatting.YELLOW;
+                    
+                    content.add(Component.literal("  " + status + " " + phaseId).withStyle(color));
+                }
+            }
+
         } else {
             // 🔧 CORRIGIDO: Usar constantes
             content.add(Component.translatable(Constants.GUI_PARTIES_NO_PARTY)
@@ -141,17 +169,17 @@ public class PartiesSection implements HUDSection {
 
             content.add(Component.translatable(Constants.GUI_PARTIES_ACTION_CREATE)
                     .withStyle(ChatFormatting.GREEN));
-            content.add(Component.literal("  /dimtr party create <nome> [senha]")
+            content.add(Component.translatable(Constants.GUI_PARTIES_CMD_CREATE_EXAMPLE)
                     .withStyle(ChatFormatting.GRAY));
 
             content.add(Component.translatable(Constants.GUI_PARTIES_ACTION_JOIN)
                     .withStyle(ChatFormatting.BLUE));
-            content.add(Component.literal("  /dimtr party join <nome> [senha]")
+            content.add(Component.translatable(Constants.GUI_PARTIES_CMD_JOIN_EXAMPLE)
                     .withStyle(ChatFormatting.GRAY));
 
             content.add(Component.translatable(Constants.GUI_PARTIES_ACTION_LIST)
                     .withStyle(ChatFormatting.AQUA));
-            content.add(Component.literal("  /dimtr party list")
+            content.add(Component.translatable(Constants.GUI_PARTIES_CMD_LIST_EXAMPLE)
                     .withStyle(ChatFormatting.GRAY));
         }
 

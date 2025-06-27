@@ -299,7 +299,7 @@ public class DimTrConfig {
 
             maxPartySize = builder
                     .comment("Maximum number of players per party")
-                    .defineInRange("maxPartySize", 4, 2, 8);
+                    .defineInRange("maxPartySize", 4, 2, 10);
 
             partyProgressionMultiplier = builder
                     .comment("Progression multiplier per additional party member (0.75 = 75% faster per member)")
@@ -339,7 +339,6 @@ public class DimTrConfig {
 
         // Configurações de interface
         public final ModConfigSpec.BooleanValue enableHUD;
-        public final ModConfigSpec.BooleanValue enableProgressionBook;
         public final ModConfigSpec.BooleanValue enableSounds;
         public final ModConfigSpec.BooleanValue enableParticles;
 
@@ -363,10 +362,6 @@ public class DimTrConfig {
             enableHUD = builder
                     .comment("Enable progression HUD display")
                     .define("enableHUD", true);
-
-            enableProgressionBook = builder
-                    .comment("Enable progression book item")
-                    .define("enableProgressionBook", true);
 
             enableSounds = builder
                     .comment("Enable mod sound effects")

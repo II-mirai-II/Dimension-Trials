@@ -5,6 +5,7 @@ import net.mirai.dimtr.config.CustomRequirements;
 import net.mirai.dimtr.config.DimTrConfig;
 import net.mirai.dimtr.network.UpdateProgressionToClientPayload;
 import net.mirai.dimtr.util.Constants;
+import net.mirai.dimtr.util.ConfigCache;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -180,7 +181,7 @@ public class ProgressionManager extends SavedData {
 
     // Implementar verificações de requisitos (similares à versão original)
     private boolean checkPhase1MobRequirements(PlayerProgressionData playerData) {
-        if (!DimTrConfig.SERVER.enableMobKillsPhase1.get()) {
+        if (!ConfigCache.isMobKillsPhase1Enabled()) {
             return true;
         }
 

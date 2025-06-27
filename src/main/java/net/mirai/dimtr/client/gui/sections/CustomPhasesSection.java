@@ -2,6 +2,7 @@ package net.mirai.dimtr.client.gui.sections;
 
 import net.mirai.dimtr.client.ClientProgressionData;
 import net.mirai.dimtr.config.CustomRequirements;
+import net.mirai.dimtr.util.Constants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
@@ -21,12 +22,12 @@ public class CustomPhasesSection implements HUDSection {
 
     @Override
     public Component getTitle() {
-        return Component.literal(getIcon() + " Custom Phases");
+        return Component.translatable(Constants.GUI_CUSTOM_PHASES_TITLE);
     }
 
     @Override
     public Component getDescription() {
-        return Component.literal("Progress in custom mod integration phases");
+        return Component.translatable(Constants.GUI_CUSTOM_PHASES_DESCRIPTION);
     }
 
     @Override
@@ -46,11 +47,11 @@ public class CustomPhasesSection implements HUDSection {
         
         var customPhases = CustomRequirements.getAllCustomPhases();
         if (customPhases.isEmpty()) {
-            content.add(Component.literal("No custom phases configured").withStyle(ChatFormatting.GRAY));
+            content.add(Component.translatable(Constants.GUI_CUSTOM_PHASES_NO_PHASES).withStyle(ChatFormatting.GRAY));
             content.add(Component.literal(""));
-            content.add(Component.literal("Custom phases can be configured via JSON files in:")
+            content.add(Component.translatable(Constants.GUI_CUSTOM_PHASES_CONFIG_INFO)
                     .withStyle(ChatFormatting.DARK_GRAY));
-            content.add(Component.literal("config/dimtr/custom_requirements/")
+            content.add(Component.translatable(Constants.GUI_CUSTOM_PHASES_CONFIG_PATH)
                     .withStyle(ChatFormatting.DARK_GRAY));
             return content;
         }
@@ -71,7 +72,7 @@ public class CustomPhasesSection implements HUDSection {
             
             // Add progress details
             if (phase.mobRequirements != null && !phase.mobRequirements.isEmpty()) {
-                content.add(Component.literal("  Mob Requirements:").withStyle(ChatFormatting.AQUA));
+                content.add(Component.translatable(Constants.GUI_CUSTOM_PHASES_MOB_REQUIREMENTS).withStyle(ChatFormatting.AQUA));
                 for (Map.Entry<String, Integer> mobEntry : phase.mobRequirements.entrySet()) {
                     String mobType = mobEntry.getKey();
                     // 🎯 NOVO: Usar requisito ajustado por party

@@ -389,4 +389,15 @@ public class PlayerProgressionData {
     public Map<String, Boolean> getCustomPhaseCompletionMap() {
         return customPhaseCompletion;
     }
+    
+    /**
+     * 🎯 NOVO: Getters para mapas de custom phase (para PartyData)
+     */
+    public Map<String, Map<String, Integer>> getCustomMobKillsMap() {
+        return customMobKills;
+    }
+    
+    public Map<String, Map<String, Boolean>> getCustomObjectiveCompletionMap() {
+        return customObjectiveCompletion;
+    }
 }

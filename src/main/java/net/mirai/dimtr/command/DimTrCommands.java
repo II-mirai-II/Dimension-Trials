@@ -183,37 +183,37 @@ public class DimTrCommands {
     private static int executeCompleteSelfPhase1(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = getPlayerFromContext(context);
         if (player == null) return 0;
-        return completePhase1ForPlayer(context, player.getUUID(), "você");
+        return completePhase1ForPlayer(context, player.getUUID(), Component.translatable(Constants.PRONOUN_YOU).getString());
     }
 
     private static int executeCompleteSelfPhase2(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = getPlayerFromContext(context);
         if (player == null) return 0;
-        return completePhase2ForPlayer(context, player.getUUID(), "você");
+        return completePhase2ForPlayer(context, player.getUUID(), Component.translatable(Constants.PRONOUN_YOU).getString());
     }
 
     private static int executeResetSelfAll(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = getPlayerFromContext(context);
         if (player == null) return 0;
-        return resetPlayerProgress(context, player.getUUID(), "sua", "all");
+        return resetPlayerProgress(context, player.getUUID(), Component.translatable(Constants.PRONOUN_YOUR_FEM).getString(), "all");
     }
 
     private static int executeResetSelfPhase1(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = getPlayerFromContext(context);
         if (player == null) return 0;
-        return resetPlayerProgress(context, player.getUUID(), "sua", "phase1");
+        return resetPlayerProgress(context, player.getUUID(), Component.translatable(Constants.PRONOUN_YOUR_FEM).getString(), "phase1");
     }
 
     private static int executeResetSelfPhase2(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = getPlayerFromContext(context);
         if (player == null) return 0;
-        return resetPlayerProgress(context, player.getUUID(), "sua", "phase2");
+        return resetPlayerProgress(context, player.getUUID(), Component.translatable(Constants.PRONOUN_YOUR_FEM).getString(), "phase2");
     }
 
     private static int executeResetSelfMobKills(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = getPlayerFromContext(context);
         if (player == null) return 0;
-        return resetPlayerProgress(context, player.getUUID(), "seus", "mob_kills");
+        return resetPlayerProgress(context, player.getUUID(), Component.translatable(Constants.PRONOUN_YOUR_PLURAL).getString(), "mob_kills");
     }
 
     private static int executeSetSelfGoal(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -221,7 +221,7 @@ public class DimTrCommands {
         if (player == null) return 0;
         String goalName = StringArgumentType.getString(context, "goal_name");
         boolean value = BoolArgumentType.getBool(context, "value");
-        return setPlayerGoal(context, player.getUUID(), "seu", goalName, value);
+        return setPlayerGoal(context, player.getUUID(), Component.translatable(Constants.PRONOUN_YOUR_MASC).getString(), goalName, value);
     }
 
     private static int executeSetSelfMobKill(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -229,13 +229,13 @@ public class DimTrCommands {
         if (player == null) return 0;
         String mobType = StringArgumentType.getString(context, "mob_type");
         int count = IntegerArgumentType.getInteger(context, "count");
-        return setPlayerMobKill(context, player.getUUID(), "seus", mobType, count);
+        return setPlayerMobKill(context, player.getUUID(), Component.translatable(Constants.PRONOUN_YOUR_PLURAL).getString(), mobType, count);
     }
 
     private static int executeSelfStatus(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = getPlayerFromContext(context);
         if (player == null) return 0;
-        return showPlayerStatus(context, player.getUUID(), "Sua");
+        return showPlayerStatus(context, player.getUUID(), Component.translatable(Constants.PRONOUN_YOUR_FEM).getString());
     }
 
     private static int executeSelfSync(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -290,7 +290,7 @@ public class DimTrCommands {
         }
 
         context.getSource().sendSuccess(() ->
-                Component.literal("✅ Fase 1 completa para " + playerName + "!")
+                Component.translatable(Constants.DIMTR_PHASE1_COMPLETE_SUCCESS, playerName)
                         .withStyle(ChatFormatting.GREEN), true);
 
         return 1;
@@ -350,7 +350,7 @@ public class DimTrCommands {
         }
 
         context.getSource().sendSuccess(() ->
-                Component.literal("✅ Fase 2 completa para " + playerName + "!")
+                Component.translatable(Constants.DIMTR_PHASE2_COMPLETE_SUCCESS, playerName)
                         .withStyle(ChatFormatting.GREEN), true);
 
         return 1;
@@ -391,7 +391,7 @@ public class DimTrCommands {
                 resetPhase2MobKills(playerData);
             }
             case "mob_kills" -> {
-                // Reset apenas contadores de mobs
+                // Reset only mob counters
                 resetAllMobKills(playerData);
             }
         }
@@ -406,15 +406,15 @@ public class DimTrCommands {
         }
 
         String resetDescription = switch (resetType) {
-            case "all" -> "progressão completa";
-            case "phase1" -> "progressão da Fase 1";
-            case "phase2" -> "progressão da Fase 2";
-            case "mob_kills" -> "contadores de mobs";
-            default -> "dados";
+            case "all" -> Component.translatable(Constants.RESET_TYPE_ALL_ENG).getString();
+            case "phase1" -> Component.translatable(Constants.RESET_TYPE_PHASE1_ENG).getString();
+            case "phase2" -> Component.translatable(Constants.RESET_TYPE_PHASE2_ENG).getString();
+            case "mob_kills" -> Component.translatable(Constants.RESET_TYPE_MOB_KILLS_ENG).getString();
+            default -> Component.translatable(Constants.RESET_TYPE_DEFAULT_ENG).getString();
         };
 
         context.getSource().sendSuccess(() ->
-                Component.literal("✅ " + resetDescription + " resetada para " + playerName + "!")
+                Component.translatable(Constants.DIMTR_RESET_SUCCESS_MESSAGE, resetDescription, playerName)
                         .withStyle(ChatFormatting.GREEN), true);
 
         return 1;
@@ -433,7 +433,7 @@ public class DimTrCommands {
             case "wither" -> { playerData.witherKilled = value; yield true; }
             case "warden" -> { playerData.wardenKilled = value; yield true; }
             default -> {
-                context.getSource().sendFailure(Component.literal("❌ Objetivo inválido: " + goalName));
+                context.getSource().sendFailure(Component.translatable(Constants.DIMTR_INVALID_GOAL_ERROR, goalName));
                 yield false;
             }
         };
@@ -449,7 +449,7 @@ public class DimTrCommands {
             }
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("✅ Objetivo '" + goalName + "' definido como " + value + " para " + playerName)
+                    Component.translatable(Constants.CMD_GOAL_SET_SUCCESS, goalName, value, playerName)
                             .withStyle(ChatFormatting.GREEN), true);
             return 1;
         }
@@ -487,7 +487,7 @@ public class DimTrCommands {
             case "ghast" -> { playerData.ghastKills = count; yield true; }
             case "piglin" -> { playerData.piglinKills = count; yield true; }
             default -> {
-                context.getSource().sendFailure(Component.literal("❌ Tipo de mob inválido: " + mobType));
+                context.getSource().sendFailure(Component.translatable(Constants.CMD_INVALID_MOB_FORMAT, mobType));
                 yield false;
             }
         };
@@ -503,7 +503,7 @@ public class DimTrCommands {
             }
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("✅ Contagem de '" + mobType + "' definida como " + count + " para " + playerName)
+                    Component.translatable(Constants.CMD_MOB_COUNT_SET_SUCCESS, mobType, count, playerName)
                             .withStyle(ChatFormatting.GREEN), true);
             return 1;
         }
@@ -518,7 +518,7 @@ public class DimTrCommands {
 
         // Cabeçalho
         context.getSource().sendSuccess(() ->
-                Component.literal("=== " + playerName.toUpperCase() + " PROGRESSÃO ===")
+                Component.translatable(Constants.CMD_STATUS_PROGRESSION_HEADER, playerName.toUpperCase())
                         .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
 
         // Status das fases
@@ -526,34 +526,36 @@ public class DimTrCommands {
         ChatFormatting phase2Color = playerData.phase2Completed ? ChatFormatting.GREEN : ChatFormatting.RED;
 
         context.getSource().sendSuccess(() ->
-                Component.literal("🏆 Fase 1: " + (playerData.phase1Completed ? "COMPLETA" : "INCOMPLETA"))
+                Component.translatable(Constants.CMD_PLAYER_PHASE1_STATUS, 
+                        playerData.phase1Completed ? Constants.STATUS_COMPLETE : Constants.STATUS_INCOMPLETE)
                         .withStyle(phase1Color), false);
 
         context.getSource().sendSuccess(() ->
-                Component.literal("🏆 Fase 2: " + (playerData.phase2Completed ? "COMPLETA" : "INCOMPLETA"))
+                Component.translatable(Constants.CMD_PLAYER_PHASE2_STATUS, 
+                        playerData.phase2Completed ? Constants.STATUS_COMPLETE : Constants.STATUS_INCOMPLETE)
                         .withStyle(phase2Color), false);
 
-        // Multiplicador atual
+        // Current multiplier
         double multiplier = playerData.getProgressionMultiplier();
         context.getSource().sendSuccess(() ->
-                Component.literal("⚡ Multiplicador: " + String.format("%.1fx", multiplier))
+                Component.translatable(Constants.CMD_PLAYER_MULTIPLIER, String.format("%.1fx", multiplier))
                         .withStyle(multiplier > 1.0 ? ChatFormatting.GOLD : ChatFormatting.GRAY), false);
 
-        // Objetivos especiais
+        // Special objectives
         context.getSource().sendSuccess(() ->
-                Component.literal("--- OBJETIVOS ESPECIAIS ---")
+                Component.translatable(Constants.CMD_PLAYER_OBJECTIVES_HEADER)
                         .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD), false);
 
-        showGoalStatus(context, "🦈 Elder Guardian", playerData.elderGuardianKilled);
-        showGoalStatus(context, "⚔️ Raid Vencida", playerData.raidWon);
-        showGoalStatus(context, "💎 Trial Vault", playerData.trialVaultAdvancementEarned);
-        showGoalStatus(context, "🏹 Voluntary Exile", playerData.voluntaireExileAdvancementEarned);
-        showGoalStatus(context, "💀 Wither Morto", playerData.witherKilled);
-        showGoalStatus(context, "👁️ Warden Morto", playerData.wardenKilled);
+        showGoalStatus(context, Component.translatable(Constants.GOAL_STATUS_ELDER_GUARDIAN).getString(), playerData.elderGuardianKilled);
+        showGoalStatus(context, Component.translatable(Constants.GOAL_STATUS_RAID_WON).getString(), playerData.raidWon);
+        showGoalStatus(context, Component.translatable(Constants.GOAL_STATUS_TRIAL_VAULT).getString(), playerData.trialVaultAdvancementEarned);
+        showGoalStatus(context, Component.translatable(Constants.GOAL_STATUS_VOLUNTARY_EXILE).getString(), playerData.voluntaireExileAdvancementEarned);
+        showGoalStatus(context, Component.translatable(Constants.GOAL_STATUS_WITHER_KILLED).getString(), playerData.witherKilled);
+        showGoalStatus(context, Component.translatable(Constants.GOAL_STATUS_WARDEN_KILLED).getString(), playerData.wardenKilled);
 
-        // Contadores importantes
+        // Important counters
         context.getSource().sendSuccess(() ->
-                Component.literal("--- CONTADORES PRINCIPAIS ---")
+                Component.translatable(Constants.CMD_PLAYER_COUNTERS_HEADER)
                         .withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD), false);
 
         String[] importantMobs = {"zombie", "skeleton", "creeper", "spider", "ravager", "evoker", "blaze", "wither_skeleton", "hoglin", "zoglin"};
@@ -561,7 +563,7 @@ public class DimTrCommands {
             int kills = playerData.getMobKillCount(mobType);
             if (kills > 0) {
                 context.getSource().sendSuccess(() ->
-                        Component.literal("⚔️ " + capitalizeFirst(mobType) + ": " + kills)
+                        Component.translatable(Constants.CMD_STATUS_MOB_KILL_FORMAT, capitalizeFirst(mobType), kills)
                                 .withStyle(ChatFormatting.GRAY), false);
             }
         }
@@ -576,16 +578,16 @@ public class DimTrCommands {
         try {
             progressionManager.sendToClient(player);
             context.getSource().sendSuccess(() ->
-                    Component.literal("✅ Sincronização enviada para " + player.getName().getString() + "!")
+                    Component.translatable(Constants.CMD_SYNC_SUCCESS, player.getName().getString())
                             .withStyle(ChatFormatting.GREEN), false);
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("💡 Peça ao jogador para abrir o HUD (J) para verificar os valores")
+                    Component.translatable(Constants.CMD_SYNC_INFO)
                             .withStyle(ChatFormatting.GRAY), false);
             return 1;
         } catch (Exception e) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Falha na sincronização: " + e.getMessage()));
+                    Component.translatable(Constants.CMD_SYNC_FAILURE, e.getMessage()));
             DimTrMod.LOGGER.error("Failed to sync player data", e);
             return 0;
         }
@@ -615,12 +617,12 @@ public class DimTrCommands {
             UpdateProgressionToClientPayload payload = UpdateProgressionToClientPayload.createFromPlayerData(playerData);
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("=== DEBUG PAYLOAD: " + player.getName().getString() + " ===")
+                    Component.translatable(Constants.CMD_DEBUG_PAYLOAD_HEADER, player.getName().getString())
                             .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
 
-            // Debug valores críticos
+            // Debug critical values  
             context.getSource().sendSuccess(() ->
-                    Component.literal("📊 Requisitos vs Atual:")
+                    Component.translatable(Constants.CMD_DEBUG_REQUIREMENTS)
                             .withStyle(ChatFormatting.AQUA), false);
 
             debugMobComparison(context, "Ravager", payload.reqRavagerKills(), payload.ravagerKills());
@@ -629,52 +631,52 @@ public class DimTrCommands {
             debugMobComparison(context, "Zoglin", payload.reqZoglinKills(), payload.zoglinKills());
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("🔧 Status das Fases:")
+                    Component.translatable(Constants.CMD_DEBUG_PHASE_STATUS)
                             .withStyle(ChatFormatting.LIGHT_PURPLE), false);
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("  Phase 1: " + payload.phase1Completed())
+                    Component.translatable(Constants.CMD_DEBUG_PHASE_STATUS_FORMAT, "Phase 1", payload.phase1Completed())
                             .withStyle(payload.phase1Completed() ? ChatFormatting.GREEN : ChatFormatting.RED), false);
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("  Phase 2: " + payload.phase2Completed())
+                    Component.translatable(Constants.CMD_DEBUG_PHASE_STATUS_FORMAT, "Phase 2", payload.phase2Completed())
                             .withStyle(payload.phase2Completed() ? ChatFormatting.GREEN : ChatFormatting.RED), false);
 
             return 1;
         } catch (Exception e) {
             context.getSource().sendFailure(
-                    Component.literal("❌ Erro ao criar payload de debug: " + e.getMessage()));
+                    Component.translatable(Constants.CMD_DEBUG_ERROR_CREATING_PAYLOAD, e.getMessage()));
             return 0;
         }
     }
 
     private static int executeDebugGlobalStatus(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerLevel serverLevel = context.getSource().getLevel();
-        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
-
         context.getSource().sendSuccess(() ->
-                Component.literal("=== STATUS GLOBAL DO SERVIDOR ===")
+                Component.translatable(Constants.CMD_STATUS_GLOBAL_HEADER)
                         .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
 
         context.getSource().sendSuccess(() ->
-                Component.literal("🌍 Dimension Trials - Sistema Individual")
+                Component.translatable(Constants.CMD_DEBUG_SYSTEM_TITLE)
                         .withStyle(ChatFormatting.GREEN), false);
 
         // Estatísticas de configuração
         context.getSource().sendSuccess(() ->
-                Component.literal("📋 Configurações Ativas:")
+                Component.translatable(Constants.CMD_DEBUG_CONFIGURATIONS_ACTIVE)
                         .withStyle(ChatFormatting.AQUA), false);
 
         context.getSource().sendSuccess(() ->
-                Component.literal("  Fase 1: " + (DimTrConfig.SERVER.enablePhase1.get() ? "Ativada" : "Desativada"))
+                Component.translatable(Constants.CMD_DEBUG_PHASE1_STATUS, 
+                        DimTrConfig.SERVER.enablePhase1.get() ? Component.translatable(Constants.STATUS_ENABLED).getString() : Component.translatable(Constants.STATUS_DISABLED).getString())
                         .withStyle(DimTrConfig.SERVER.enablePhase1.get() ? ChatFormatting.GREEN : ChatFormatting.RED), false);
 
         context.getSource().sendSuccess(() ->
-                Component.literal("  Fase 2: " + (DimTrConfig.SERVER.enablePhase2.get() ? "Ativada" : "Desativada"))
+                Component.translatable(Constants.CMD_DEBUG_PHASE2_STATUS,
+                        DimTrConfig.SERVER.enablePhase2.get() ? Component.translatable(Constants.STATUS_ENABLED).getString() : Component.translatable(Constants.STATUS_DISABLED).getString())
                         .withStyle(DimTrConfig.SERVER.enablePhase2.get() ? ChatFormatting.GREEN : ChatFormatting.RED), false);
 
         context.getSource().sendSuccess(() ->
-                Component.literal("  Voluntary Exile: " + (DimTrConfig.SERVER.reqVoluntaryExile.get() ? "Obrigatório" : "Opcional"))
+                Component.translatable(Constants.CMD_DEBUG_VOLUNTARY_EXILE_STATUS,
+                        DimTrConfig.SERVER.reqVoluntaryExile.get() ? Component.translatable(Constants.STATUS_REQUIRED).getString() : Component.translatable(Constants.STATUS_OPTIONAL).getString())
                         .withStyle(DimTrConfig.SERVER.reqVoluntaryExile.get() ? ChatFormatting.YELLOW : ChatFormatting.GRAY), false);
 
         return 1;
@@ -684,13 +686,13 @@ public class DimTrCommands {
         ServerLevel serverLevel = context.getSource().getLevel();
 
         context.getSource().sendSuccess(() ->
-                Component.literal("=== JOGADORES ONLINE ===")
+                Component.translatable(Constants.CMD_DEBUG_ONLINE_PLAYERS_HEADER)
                         .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
 
         var playerList = serverLevel.getServer().getPlayerList().getPlayers();
         if (playerList.isEmpty()) {
             context.getSource().sendSuccess(() ->
-                    Component.literal("❌ Nenhum jogador online")
+                    Component.translatable(Constants.CMD_DEBUG_NO_ONLINE_PLAYERS)
                             .withStyle(ChatFormatting.RED), false);
             return 1;
         }
@@ -704,7 +706,8 @@ public class DimTrCommands {
             double multiplier = playerData.getProgressionMultiplier();
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("👤 " + player.getName().getString() + " - P1:" + phase1Status + " P2:" + phase2Status + " (" + String.format("%.1fx", multiplier) + ")")
+                    Component.translatable(Constants.CMD_DEBUG_PLAYER_FORMAT, 
+                            player.getName().getString(), phase1Status, phase2Status, String.format("%.1fx", multiplier))
                             .withStyle(ChatFormatting.WHITE), false);
         }
 
@@ -716,13 +719,13 @@ public class DimTrCommands {
         ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
 
         context.getSource().sendSuccess(() ->
-                Component.literal("=== MULTIPLICADORES POR JOGADOR ===")
+                Component.translatable(Constants.CMD_DEBUG_MULTIPLIERS_HEADER)
                         .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
 
         var playerList = serverLevel.getServer().getPlayerList().getPlayers();
         if (playerList.isEmpty()) {
             context.getSource().sendSuccess(() ->
-                    Component.literal("❌ Nenhum jogador online")
+                    Component.translatable(Constants.CMD_DEBUG_NO_ONLINE_PLAYERS)
                             .withStyle(ChatFormatting.RED), false);
             return 1;
         }
@@ -738,15 +741,15 @@ public class DimTrCommands {
             ChatFormatting color = personalMultiplier > 1.0 ? ChatFormatting.GOLD : ChatFormatting.GRAY;
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("👤 " + player.getName().getString() + ":")
+                    Component.translatable(Constants.CMD_DEBUG_PLAYER_MULTIPLIER_HEADER, player.getName().getString())
                             .withStyle(ChatFormatting.WHITE), false);
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("  Individual: " + String.format("%.1fx", personalMultiplier))
+                    Component.translatable(Constants.CMD_DEBUG_PLAYER_MULTIPLIER_INDIVIDUAL, String.format("%.1fx", personalMultiplier))
                             .withStyle(color), false);
 
             context.getSource().sendSuccess(() ->
-                    Component.literal("  Próximo: " + String.format("%.1fx", averageMultiplier))
+                    Component.translatable(Constants.CMD_DEBUG_PLAYER_MULTIPLIER_NEARBY, String.format("%.1fx", averageMultiplier))
                             .withStyle(ChatFormatting.GRAY), false);
         }
 
@@ -761,7 +764,7 @@ public class DimTrCommands {
         if (context.getSource().getEntity() instanceof ServerPlayer player) {
             return player;
         }
-        context.getSource().sendFailure(Component.literal("❌ Este comando deve ser executado por um jogador"));
+        context.getSource().sendFailure(Component.translatable(Constants.CMD_COMMAND_PLAYER_ONLY));
         return null;
     }
 

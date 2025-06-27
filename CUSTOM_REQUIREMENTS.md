@@ -1,96 +1,86 @@
 # 🎨 Custom Requirements System
 
-**Revolutionary JSON-based system** for creating unlimited custom phases and integrating with any mod!
+**Create unlimited custom phases and integrate any mod - no coding required!**
 
-## 🌟 Key Features
+## 🌟 Overview
 
-* **Unlimited Custom Phases:** Create Phase 3, 4, 5+ with unique requirements
-* **Mod Integration:** Full support for any Minecraft mod (Twilight Forest, Aether, etc.)
-* **Custom Objectives:** Define special boss fights and advancement requirements
-* **Flexible Multipliers:** Set custom health/damage/XP multipliers per phase
-* **Dependency System:** Create complex progression chains between phases
-* **No Coding Required:** Everything configured through JSON files
+Transform Dimension Trials into the perfect progression system for your modpack with JSON-based custom phases. Add Phase 3, 4, 5+ with unique requirements, boss fights, and mod integration.
 
-## 📁 Configuration Location
+### Key Capabilities
+- **Unlimited Phases:** Create as many progression phases as needed
+- **Universal Mod Support:** Integrate Twilight Forest, Aether, Industrial mods, and more
+- **Complex Dependencies:** Build intricate progression chains between phases
+- **Custom Multipliers:** Define unique difficulty scaling per phase
+- **Zero Coding:** Simple JSON configuration system
 
-Custom requirements are stored in: `config/dimtr/custom_requirements/`
+---
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Setup
 
-1. **Run the mod once** - it automatically creates `example_requirements.json`
-2. **Navigate to** `config/dimtr/custom_requirements/`
-3. **Edit the example file** or create your own `.json` files
-4. **Set `"enabled": true`** to activate your custom requirements
-5. **Restart the server** to load changes
+1. **Start the mod** - Auto-creates `config/dimtr/custom_requirements/example_requirements.json`
+2. **Edit the example file** or create new `.json` files in the same folder
+3. **Set `"enabled": true`** to activate your requirements
+4. **Restart server** to load changes
 
-## 📋 Example Configuration
+---
 
-### Basic Example (Twilight Forest Integration):
+## 📋 Basic Configuration
 
+### Simple Twilight Forest Phase
 ```json
 {
-  "name": "Twilight Forest Integration",
-  "description": "Phase 3 requirements for Twilight Forest",
+  "name": "Twilight Forest Expansion",
+  "description": "Phase 3 - Master the Twilight Forest",
   "enabled": true,
   "customPhases": {
     "phase3": {
-      "name": "Phase 3: Twilight Forest",
-      "description": "Master the Twilight Forest before progressing",
+      "name": "Phase 3: Twilight Mastery",
+      "description": "Conquer the magical forest dimension",
       "dimensionAccess": ["twilightforest:twilight_forest"],
       "requiredPreviousPhases": ["phase1", "phase2"],
-      "specialObjectives": {
-        "twilight_lich": {
-          "displayName": "Lich Defeated",
-          "description": "Kill the Twilight Lich boss",
-          "required": true
-        },
-        "twilight_hydra": {
-          "displayName": "Hydra Defeated", 
-          "description": "Kill the Twilight Hydra boss",
-          "required": true
-        }
-      },
       "mobRequirements": {
         "twilightforest:skeleton_druid": 15,
         "twilightforest:wraith": 10,
         "twilightforest:redcap": 25
       },
+      "specialObjectives": {
+        "twilight_lich": {
+          "displayName": "Lich Defeated",
+          "description": "Defeat the Twilight Lich boss",
+          "required": true
+        }
+      },
       "healthMultiplier": 2.5,
       "damageMultiplier": 2.5,
-      "xpMultiplier": 2.5,
       "enabled": true
     }
   }
 }
 ```
 
-### Advanced Example (Multiple Phases):
-
+### Multi-Phase Progression
 ```json
 {
   "name": "Extended Progression Pack",
-  "description": "Phases 3-5 for extended gameplay",
   "enabled": true,
   "customPhases": {
     "phase3": {
-      "name": "Phase 3: Magical Dimensions",
+      "name": "Phase 3: Magical Realms",
       "requiredPreviousPhases": ["phase1", "phase2"],
-      "dimensionAccess": ["twilightforest:twilight_forest", "botania:alfheim"],
+      "dimensionAccess": ["twilightforest:twilight_forest", "aether:the_aether"],
       "mobRequirements": {
         "twilightforest:lich": 1,
-        "botania:pixie": 50
+        "aether:valkyrie": 10
       },
       "healthMultiplier": 2.0
     },
     "phase4": {
-      "name": "Phase 4: Tech Dimensions", 
+      "name": "Phase 4: Industrial Complex",
       "requiredPreviousPhases": ["phase3"],
-      "dimensionAccess": ["industrialforegoing:mining"],
       "specialObjectives": {
-        "tech_boss": {
-          "displayName": "Tech Boss Defeated",
-          "description": "Defeat the ultimate tech boss",
-          "required": true
+        "fusion_reactor": {
+          "displayName": "Fusion Reactor Built",
+          "description": "Construct and activate a fusion reactor"
         }
       },
       "healthMultiplier": 3.0
@@ -99,32 +89,16 @@ Custom requirements are stored in: `config/dimtr/custom_requirements/`
 }
 ```
 
-## 🎯 What You Can Customize
+---
 
-### Phase Properties:
-* **Phase Names & Descriptions:** Full localization support
-* **Dimension Access:** Block access to any dimension until requirements are met
-* **Phase Dependencies:** Define which phases must be completed first
+## 🎯 Popular Integrations
 
-### Requirements:
-* **Special Objectives:** Custom boss fights and advancement requirements
-* **Mob Requirements:** Any mob from any mod with custom kill counts
-* **Complex Chains:** Multi-step progression requirements
-
-### Multipliers & Rewards:
-* **Health Multipliers:** Increase mob health for completed phases
-* **Damage Multipliers:** Increase mob damage output
-* **XP Multipliers:** Boost experience gains from combat
-
-## 💡 Popular Use Cases
-
-### Modpack Integration:
+### AllTheMods Integration
 ```json
 {
-  "name": "ATM9 Integration",
   "customPhases": {
-    "phase3": {
-      "name": "Phase 3: AllTheMods",
+    "atm_phase": {
+      "name": "AllTheMods Mastery",
       "dimensionAccess": ["allthemodium:mining", "allthemodium:other"],
       "mobRequirements": {
         "allthemodium:piglich": 1
@@ -134,20 +108,73 @@ Custom requirements are stored in: `config/dimtr/custom_requirements/`
 }
 ```
 
-### Challenge Server Setup:
+### Create Mod Integration
 ```json
 {
-  "name": "Hardcore Challenge",
   "customPhases": {
-    "phase3": {
-      "name": "Phase 3: Extreme Challenge",
-      "mobRequirements": {
-        "minecraft:wither": 5,
-        "minecraft:ender_dragon": 3
-      },
-      "healthMultiplier": 5.0,
-      "damageMultiplier": 3.0
+    "tech_phase": {
+      "name": "Industrial Revolution",
+      "specialObjectives": {
+        "automation_master": {
+          "displayName": "Automation Master",
+          "description": "Build advanced Create contraptions"
+        }
+      }
     }
+  }
+}
+```
+
+---
+
+## 🔧 Configuration Reference
+
+### Phase Properties
+- **`name`** (string): Display name for the phase
+- **`description`** (string): Detailed phase description  
+- **`enabled`** (boolean): Whether this phase is active
+- **`dimensionAccess`** (array): Dimensions requiring this phase completion
+- **`requiredPreviousPhases`** (array): Phases that must be completed first
+- **`mobRequirements`** (object): Mob ID → kill count mappings
+- **`specialObjectives`** (object): Custom objective definitions
+- **`healthMultiplier`** (number): Mob health multiplier after completion
+- **`damageMultiplier`** (number): Mob damage multiplier after completion
+- **`xpMultiplier`** (number): XP gain multiplier after completion
+
+### Objective Properties
+- **`displayName`** (string): Name shown to players
+- **`description`** (string): Detailed objective description
+- **`required`** (boolean): Whether objective is mandatory
+
+---
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+- **Phase not loading:** Validate JSON syntax, ensure `"enabled": true`
+- **Mob requirements not working:** Verify mob IDs with F3 debug info
+- **Dimension blocking not working:** Check dimension ID format and mod installation
+
+### Debug Commands
+```
+/dimtr debug custom_requirements true    # Enable debug logging
+/dimtr status custom                     # Check loaded phases
+/dimtr reload custom_requirements        # Reload configuration
+```
+
+---
+
+## 💡 Best Practices
+
+1. **Start Simple:** Begin with basic mob requirements, add complexity gradually
+2. **Test Thoroughly:** Validate mob IDs and dimension names before deployment
+3. **Balance Multipliers:** Consider server population and intended difficulty
+4. **Document Changes:** Keep clear descriptions for server players
+5. **Backup Configs:** Save working configurations before major changes
+
+---
+
+**🔗 Related Guides:** [Configuration](CONFIGURATION.md) | [Party System](PARTY_SYSTEM.md) | [Main README](README.md)**
   }
 }
 ```

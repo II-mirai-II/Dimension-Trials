@@ -7,10 +7,10 @@ import net.mirai.dimtr.data.PartyManager;
 import net.mirai.dimtr.data.ProgressionManager;
 import net.mirai.dimtr.data.ProgressionCoordinator;
 import net.mirai.dimtr.util.Constants;
+import net.mirai.dimtr.util.BlockPosPool;
+import net.mirai.dimtr.util.I18nHelper;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
@@ -20,6 +20,7 @@ import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.entity.monster.piglin.PiglinBrute;
 import net.minecraft.world.entity.monster.hoglin.Hoglin;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.FlintAndSteelItem;
@@ -29,21 +30,25 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.advancements.AdvancementHolder;
-import net.neoforged.bus.api.EventPriority;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
+import net.minecraft.advancements.AdvancementHolder;
 
+import java.util.Set;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Gerenciador central de eventos do mod - VERSÃO COMPLETA E CORRIGIDA
@@ -57,6 +62,26 @@ import java.util.UUID;
  */
 @EventBusSubscriber(modid = DimTrMod.MODID, bus = EventBusSubscriber.Bus.GAME)
 public class ModEventHandlers {
+    
+    // 🎯 PERFORMANCE: Cache estático de banners para evitar comparações múltiplas
+    private static final Set<Item> BANNER_ITEMS = Set.of(
+        Items.WHITE_BANNER, Items.BLACK_BANNER, Items.BLUE_BANNER, Items.BROWN_BANNER,
+        Items.CYAN_BANNER, Items.GRAY_BANNER, Items.GREEN_BANNER, Items.LIGHT_BLUE_BANNER,
+        Items.LIGHT_GRAY_BANNER, Items.LIME_BANNER, Items.MAGENTA_BANNER, Items.ORANGE_BANNER,
+        Items.PINK_BANNER, Items.PURPLE_BANNER, Items.RED_BANNER, Items.YELLOW_BANNER
+    );
+    
+    // 🎯 PERFORMANCE: Cache para tipos de entidades especiais
+    private static final Set<EntityType<?>> SPECIAL_OBJECTIVE_TYPES = Set.of(
+        EntityType.ELDER_GUARDIAN,
+        EntityType.WITHER,
+        EntityType.WARDEN
+    );
+    
+    // 🎯 PERFORMANCE: Cache para mapeamento de dimensões customizadas
+    private static final Map<String, Set<String>> DIMENSION_TO_PHASES_CACHE = new ConcurrentHashMap<>();
+    private static volatile long lastCacheRefresh = 0;
+    private static final long CACHE_REFRESH_INTERVAL = 30000; // 30 segundos
 
     public static final String NBT_MOD_SUBTAG_KEY = DimTrMod.MODID;
     public static final String NBT_FLAG_RECEIVED_BOOK = "received_progression_book";
@@ -76,9 +101,9 @@ public class ModEventHandlers {
         DimTrCommands.register(event.getDispatcher());
         PartyCommands.register(event.getDispatcher()); // ✅ CORRIGIDO
 
-        DimTrMod.LOGGER.info("✅ Registered all DimTr commands:");
-        DimTrMod.LOGGER.info("   • /dimtr (Administrative & individual commands - OP required)");
-        DimTrMod.LOGGER.info("   • /party (Party management commands - No OP required)");
+        DimTrMod.LOGGER.info(Constants.LOG_COMMANDS_REGISTERED);
+        DimTrMod.LOGGER.info(Constants.LOG_COMMANDS_DIMTR);
+        DimTrMod.LOGGER.info(Constants.LOG_COMMANDS_PARTY);
     }
 
     // ============================================================================
@@ -102,14 +127,16 @@ public class ModEventHandlers {
 
         UUID playerId = player.getUUID();
         
-        // CORREÇÃO: Usar sistema coordenado para evitar double-counting
-        // 🎯 OBJETIVOS ESPECIAIS (Elder Guardian, Wither, Warden)
-        if (killedEntity.getType() == EntityType.ELDER_GUARDIAN) {
-            ProgressionCoordinator.processSpecialObjective(playerId, "elder_guardian", serverLevel);
-        } else if (killedEntity.getType() == EntityType.WITHER) {
-            ProgressionCoordinator.processSpecialObjective(playerId, "wither", serverLevel);
-        } else if (killedEntity.getType() == EntityType.WARDEN) {
-            ProgressionCoordinator.processSpecialObjective(playerId, "warden", serverLevel);
+        // 🎯 PERFORMANCE: Usar cache para verificação rápida de objetivos especiais
+        EntityType<?> entityType = killedEntity.getType();
+        if (SPECIAL_OBJECTIVE_TYPES.contains(entityType)) {
+            if (entityType == EntityType.ELDER_GUARDIAN) {
+                ProgressionCoordinator.processSpecialObjective(playerId, Constants.OBJECTIVE_TYPE_ELDER_GUARDIAN, serverLevel);
+            } else if (entityType == EntityType.WITHER) {
+                ProgressionCoordinator.processSpecialObjective(playerId, Constants.OBJECTIVE_TYPE_WITHER, serverLevel);
+            } else if (entityType == EntityType.WARDEN) {
+                ProgressionCoordinator.processSpecialObjective(playerId, Constants.OBJECTIVE_TYPE_WARDEN, serverLevel);
+            }
         }
 
         // 🎯 CONTADORES DE MOBS (SISTEMA COORDENADO)
@@ -129,110 +156,80 @@ public class ModEventHandlers {
     private static String getMobType(LivingEntity entity) {
         // CORREÇÃO 1: DROWNED DEVE VIR ANTES DE ZOMBIE
         if (entity instanceof Drowned) {
-            return "drowned";
+            return Constants.MOB_TYPE_DROWNED;
         }
 
         // Fase 1 - Mobs Comuns do Overworld
         if (entity instanceof Zombie && !(entity instanceof ZombieVillager) && !(entity instanceof Husk)) {
-            return "zombie";
+            return Constants.MOB_TYPE_ZOMBIE;
         } else if (entity instanceof ZombieVillager) {
-            return "zombie_villager"; // Ainda retorna mas não é mais usado
+            return Constants.MOB_TYPE_ZOMBIE_VILLAGER; // Ainda retorna mas não é mais usado
         } else if (entity instanceof Skeleton && !(entity instanceof Stray) && !(entity instanceof WitherSkeleton)) {
-            return "skeleton";
+            return Constants.MOB_TYPE_SKELETON;
         } else if (entity instanceof Stray) {
-            return "stray";
+            return Constants.MOB_TYPE_STRAY;
         } else if (entity instanceof Husk) {
-            return "husk";
+            return Constants.MOB_TYPE_HUSK;
         } else if (entity instanceof Spider) {
-            return "spider";
+            return Constants.MOB_TYPE_SPIDER;
         } else if (entity instanceof Creeper) {
-            return "creeper";
+            return Constants.MOB_TYPE_CREEPER;
         } else if (entity instanceof EnderMan) {
-            return "enderman";
+            return Constants.MOB_TYPE_ENDERMAN;
         } else if (entity instanceof Witch) {
-            return "witch";
+            return Constants.MOB_TYPE_WITCH;
         } else if (entity instanceof Pillager pillager) {
-            // CORREÇÃO: MELHOR IDENTIFICAÇÃO DE CAPTAIN PILLAGER
+            // 🎯 PERFORMANCE: Otimizado usando Set para verificação de banners
             ItemStack mainHand = pillager.getMainHandItem();
             ItemStack offHand = pillager.getOffhandItem();
 
-            boolean isCarryingBanner = mainHand.getItem() == Items.WHITE_BANNER ||
-                    mainHand.getItem() == Items.BLACK_BANNER ||
-                    mainHand.getItem() == Items.BLUE_BANNER ||
-                    mainHand.getItem() == Items.BROWN_BANNER ||
-                    mainHand.getItem() == Items.CYAN_BANNER ||
-                    mainHand.getItem() == Items.GRAY_BANNER ||
-                    mainHand.getItem() == Items.GREEN_BANNER ||
-                    mainHand.getItem() == Items.LIGHT_BLUE_BANNER ||
-                    mainHand.getItem() == Items.LIGHT_GRAY_BANNER ||
-                    mainHand.getItem() == Items.LIME_BANNER ||
-                    mainHand.getItem() == Items.MAGENTA_BANNER ||
-                    mainHand.getItem() == Items.ORANGE_BANNER ||
-                    mainHand.getItem() == Items.PINK_BANNER ||
-                    mainHand.getItem() == Items.PURPLE_BANNER ||
-                    mainHand.getItem() == Items.RED_BANNER ||
-                    mainHand.getItem() == Items.YELLOW_BANNER ||
-                    offHand.getItem() == Items.WHITE_BANNER ||
-                    offHand.getItem() == Items.BLACK_BANNER ||
-                    offHand.getItem() == Items.BLUE_BANNER ||
-                    offHand.getItem() == Items.BROWN_BANNER ||
-                    offHand.getItem() == Items.CYAN_BANNER ||
-                    offHand.getItem() == Items.GRAY_BANNER ||
-                    offHand.getItem() == Items.GREEN_BANNER ||
-                    offHand.getItem() == Items.LIGHT_BLUE_BANNER ||
-                    offHand.getItem() == Items.LIGHT_GRAY_BANNER ||
-                    offHand.getItem() == Items.LIME_BANNER ||
-                    offHand.getItem() == Items.MAGENTA_BANNER ||
-                    offHand.getItem() == Items.ORANGE_BANNER ||
-                    offHand.getItem() == Items.PINK_BANNER ||
-                    offHand.getItem() == Items.PURPLE_BANNER ||
-                    offHand.getItem() == Items.RED_BANNER ||
-                    offHand.getItem() == Items.YELLOW_BANNER;
+            boolean isCarryingBanner = BANNER_ITEMS.contains(mainHand.getItem()) || 
+                                     BANNER_ITEMS.contains(offHand.getItem());
 
             boolean hasBadOmen = pillager.hasEffect(net.minecraft.world.effect.MobEffects.BAD_OMEN);
 
             if (isCarryingBanner || hasBadOmen) {
-                return "captain";
+                return Constants.MOB_TYPE_CAPTAIN;
             }
-            return "pillager";
+            return Constants.MOB_TYPE_PILLAGER;
         } else if (entity instanceof Vindicator) {
-            return "vindicator";
+            return Constants.MOB_TYPE_VINDICATOR;
         } else if (entity instanceof Evoker) {
-            return "evoker";
+            return Constants.MOB_TYPE_EVOKER;
         } else if (entity instanceof Ravager) {
-            return "ravager";
+            return Constants.MOB_TYPE_RAVAGER;
         }
 
         // Fase 2 - Mobs do Nether/End
         else if (entity instanceof Blaze) {
-            return "blaze";
+            return Constants.MOB_TYPE_BLAZE;
         } else if (entity instanceof WitherSkeleton) {
-            return "wither_skeleton";
+            return Constants.MOB_TYPE_WITHER_SKELETON;
         } else if (entity instanceof PiglinBrute) {
-            return "piglin_brute";
+            return Constants.MOB_TYPE_PIGLIN_BRUTE;
         } else if (entity instanceof Hoglin) {
-            return "hoglin";
+            return Constants.MOB_TYPE_HOGLIN;
         } else if (entity instanceof Zoglin) {
-            return "zoglin";
+            return Constants.MOB_TYPE_ZOGLIN;
         } else if (entity instanceof Ghast) {
-            return "ghast";
+            return Constants.MOB_TYPE_GHAST;
         }
         // ✅ ENDERMITE REMOVIDO COMPLETAMENTE
         else if (entity instanceof Piglin piglin) {
             if (piglin.getTarget() != null) {
-                return "piglin";
+                return Constants.MOB_TYPE_PIGLIN;
             }
             if (piglin.isAdult() && !piglin.isHolding(Items.GOLD_INGOT)) {
-                return "piglin";
+                return Constants.MOB_TYPE_PIGLIN;
             }
         }
 
         // ADICIONADO: Mobs mais novos
         String entityName = entity.getType().toString().toLowerCase();
-        if (entityName.contains("bogged")) {
-            return "bogged";
-        } else if (entityName.contains("breeze")) {
-            return "breeze";
+        if (entityName.contains(Constants.MOB_TYPE_BOGGED)) {
+            return Constants.MOB_TYPE_BOGGED;
+        } else if (entityName.contains(Constants.MOB_TYPE_BREEZE)) {
+            return Constants.MOB_TYPE_BREEZE;
         }
 
         return null;
@@ -259,7 +256,7 @@ public class ModEventHandlers {
                 // 🎯 SEGUNDO: Se não foi processado por party, processar individualmente
                 if (!processedByParty) {
                     ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
-                    processIndividualObjective(progressionManager, player.getUUID(), objectiveType);
+                    processIndividualObjective(progressionManager, player.getUUID(), objectiveType, serverLevel);
                 }
             }
         }
@@ -280,7 +277,7 @@ public class ModEventHandlers {
 
         if (advancementId.equals(ResourceLocation.withDefaultNamespace("adventure/hero_of_the_village"))) {
             // 🎯 PRIMEIRO: Processar para party (se aplicável)
-            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "raid");
+            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, Constants.OBJECTIVE_TYPE_RAID);
 
             // 🎯 SEGUNDO: Se não foi processado por party, processar individualmente
             if (!processedByParty) {
@@ -288,7 +285,7 @@ public class ModEventHandlers {
             }
         } else if (advancementId.equals(ResourceLocation.withDefaultNamespace("adventure/under_lock_and_key"))) {
             // 🎯 PRIMEIRO: Processar para party (se aplicável)
-            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "trial_vault");
+            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, Constants.OBJECTIVE_TYPE_TRIAL_VAULT);
 
             // 🎯 SEGUNDO: Se não foi processado por party, processar individualmente
             if (!processedByParty) {
@@ -296,7 +293,7 @@ public class ModEventHandlers {
             }
         } else if (advancementId.equals(ResourceLocation.withDefaultNamespace("adventure/voluntary_exile"))) {
             // 🎯 PRIMEIRO: Processar para party (se aplicável)
-            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, "voluntary_exile");
+            boolean processedByParty = partyManager.processPartySpecialObjective(playerId, Constants.OBJECTIVE_TYPE_VOLUNTARY_EXILE);
 
             // 🎯 SEGUNDO: Se não foi processado por party, processar individualmente
             if (!processedByParty) {
@@ -310,26 +307,67 @@ public class ModEventHandlers {
      */
     private static String mapAdvancementToObjective(String advancementId) {
         return switch (advancementId) {
-            case "minecraft:adventure/kill_a_mob" -> null; // Muito genérico
-            case "minecraft:adventure/voluntary_exile" -> "voluntary_exile";
-            case "minecraft:adventure/hero_of_the_village" -> "raid";
-            case "minecraft:adventure/under_lock_and_key" -> "trial_vault";
-            // TODO: Adicionar outros mappings conforme necessário
-            default -> null;
+            case Constants.ADVANCEMENT_KILL_A_MOB -> null; // Muito genérico
+            case Constants.ADVANCEMENT_VOLUNTARY_EXILE -> Constants.OBJECTIVE_TYPE_VOLUNTARY_EXILE;
+            case Constants.ADVANCEMENT_HERO_OF_VILLAGE -> Constants.OBJECTIVE_TYPE_RAID;
+            case Constants.ADVANCEMENT_UNDER_LOCK_AND_KEY -> Constants.OBJECTIVE_TYPE_TRIAL_VAULT;
+            // 🎯 NOVO: Mapear advancements para custom phases
+            default -> mapCustomAdvancementToObjective(advancementId);
         };
+    }
+    
+    /**
+     * 🎯 NOVO: Mapear advancements customizados para objetivos de custom phases
+     */
+    private static String mapCustomAdvancementToObjective(String advancementId) {
+        // Verificar se alguma fase customizada tem objetivos que correspondem a este advancement
+        var customPhases = net.mirai.dimtr.config.CustomRequirements.getAllCustomPhases();
+        
+        for (var phaseEntry : customPhases.entrySet()) {
+            String phaseId = phaseEntry.getKey();
+            var phase = phaseEntry.getValue();
+            
+            if (phase.specialObjectives != null) {
+                for (var objEntry : phase.specialObjectives.entrySet()) {
+                    String objectiveId = objEntry.getKey();
+                    // Verificar se o objectiveId corresponde ao advancementId
+                    // (isso pode ser configurado de forma mais sofisticada futuramente)
+                    if (advancementId.contains(objectiveId) || objectiveId.contains(advancementId)) {
+                        return phaseId + ":" + objectiveId; // Formato especial para custom objectives
+                    }
+                }
+            }
+        }
+        
+        return null;
     }
 
     /**
      * Processar objetivo individual
      */
-    private static void processIndividualObjective(ProgressionManager manager, UUID playerId, String objectiveType) {
-        switch (objectiveType.toLowerCase()) {
-            case "elder_guardian" -> manager.updateElderGuardianKilled(playerId);
-            case "raid" -> manager.updateRaidWon(playerId);
-            case "trial_vault" -> manager.updateTrialVaultAdvancementEarned(playerId);
-            case "voluntary_exile" -> manager.updateVoluntaireExileAdvancementEarned(playerId);
-            case "wither" -> manager.updateWitherKilled(playerId);
-            case "warden" -> manager.updateWardenKilled(playerId);
+    private static void processIndividualObjective(ProgressionManager manager, UUID playerId, String objectiveType, ServerLevel serverLevel) {
+        // 🎯 NOVO: Verificar se é um objetivo customizado
+        if (objectiveType != null && objectiveType.contains(":")) {
+            // Formato especial para custom objectives: "phaseId:objectiveId"
+            String[] parts = objectiveType.split(":", 2);
+            if (parts.length == 2) {
+                String phaseId = parts[0];
+                String objectiveId = parts[1];
+                ProgressionCoordinator.processCustomObjective(playerId, phaseId, objectiveId, serverLevel);
+                return;
+            }
+        }
+        
+        // Objetivos padrão
+        if (objectiveType != null) {
+            switch (objectiveType.toLowerCase()) {
+                case Constants.OBJECTIVE_TYPE_ELDER_GUARDIAN -> manager.updateElderGuardianKilled(playerId);
+                case Constants.OBJECTIVE_TYPE_RAID -> manager.updateRaidWon(playerId);
+                case Constants.OBJECTIVE_TYPE_TRIAL_VAULT -> manager.updateTrialVaultAdvancementEarned(playerId);
+                case Constants.OBJECTIVE_TYPE_VOLUNTARY_EXILE -> manager.updateVoluntaireExileAdvancementEarned(playerId);
+                case Constants.OBJECTIVE_TYPE_WITHER -> manager.updateWitherKilled(playerId);
+                case Constants.OBJECTIVE_TYPE_WARDEN -> manager.updateWardenKilled(playerId);
+            }
         }
     }
 
@@ -362,46 +400,45 @@ public class ModEventHandlers {
         }
 
         ServerLevel serverLevel = (ServerLevel) player.level();
-        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
         UUID playerId = player.getUUID();
 
-        // 🎯 VERIFICAR ACESSO PADRÃO (Nether/End)
+        // 🎯 CORREÇÃO: Usar ProgressionCoordinator para verificação unificada
         if (event.getDimension() == Level.NETHER) {
-            if (!progressionManager.canPlayerAccessNether(playerId)) {
+            if (!ProgressionCoordinator.canPlayerAccessDimension(playerId, Constants.DIMENSION_TYPE_NETHER, serverLevel)) {
                 event.setCanceled(true);
-                player.sendSystemMessage(Component.translatable("message.dimtr.nether_locked")
+                player.sendSystemMessage(Component.translatable(Constants.MSG_NETHER_LOCKED)
                         .withStyle(ChatFormatting.RED));
-                playDenialEffects(serverLevel, player, "nether");
+                playDenialEffects(serverLevel, player, Constants.DIMENSION_TYPE_NETHER);
                 return;
             }
         }
 
         if (event.getDimension() == Level.END) {
-            if (!progressionManager.canPlayerAccessEnd(playerId)) {
+            if (!ProgressionCoordinator.canPlayerAccessDimension(playerId, Constants.DIMENSION_TYPE_END, serverLevel)) {
                 event.setCanceled(true);
-                player.sendSystemMessage(Component.translatable("message.dimtr.end_locked")
+                player.sendSystemMessage(Component.translatable(Constants.MSG_END_LOCKED)
                         .withStyle(ChatFormatting.RED));
-                playDenialEffects(serverLevel, player, "end");
+                playDenialEffects(serverLevel, player, Constants.DIMENSION_TYPE_END);
                 return;
             }
         }
 
         // 🎯 NOVO: VERIFICAR ACESSO A DIMENSÕES CUSTOMIZADAS
         String dimensionString = event.getDimension().location().toString();
-        if (!net.mirai.dimtr.config.CustomRequirements.canAccessCustomDimension(playerId, event.getDimension().location())) {
+        if (!ProgressionCoordinator.canPlayerAccessCustomDimension(playerId, dimensionString, serverLevel)) {
             // Encontrar qual fase customizada bloqueia esta dimensão
-            String blockingPhase = findBlockingCustomPhase(playerId, dimensionString, serverLevel);
+            String blockingPhase = net.mirai.dimtr.config.CustomRequirements.findBlockingPhaseForDimension(dimensionString);
             if (blockingPhase != null) {
                 event.setCanceled(true);
                 var customPhase = net.mirai.dimtr.config.CustomRequirements.getCustomPhase(blockingPhase);
                 String phaseName = customPhase != null ? customPhase.name : blockingPhase;
                 
-                player.sendSystemMessage(Component.literal("🔒 " + phaseName + " Required")
-                        .withStyle(ChatFormatting.RED));
-                player.sendSystemMessage(Component.literal("Complete " + phaseName + " to access this dimension")
-                        .withStyle(ChatFormatting.GRAY));
+                if (player instanceof ServerPlayer serverPlayer) {
+                    I18nHelper.sendMessage(serverPlayer, I18nHelper.Events.DIMENSION_REQUIRED, phaseName);
+                    I18nHelper.sendMessage(serverPlayer, I18nHelper.Events.DIMENSION_COMPLETE, phaseName);
+                }
                         
-                playDenialEffects(serverLevel, player, "custom");
+                playDenialEffects(serverLevel, player, Constants.DIMENSION_TYPE_CUSTOM);
                 return;
             }
         }
@@ -414,8 +451,7 @@ public class ModEventHandlers {
             return;
         }
 
-        // 🎯 MUDANÇA: Verificação individual
-        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        // 🎯 CORREÇÃO: Verificação unificada via ProgressionCoordinator
         UUID playerId = player.getUUID();
         BlockPos clickedPos = event.getPos();
         BlockState clickedState = serverLevel.getBlockState(clickedPos);
@@ -425,12 +461,12 @@ public class ModEventHandlers {
         if ((heldItem.getItem() instanceof FlintAndSteelItem || heldItem.getItem() == Items.FIRE_CHARGE) &&
                 clickedState.is(Blocks.OBSIDIAN)) {
 
-            if (!progressionManager.canPlayerAccessNether(playerId)) {
+            if (!ProgressionCoordinator.canPlayerAccessDimension(playerId, Constants.DIMENSION_TYPE_NETHER, serverLevel)) {
                 event.setCanceled(true);
-                player.sendSystemMessage(Component.translatable("message.dimtr.nether_locked")
+                player.sendSystemMessage(Component.translatable(Constants.MSG_NETHER_LOCKED)
                         .withStyle(ChatFormatting.RED));
 
-                playDenialEffects(serverLevel, player, "nether");
+                playDenialEffects(serverLevel, player, Constants.DIMENSION_TYPE_NETHER);
 
                 serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE,
                         clickedPos.getX() + 0.5, clickedPos.getY() + 0.8, clickedPos.getZ() + 0.5,
@@ -441,12 +477,12 @@ public class ModEventHandlers {
 
         // ====== BLOQUEAR COLOCAÇÃO DE ENDER EYE ======
         if (heldItem.getItem() == Items.ENDER_EYE && clickedState.is(Blocks.END_PORTAL_FRAME)) {
-            if (!progressionManager.canPlayerAccessEnd(playerId)) {
+            if (!ProgressionCoordinator.canPlayerAccessDimension(playerId, Constants.DIMENSION_TYPE_END, serverLevel)) {
                 event.setCanceled(true);
-                player.sendSystemMessage(Component.translatable("message.dimtr.end_locked")
+                player.sendSystemMessage(Component.translatable(Constants.MSG_END_LOCKED)
                         .withStyle(ChatFormatting.RED));
 
-                playDenialEffects(serverLevel, player, "end");
+                playDenialEffects(serverLevel, player, Constants.DIMENSION_TYPE_END);
 
                 serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
                         clickedPos.getX() + 0.5, clickedPos.getY() + 0.8, clickedPos.getZ() + 0.5,
@@ -459,12 +495,12 @@ public class ModEventHandlers {
         if ((heldItem.getItem() instanceof FlintAndSteelItem || heldItem.getItem() == Items.FIRE_CHARGE) &&
                 (clickedState.is(Blocks.END_PORTAL_FRAME) || clickedState.is(Blocks.END_PORTAL))) {
 
-            if (!progressionManager.canPlayerAccessEnd(playerId)) {
+            if (!ProgressionCoordinator.canPlayerAccessDimension(playerId, Constants.DIMENSION_TYPE_END, serverLevel)) {
                 event.setCanceled(true);
-                player.sendSystemMessage(Component.translatable("message.dimtr.end_locked")
+                player.sendSystemMessage(Component.translatable(Constants.MSG_END_LOCKED)
                         .withStyle(ChatFormatting.RED));
 
-                playDenialEffects(serverLevel, player, "end");
+                playDenialEffects(serverLevel, player, Constants.DIMENSION_TYPE_END);
 
                 serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
                         clickedPos.getX() + 0.5, clickedPos.getY() + 0.8, clickedPos.getZ() + 0.5,
@@ -481,30 +517,42 @@ public class ModEventHandlers {
         }
 
         ServerLevel serverLevel = player.serverLevel();
-        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
         UUID playerId = player.getUUID();
 
-        // 🎯 MUDANÇA: Verificação individual
-        if (progressionManager.canPlayerAccessEnd(playerId)) {
+        // 🎯 CORREÇÃO: Usar ProgressionCoordinator para verificação unificada
+        if (ProgressionCoordinator.canPlayerAccessDimension(playerId, Constants.DIMENSION_TYPE_END, serverLevel)) {
             return; // End liberado para este jogador
         }
 
         BlockPos playerPos = player.blockPosition();
 
-        BlockPos[] positionsToCheck = {
-                playerPos, playerPos.below(), playerPos.above(),
-                playerPos.north(), playerPos.south(), playerPos.east(), playerPos.west()
+        // 🎯 PERFORMANCE: Usar pool de BlockPos para reduzir GC overhead
+        BlockPos.MutableBlockPos[] positionsToCheck = {
+                BlockPosPool.acquire(playerPos),
+                BlockPosPool.acquire(playerPos.getX(), playerPos.getY() - 1, playerPos.getZ()),
+                BlockPosPool.acquire(playerPos.getX(), playerPos.getY() + 1, playerPos.getZ()),
+                BlockPosPool.acquire(playerPos.getX(), playerPos.getY(), playerPos.getZ() - 1),
+                BlockPosPool.acquire(playerPos.getX(), playerPos.getY(), playerPos.getZ() + 1),
+                BlockPosPool.acquire(playerPos.getX() + 1, playerPos.getY(), playerPos.getZ()),
+                BlockPosPool.acquire(playerPos.getX() - 1, playerPos.getY(), playerPos.getZ())
         };
 
         boolean isInEndPortal = false;
         BlockPos portalPos = null;
 
-        for (BlockPos pos : positionsToCheck) {
-            BlockState blockState = serverLevel.getBlockState(pos);
-            if (blockState.is(Blocks.END_PORTAL)) {
-                isInEndPortal = true;
-                portalPos = pos;
-                break;
+        try {
+            for (BlockPos.MutableBlockPos pos : positionsToCheck) {
+                BlockState blockState = serverLevel.getBlockState(pos);
+                if (blockState.is(Blocks.END_PORTAL)) {
+                    isInEndPortal = true;
+                    portalPos = pos.immutable(); // Criar cópia imutável para uso posterior
+                    break;
+                }
+            }
+        } finally {
+            // 🎯 PERFORMANCE: Retornar todas as posições ao pool
+            for (BlockPos.MutableBlockPos pos : positionsToCheck) {
+                BlockPosPool.release(pos);
             }
         }
 
@@ -517,10 +565,10 @@ public class ModEventHandlers {
             // Aplicar pequeno impulso para fora
             player.push(pushX, 0.1, pushZ);
             
-            player.sendSystemMessage(Component.translatable("message.dimtr.end_locked")
+            player.sendSystemMessage(Component.translatable(Constants.MSG_END_LOCKED)
                     .withStyle(ChatFormatting.RED));
 
-            playDenialEffects(serverLevel, player, "end");
+            playDenialEffects(serverLevel, player, Constants.DIMENSION_TYPE_END);
         }
     }
 
@@ -531,28 +579,51 @@ public class ModEventHandlers {
     /**
      * 🎯 NOVO: Encontra qual fase customizada está bloqueando o acesso a uma dimensão
      */
-    private static String findBlockingCustomPhase(UUID playerId, String dimensionString, ServerLevel serverLevel) {
-        var customPhases = net.mirai.dimtr.config.CustomRequirements.getAllCustomPhases();
-        if (customPhases.isEmpty()) {
-            return null;
+    private static void refreshDimensionCache() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastCacheRefresh < CACHE_REFRESH_INTERVAL) {
+            return; // Cache ainda válido
         }
-
-        var progressionManager = ProgressionManager.get(serverLevel);
-        var playerData = progressionManager.getPlayerData(playerId);
-
+        
+        DIMENSION_TO_PHASES_CACHE.clear();
+        var customPhases = net.mirai.dimtr.config.CustomRequirements.getAllCustomPhases();
+        
         for (var entry : customPhases.entrySet()) {
             String phaseId = entry.getKey();
             var phase = entry.getValue();
             
-            // Check if this phase blocks the dimension
-            if (phase.dimensionAccess != null && phase.dimensionAccess.contains(dimensionString)) {
-                // Check if phase is completed
-                if (!playerData.isCustomPhaseComplete(phaseId)) {
-                    return phaseId;
+            if (phase.dimensionAccess != null) {
+                for (String dimension : phase.dimensionAccess) {
+                    DIMENSION_TO_PHASES_CACHE.computeIfAbsent(dimension, k -> ConcurrentHashMap.newKeySet())
+                        .add(phaseId);
                 }
             }
         }
-
+        
+        lastCacheRefresh = currentTime;
+    }
+    
+    /**
+     * 🎯 PERFORMANCE: Método otimizado para encontrar fase bloqueante
+     */
+    private static String findBlockingCustomPhase(UUID playerId, String dimensionString, ServerLevel serverLevel) {
+        refreshDimensionCache();
+        
+        Set<String> phasesForDimension = DIMENSION_TO_PHASES_CACHE.get(dimensionString);
+        if (phasesForDimension == null || phasesForDimension.isEmpty()) {
+            return null; // Nenhuma fase bloqueia esta dimensão
+        }
+        
+        var progressionManager = ProgressionManager.get(serverLevel);
+        var playerData = progressionManager.getPlayerData(playerId);
+        
+        // Verificar apenas as fases que realmente afetam esta dimensão
+        for (String phaseId : phasesForDimension) {
+            if (!playerData.isCustomPhaseComplete(phaseId)) {
+                return phaseId;
+            }
+        }
+        
         return null;
     }
 
@@ -560,7 +631,7 @@ public class ModEventHandlers {
         long currentTime = serverLevel.getGameTime();
         UUID playerId = player.getUUID();
 
-        if ("nether".equals(portalType)) {
+        if (Constants.DIMENSION_TYPE_NETHER.equals(portalType)) {
             long lastPlayed = netherPortalSoundCooldowns.getOrDefault(playerId, 0L);
             if (currentTime > lastPlayed + PORTAL_SOUND_COOLDOWN_TICKS) {
                 serverLevel.playSound(null, player.blockPosition(), SoundEvents.PORTAL_TRIGGER,
@@ -572,7 +643,7 @@ public class ModEventHandlers {
                     player.getX(), player.getY() + 1, player.getZ(),
                     10, 0.3, 0.3, 0.3, 0.05);
 
-        } else if ("end".equals(portalType)) {
+        } else if (Constants.DIMENSION_TYPE_END.equals(portalType)) {
             long lastPlayed = endPortalSoundCooldowns.getOrDefault(playerId, 0L);
             if (currentTime > lastPlayed + PORTAL_SOUND_COOLDOWN_TICKS) {
                 serverLevel.playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT,
@@ -583,7 +654,7 @@ public class ModEventHandlers {
             serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
                     player.getX(), player.getY() + 1, player.getZ(),
                     20, 0.3, 0.3, 0.3, 0.1);
-        } else if ("custom".equals(portalType)) {
+        } else if (Constants.DIMENSION_TYPE_CUSTOM.equals(portalType)) {
             // Custom portal denial effects
             serverLevel.playSound(null, player.blockPosition(), SoundEvents.BEACON_DEACTIVATE,
                     SoundSource.PLAYERS, 0.8F, 0.8F);
@@ -595,7 +666,7 @@ public class ModEventHandlers {
     }
 
     /**
-     * 🎯 NOVO: Processar mobs customizados
+     * 🎯 NOVO: Processar mobs customizados via ProgressionCoordinator
      */
     private static void processCustomMobKill(UUID playerId, LivingEntity killedEntity, ServerLevel serverLevel) {
         String entityType = killedEntity.getType().toString();
@@ -607,89 +678,15 @@ public class ModEventHandlers {
             return;
         }
         
-        var progressionManager = ProgressionManager.get(serverLevel);
-        var playerData = progressionManager.getPlayerData(playerId);
-        
         for (var entry : customPhases.entrySet()) {
             String phaseId = entry.getKey();
             var phase = entry.getValue();
             
-            // Skip if phase is already completed
-            if (playerData.isCustomPhaseComplete(phaseId)) {
-                continue;
-            }
-            
             // Check if this phase requires this mob type
             if (phase.mobRequirements != null && phase.mobRequirements.containsKey(entityId)) {
-                int required = phase.mobRequirements.get(entityId);
-                int current = playerData.getCustomMobKills(phaseId, entityId);
-                
-                if (current < required) {
-                    playerData.incrementCustomMobKill(phaseId, entityId);
-                    
-                    // Check if phase is now complete
-                    checkCustomPhaseCompletion(playerId, phaseId, serverLevel);
-                }
+                // 🎯 MUDANÇA: Usar ProgressionCoordinator ao invés de lógica individual
+                ProgressionCoordinator.processCustomMobKill(playerId, phaseId, entityId, serverLevel);
             }
-        }
-    }
-    
-    /**
-     * 🎯 NOVO: Verificar se uma fase customizada foi completada
-     */
-    private static void checkCustomPhaseCompletion(UUID playerId, String phaseId, ServerLevel serverLevel) {
-        var customPhase = net.mirai.dimtr.config.CustomRequirements.getCustomPhase(phaseId);
-        if (customPhase == null) {
-            return;
-        }
-        
-        var progressionManager = ProgressionManager.get(serverLevel);
-        var playerData = progressionManager.getPlayerData(playerId);
-        
-        // Check if all mob requirements are met
-        boolean allMobsComplete = true;
-        if (customPhase.mobRequirements != null) {
-            for (var entry : customPhase.mobRequirements.entrySet()) {
-                String mobType = entry.getKey();
-                // 🎯 NOVO: Usar método integrado que considera party
-                boolean isComplete = net.mirai.dimtr.config.CustomRequirements.isCustomMobRequirementComplete(
-                    phaseId, mobType, playerId, serverLevel);
-                
-                if (!isComplete) {
-                    allMobsComplete = false;
-                    break;
-                }
-            }
-        }
-        
-        // Check if all special objectives are met
-        boolean allObjectivesComplete = true;
-        if (customPhase.specialObjectives != null) {
-            for (var entry : customPhase.specialObjectives.entrySet()) {
-                String objectiveId = entry.getKey();
-                var objective = entry.getValue();
-                
-                if (objective.required && !playerData.isCustomObjectiveComplete(phaseId, objectiveId)) {
-                    allObjectivesComplete = false;
-                    break;
-                }
-            }
-        }
-        
-        // Complete the phase if all requirements are met
-        if (allMobsComplete && allObjectivesComplete) {
-            playerData.setCustomPhaseComplete(phaseId, true);
-            
-            // Notify player
-            var player = serverLevel.getPlayerByUUID(playerId);
-            if (player != null) {
-                player.sendSystemMessage(Component.literal("🎉 " + customPhase.name + " Complete!")
-                        .withStyle(ChatFormatting.GOLD));
-                player.sendSystemMessage(Component.literal("You have unlocked new content!")
-                        .withStyle(ChatFormatting.YELLOW));
-            }
-            
-            progressionManager.setDirty(); // Mark for saving
         }
     }
 }

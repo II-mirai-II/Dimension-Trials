@@ -2,6 +2,9 @@ package net.mirai.dimtr.client;
 
 import net.mirai.dimtr.network.UpdateProgressionToClientPayload;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ClientProgressionData {
     public static final ClientProgressionData INSTANCE = new ClientProgressionData();
 
@@ -51,6 +54,11 @@ public class ClientProgressionData {
     // ✅ REMOVIDO FUNCIONALMENTE: endermiteKills - mantido só para compatibilidade
     private int endermiteKills = 0;
     private int piglinKills = 0;
+
+    // 🎯 NOVO: Custom Phases data
+    private Map<String, Boolean> customPhaseCompletion = new HashMap<>();
+    private Map<String, Map<String, Integer>> customMobKills = new HashMap<>();
+    private Map<String, Map<String, Boolean>> customObjectiveCompletion = new HashMap<>();
 
     // CORREÇÃO PRINCIPAL: Configurações de requisitos sincronizadas do servidor
     private int reqZombieKills = 50;
@@ -164,6 +172,16 @@ public class ClientProgressionData {
         // NOVO: Sincronizar configuração Voluntary Exile
         this.serverReqVoluntaryExile = payload.serverReqVoluntaryExile();
 
+        // 🎯 NOVO: Sincronizar dados de Custom Phases do payload
+        this.customPhaseCompletion.clear();
+        this.customPhaseCompletion.putAll(payload.customPhaseCompletion());
+        
+        this.customMobKills.clear();
+        this.customMobKills.putAll(payload.customMobKills());
+        
+        this.customObjectiveCompletion.clear();
+        this.customObjectiveCompletion.putAll(payload.customObjectiveCompletion());
+
         // ✅ DEBUG: Verificar se valores removidos estão 0
         if (this.zombieVillagerKills != 0) {
             System.err.println("⚠️ CLIENT WARNING: zombieVillagerKills is " + this.zombieVillagerKills + " but should be 0!");
@@ -177,15 +195,6 @@ public class ClientProgressionData {
         if (this.reqEndermiteKills != 0) {
             System.err.println("⚠️ CLIENT WARNING: reqEndermiteKills is " + this.reqEndermiteKills + " but should be 0!");
         }
-
-        // Debug log para verificar sincronização
-        System.out.println("CLIENT DATA UPDATED:");
-        System.out.println("Ravager req: " + this.reqRavagerKills + " (should be 1)");
-        System.out.println("Evoker req: " + this.reqEvokerKills + " (should be 5)");
-        System.out.println("Hoglin req: " + this.reqHoglinKills + " (should be 1)");
-        System.out.println("Zoglin req: " + this.reqZoglinKills + " (should be 1)");
-        // NOVO: Debug para Voluntary Exile
-        System.out.println("Voluntary Exile required: " + this.serverReqVoluntaryExile);
     }
 
     // Getters para objetivos originais
@@ -236,6 +245,12 @@ public class ClientProgressionData {
 
     // Método auxiliar para obter contagem de um mob específico
     public int getMobKillCount(String mobType) {
+        // 🎯 CORREÇÃO CRÍTICA: Se o jogador está em party, usar progresso compartilhado
+        if (ClientPartyData.INSTANCE.isInParty()) {
+            return ClientPartyData.INSTANCE.getSharedMobKillCount(mobType);
+        }
+        
+        // Caso contrário, usar progresso individual
         return switch (mobType) {
             case "zombie" -> zombieKills;
             // ✅ MANTIDO para compatibilidade mas sempre retorna 0
@@ -375,27 +390,21 @@ public class ClientProgressionData {
      * Check if a custom phase is completed
      */
     public boolean isCustomPhaseComplete(String phaseId) {
-        // This would need to be synchronized from server data
-        // For now, return false as a placeholder
-        return false;
+        return customPhaseCompletion.getOrDefault(phaseId, false);
     }
     
     /**
      * Get custom mob kills for a specific phase and mob type
      */
     public int getCustomMobKills(String phaseId, String mobType) {
-        // This would need to be synchronized from server data
-        // For now, return 0 as a placeholder
-        return 0;
+        return customMobKills.getOrDefault(phaseId, new HashMap<>()).getOrDefault(mobType, 0);
     }
     
     /**
      * Check if a custom objective is completed
      */
     public boolean isCustomObjectiveComplete(String phaseId, String objectiveId) {
-        // This would need to be synchronized from server data
-        // For now, return false as a placeholder
-        return false;
+        return customObjectiveCompletion.getOrDefault(phaseId, new HashMap<>()).getOrDefault(objectiveId, false);
     }
     
     /**

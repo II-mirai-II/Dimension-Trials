@@ -2,6 +2,7 @@ package net.mirai.dimtr.network;
 
 import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.client.ClientPartyData;
+import net.mirai.dimtr.util.Constants;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -32,7 +33,12 @@ public record UpdatePartyToClientPayload(
         boolean sharedWitherKilled,
         boolean sharedWardenKilled,
         boolean phase1SharedCompleted,
-        boolean phase2SharedCompleted
+        boolean phase2SharedCompleted,
+
+        // 🎯 NOVO: Custom Phases data
+        Map<String, Boolean> sharedCustomPhaseCompletion,
+        Map<String, Map<String, Integer>> sharedCustomMobKills,
+        Map<String, Map<String, Boolean>> sharedCustomObjectiveCompletion
 ) implements CustomPacketPayload {
 
     public static final Type<UpdatePartyToClientPayload> TYPE = new Type<>(
@@ -90,6 +96,33 @@ public record UpdatePartyToClientPayload(
             buf.writeBoolean(payload.sharedWardenKilled);
             buf.writeBoolean(payload.phase1SharedCompleted);
             buf.writeBoolean(payload.phase2SharedCompleted);
+
+            // 🎯 NOVO: Custom Phases data
+            ByteBufCodecs.VAR_INT.encode(buf, payload.sharedCustomPhaseCompletion.size());
+            for (Map.Entry<String, Boolean> entry : payload.sharedCustomPhaseCompletion.entrySet()) {
+                ByteBufCodecs.STRING_UTF8.encode(buf, entry.getKey());
+                buf.writeBoolean(entry.getValue());
+            }
+
+            ByteBufCodecs.VAR_INT.encode(buf, payload.sharedCustomMobKills.size());
+            for (Map.Entry<String, Map<String, Integer>> entry : payload.sharedCustomMobKills.entrySet()) {
+                ByteBufCodecs.STRING_UTF8.encode(buf, entry.getKey());
+                ByteBufCodecs.VAR_INT.encode(buf, entry.getValue().size());
+                for (Map.Entry<String, Integer> subEntry : entry.getValue().entrySet()) {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, subEntry.getKey());
+                    ByteBufCodecs.VAR_INT.encode(buf, subEntry.getValue());
+                }
+            }
+
+            ByteBufCodecs.VAR_INT.encode(buf, payload.sharedCustomObjectiveCompletion.size());
+            for (Map.Entry<String, Map<String, Boolean>> entry : payload.sharedCustomObjectiveCompletion.entrySet()) {
+                ByteBufCodecs.STRING_UTF8.encode(buf, entry.getKey());
+                ByteBufCodecs.VAR_INT.encode(buf, entry.getValue().size());
+                for (Map.Entry<String, Boolean> subEntry : entry.getValue().entrySet()) {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, subEntry.getKey());
+                    buf.writeBoolean(subEntry.getValue());
+                }
+            }
         }
 
         @Override
@@ -129,11 +162,49 @@ public record UpdatePartyToClientPayload(
             boolean phase1SharedCompleted = buf.readBoolean();
             boolean phase2SharedCompleted = buf.readBoolean();
 
+            // 🎯 NOVO: Custom Phases data
+            int customPhaseSize = ByteBufCodecs.VAR_INT.decode(buf);
+            Map<String, Boolean> sharedCustomPhaseCompletion = new HashMap<>();
+            for (int i = 0; i < customPhaseSize; i++) {
+                String phaseId = ByteBufCodecs.STRING_UTF8.decode(buf);
+                boolean completed = buf.readBoolean();
+                sharedCustomPhaseCompletion.put(phaseId, completed);
+            }
+
+            int customMobKillsSize = ByteBufCodecs.VAR_INT.decode(buf);
+            Map<String, Map<String, Integer>> sharedCustomMobKills = new HashMap<>();
+            for (int i = 0; i < customMobKillsSize; i++) {
+                String mobType = ByteBufCodecs.STRING_UTF8.decode(buf);
+                int customKillCountSize = ByteBufCodecs.VAR_INT.decode(buf);
+                Map<String, Integer> killCounts = new HashMap<>();
+                for (int j = 0; j < customKillCountSize; j++) {
+                    String customId = ByteBufCodecs.STRING_UTF8.decode(buf);
+                    int count = ByteBufCodecs.VAR_INT.decode(buf);
+                    killCounts.put(customId, count);
+                }
+                sharedCustomMobKills.put(mobType, killCounts);
+            }
+
+            int customObjectivesSize = ByteBufCodecs.VAR_INT.decode(buf);
+            Map<String, Map<String, Boolean>> sharedCustomObjectiveCompletion = new HashMap<>();
+            for (int i = 0; i < customObjectivesSize; i++) {
+                String objectiveId = ByteBufCodecs.STRING_UTF8.decode(buf);
+                int customObjectiveSize = ByteBufCodecs.VAR_INT.decode(buf);
+                Map<String, Boolean> customObjectives = new HashMap<>();
+                for (int j = 0; j < customObjectiveSize; j++) {
+                    String customId = ByteBufCodecs.STRING_UTF8.decode(buf);
+                    boolean completed = buf.readBoolean();
+                    customObjectives.put(customId, completed);
+                }
+                sharedCustomObjectiveCompletion.put(objectiveId, customObjectives);
+            }
+
             return new UpdatePartyToClientPayload(
                     partyId, partyName, isPublic, leaderId, members, progressionMultiplier,
                     memberCount, sharedMobKills, sharedElderGuardianKilled, sharedRaidWon,
                     sharedTrialVaultAdvancementEarned, sharedVoluntaireExileAdvancementEarned,
-                    sharedWitherKilled, sharedWardenKilled, phase1SharedCompleted, phase2SharedCompleted
+                    sharedWitherKilled, sharedWardenKilled, phase1SharedCompleted, phase2SharedCompleted,
+                    sharedCustomPhaseCompletion, sharedCustomMobKills, sharedCustomObjectiveCompletion
             );
         }
     };
@@ -143,7 +214,7 @@ public record UpdatePartyToClientPayload(
             try {
                 // 🔧 CORRIGIDO: Usar INSTANCE em vez de método estático
                 ClientPartyData.INSTANCE.updateData(payload);
-                DimTrMod.LOGGER.info("✅ Party data updated on client: {} with {} members",
+                DimTrMod.LOGGER.info(Constants.LOG_PARTY_DATA_UPDATED,
                         payload.partyName, payload.members.size());
             } catch (Exception e) {
                 DimTrMod.LOGGER.error("❌ Failed to update party data on client", e);

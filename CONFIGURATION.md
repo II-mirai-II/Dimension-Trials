@@ -1,103 +1,142 @@
 # ⚙️ Configuration Guide
 
-Complete guide to configuring Dimension Trials for your server.
+**Complete setup guide for server administrators and players**
 
 ## 📁 Configuration Files
 
-The mod creates several configuration files in your `config/` folder:
+- **`dimtr-server.toml`** - Core server settings (requirements, phases, multipliers, party system)
+- **`dimtr-client.toml`** - Client preferences (HUD appearance, keybinds, UI settings)  
+- **`dimtr/custom_requirements/`** - JSON files for unlimited custom phases
 
-- `dimtr-server.toml` - Server-side settings (requirements, phases, multipliers)
-- `dimtr-client.toml` - Client-side settings (HUD, keybinds, UI)
-- `dimtr/custom_requirements/` - Custom phase definitions (JSON files)
+---
 
-## 🔧 Server Configuration (`dimtr-server.toml`)
+## 🔧 Essential Server Settings (`dimtr-server.toml`)
 
-### Phase Control
+### Phase Management
 ```toml
-# Enable/disable entire phases
 enablePhase1 = true          # Nether access requirements
 enablePhase2 = true          # End access requirements
-
-# Enable/disable mob kill requirements per phase
-enableMobKillsPhase1 = true
-enableMobKillsPhase2 = true
+enableMobKillsPhase1 = true  # Toggle mob requirements for Phase 1
+enableMobKillsPhase2 = true  # Toggle mob requirements for Phase 2
 ```
 
-### Special Objectives
+### Key Mob Requirements
 ```toml
-# Phase 1 Special Objectives
-reqElderGuardian = true      # Require Elder Guardian kill
-reqRaid = true              # Require winning a Pillager Raid
-reqTrialVaultAdv = true     # Require Trial Vault advancement
-reqVoluntaryExile = false   # Require Voluntary Exile advancement
-
-# Phase 2 Special Objectives  
-reqWither = true            # Require Wither kill
-reqWarden = true            # Require Warden kill
-```
-
-### Mob Kill Requirements
-
-#### Phase 1 Mobs:
-```toml
-# Common Overworld Mobs
+# Phase 1 - Common Overworld Mobs
 reqZombieKills = 50
 reqSkeletonKills = 40
-reqStrayKills = 10
-reqHuskKills = 10
 reqSpiderKills = 30
 reqCreeperKills = 30
 reqDrownedKills = 20
 
-# Special Mobs
-reqEndermanKills = 5
-reqWitchKills = 5
-reqPillagerKills = 20
-reqCaptainKills = 0          # Pillager Captains (0 = disabled)
-reqVindicatorKills = 10
-reqBoggedKills = 10
-reqBreezeKills = 5
+# Phase 1 - Special Objectives
+reqElderGuardian = true      # Ocean monument boss
+reqRaid = true              # Pillager raid victory
+reqTrialVaultAdv = true     # Trial chambers advancement
 
-# Goal Kills (Rare/Powerful)
-reqRavagerKills = 1
-reqEvokerKills = 5
-```
-
-#### Phase 2 Mobs:
-```toml
-# Nether Mobs
+# Phase 2 - Nether Mobs  
 reqBlazeKills = 20
 reqWitherSkeletonKills = 15
-reqPiglinBruteKills = 5
-reqHoglinKills = 1
-reqZoglinKills = 1
 reqGhastKills = 10
-reqPiglinKills = 30          # Hostile Piglins
-reqEndermiteKills = 0        # Usually disabled
+
+# Phase 2 - Boss Objectives
+reqWither = true            # Wither boss defeat
+reqWarden = true            # Deep dark warden defeat
 ```
 
 ### Multiplier System
 ```toml
-# Enable multipliers after phase completion
 enableMultipliers = true
-enableXpMultiplier = true
-
-# Multiplier values
-phase1Multiplier = 1.5       # 1.5x health/damage after Phase 1
-phase2Multiplier = 2.0       # 2.0x health/damage after Phase 2
+phase1Multiplier = 1.5      # 1.5x mob health/damage after Phase 1
+phase2Multiplier = 2.0      # 2.0x mob health/damage after Phase 2
+enableXpMultiplier = true   # Bonus XP from combat
 ```
 
-### Party System
+### Party System Settings
 ```toml
-# Enable party system
 enablePartySystem = true
-
-# Party settings
-maxPartySize = 8             # Maximum players per party
-partyInviteTimeout = 300     # Invitation timeout in seconds
+maxPartySize = 10            # Maximum players per party
+partyInviteTimeout = 300    # Invitation timeout (seconds)
 ```
 
-### Debug & Admin
+---
+
+## 🖥️ Client Customization (`dimtr-client.toml`)
+
+### HUD Controls
+```toml
+hudKeybind = "key.keyboard.j"        # Main HUD toggle key
+hudScale = 1.0                       # HUD size scaling
+hudOpacity = 0.9                     # HUD transparency
+showProgressPercentages = true       # Show completion percentages
+showPartyInfo = true                 # Display party members
+```
+
+### Interface Preferences
+```toml
+enableSounds = true          # HUD sound effects
+soundVolume = 1.0           # Sound volume level
+enableAnimations = true     # UI animations
+compactMode = false         # Compact HUD layout
+```
+
+---
+
+## 🎯 Quick Configuration Presets
+
+### Casual Server (Easier progression)
+```toml
+# Reduce requirements by 50%
+reqZombieKills = 25
+reqSkeletonKills = 20
+reqWarden = false           # Disable optional bosses
+phase1Multiplier = 1.2      # Lower difficulty scaling
+```
+
+### Hardcore Server (Maximum challenge)
+```toml
+# Double requirements
+reqZombieKills = 100
+reqSkeletonKills = 80
+reqWarden = true            # All bosses required
+phase1Multiplier = 2.5      # Higher difficulty scaling
+```
+
+### Party-Focused Server
+```toml
+maxPartySize = 10           # Large parties
+reqZombieKills = 80         # Higher base (balanced by party scaling)
+enablePartySystem = true    # Essential for this mode
+```
+
+### Speed Run Server
+```toml
+reqZombieKills = 10         # Minimal requirements
+reqElderGuardian = false    # Skip optional objectives
+enableMultipliers = false  # No difficulty scaling
+```
+
+---
+
+## 🔍 Troubleshooting & Commands
+
+### Debug Commands
+```
+/dimtr status               # Current configuration and progress
+/dimtr reload config        # Reload configuration files
+/dimtr debug config         # Detailed configuration info
+```
+
+### Common Issues
+- **Config not loading:** Check TOML syntax, restart server after changes
+- **Mob requirements not working:** Verify `enableMobKillsPhase1/2` is true
+- **Multipliers not applying:** Ensure `enableMultipliers` is true and phases completed
+
+---
+
+**📖 For detailed configuration options and advanced setups, see the original [Configuration Guide](CONFIGURATION.md)**
+
+**🔗 Related:** [Custom Requirements](CUSTOM_REQUIREMENTS.md) | [Party System](PARTY_SYSTEM.md) | [Main README](README.md)**
 ```toml
 # Debug logging
 enableDebugLogging = false
@@ -178,7 +217,7 @@ phase2Multiplier = 3.0
 ### 3. Party-Focused Server
 ```toml
 # Encourage party play
-maxPartySize = 12
+maxPartySize = 10
 enablePartySystem = true
 
 # Higher base requirements (balanced by party scaling)

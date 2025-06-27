@@ -2,6 +2,7 @@ package net.mirai.dimtr;
 
 import net.mirai.dimtr.config.DimTrConfig;
 import net.mirai.dimtr.network.ModNetworking;
+import net.mirai.dimtr.util.Constants;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -25,22 +26,22 @@ public class DimTrMod {
     public static final Logger LOGGER = LogManager.getLogger();
 
     public DimTrMod(IEventBus modEventBus, ModContainer modContainer) {
-        LOGGER.info("🚀 Initializing Dimension Trials Mod...");
+        LOGGER.info(Constants.LOG_INITIALIZING_MOD);
 
         // ============================================================================
         // 🎯 CONFIGURAÇÕES
         // ============================================================================
-        modContainer.registerConfig(ModConfig.Type.SERVER, DimTrConfig.SERVER_SPEC, MODID + "-server.toml");
-        modContainer.registerConfig(ModConfig.Type.CLIENT, DimTrConfig.CLIENT_SPEC, MODID + "-client.toml");
+        modContainer.registerConfig(ModConfig.Type.SERVER, DimTrConfig.SERVER_SPEC, Constants.MOD_ID + Constants.CONFIG_SERVER_FILE_SUFFIX);
+        modContainer.registerConfig(ModConfig.Type.CLIENT, DimTrConfig.CLIENT_SPEC, Constants.MOD_ID + Constants.CONFIG_CLIENT_FILE_SUFFIX);
 
-        LOGGER.info("✅ Registered server and client configurations");
+        LOGGER.info(Constants.LOG_CONFIG_REGISTERED);
 
         // ============================================================================
         // 🎯 NETWORKING (SISTEMA CORRIGIDO)
         // ============================================================================
         modEventBus.addListener(ModNetworking::registerPayloads);
 
-        LOGGER.info("✅ Registered networking system with party support");
+        LOGGER.info(Constants.LOG_NETWORKING_REGISTERED);
 
         // ============================================================================
         // 🎯 CUSTOM REQUIREMENTS (NOVO SISTEMA)
@@ -49,20 +50,20 @@ public class DimTrMod {
             net.mirai.dimtr.config.CustomRequirements.loadCustomRequirements();
         });
 
-        LOGGER.info("✅ Initialized custom requirements system");
+        LOGGER.info(Constants.LOG_CUSTOM_REQUIREMENTS_INITIALIZED);
 
         // ============================================================================
         // 🎯 LOG DE INICIALIZAÇÃO COMPLETA
         // ============================================================================
-        LOGGER.info("🎯 Dimension Trials Mod initialization complete!");
-        LOGGER.info("📋 Features available:");
-        LOGGER.info("   • Phase-based progression system");
-        LOGGER.info("   • Collaborative party system ✅");
-        LOGGER.info("   • Modular HUD interface");
-        LOGGER.info("   • Administrative commands (/dimtr)");
-        LOGGER.info("   • Party management (/dimtr party) ✅");
-        LOGGER.info("   • Individual progression tracking ✅");
-        LOGGER.info("   • Proximity-based multipliers ✅");
-        LOGGER.info("   • Custom requirements system 🎯 NEW");
+        LOGGER.info(Constants.LOG_INITIALIZATION_COMPLETE);
+        LOGGER.info(Constants.LOG_FEATURES_AVAILABLE);
+        LOGGER.info(Constants.LOG_FEATURE_PHASE_PROGRESSION);
+        LOGGER.info(Constants.LOG_FEATURE_PARTY_SYSTEM);
+        LOGGER.info(Constants.LOG_FEATURE_HUD_INTERFACE);
+        LOGGER.info(Constants.LOG_FEATURE_ADMIN_COMMANDS);
+        LOGGER.info(Constants.LOG_FEATURE_PARTY_COMMANDS);
+        LOGGER.info(Constants.LOG_FEATURE_INDIVIDUAL_TRACKING);
+        LOGGER.info(Constants.LOG_FEATURE_PROXIMITY_MULTIPLIERS);
+        LOGGER.info(Constants.LOG_FEATURE_CUSTOM_REQUIREMENTS);
     }
 }

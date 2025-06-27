@@ -7,6 +7,7 @@ import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.data.PartyManager;
 import net.mirai.dimtr.data.PartyData;
 import net.mirai.dimtr.data.ProgressionManager;
+import net.mirai.dimtr.util.Constants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 
@@ -56,7 +57,7 @@ public class CustomRequirements {
         }
         
         isLoaded = true;
-        DimTrMod.LOGGER.info("Loaded {} custom requirement sets", loadedRequirements.size());
+        DimTrMod.LOGGER.info(Constants.LOG_CUSTOM_REQUIREMENTS_LOADED, loadedRequirements.size());
     }
     
     /**
@@ -123,7 +124,7 @@ public class CustomRequirements {
             try (FileWriter writer = new FileWriter(exampleFile)) {
                 GSON.toJson(example, writer);
             }
-            DimTrMod.LOGGER.info("Created example custom requirements file: {}", exampleFile.getAbsolutePath());
+            DimTrMod.LOGGER.info(Constants.LOG_CUSTOM_REQUIREMENTS_EXAMPLE_CREATED, exampleFile.getAbsolutePath());
         } catch (IOException e) {
             DimTrMod.LOGGER.error("Failed to create example file: {}", e.getMessage());
         }
@@ -177,31 +178,55 @@ public class CustomRequirements {
     
     /**
      * Verificar se um jogador pode acessar uma dimensão customizada
+     * @deprecated Use ProgressionCoordinator.canPlayerAccessCustomDimension() instead
      */
+    @Deprecated
     public static boolean canAccessCustomDimension(UUID playerId, ResourceLocation dimension) {
-        // 🎯 IMPLEMENTADO: Verificação de acesso baseada na progressão do jogador
-        
+        DimTrMod.LOGGER.warn("Using deprecated canAccessCustomDimension - use ProgressionCoordinator instead");
+        return true; // Sempre permitir - verificação real deve ser feita via ProgressionCoordinator
+    }
+
+    /**
+     * 🎯 NOVO: Verificar se um jogador pode acessar uma dimensão customizada (com ServerLevel)
+     */
+    public static boolean canPlayerAccessCustomDimension(UUID playerId, ResourceLocation dimension, ServerLevel level) {
         // Buscar fase customizada que controla esta dimensão
-        String blockingPhase = null;
-        for (var entry : loadedRequirements.entrySet()) {
-            for (var phaseEntry : entry.getValue().customPhases.entrySet()) {
-                var phase = phaseEntry.getValue();
-                if (phase.dimensionAccess != null && phase.dimensionAccess.contains(dimension.toString())) {
-                    blockingPhase = phaseEntry.getKey();
-                    break;
-                }
-            }
-            if (blockingPhase != null) break;
-        }
+        String blockingPhase = findBlockingPhaseForDimension(dimension.toString());
         
         if (blockingPhase == null) {
             return true; // Dimensão não é controlada por nenhuma fase customizada
         }
         
-        // Verificar se o jogador completou a fase necessária
-        // Nota: Esta verificação precisa de ServerLevel, que não está disponível aqui
-        // A verificação real deve ser feita no ModEventHandlers onde temos acesso ao ServerLevel
-        return true; // Permitir por padrão para evitar locks
+        // Verificar progresso via ProgressionManager
+        ProgressionManager progressionManager = ProgressionManager.get(level);
+        PartyManager partyManager = PartyManager.get(level);
+        
+        // 🎯 INTEGRAÇÃO COM PARTY: Verificar se jogador está em party
+        if (partyManager.isPlayerInParty(playerId)) {
+            PartyData party = partyManager.getPlayerParty(playerId);
+            if (party != null && party.isCustomPhaseComplete(blockingPhase)) {
+                return true; // Party já completou a fase
+            }
+        }
+        
+        // Verificar progresso individual
+        var playerData = progressionManager.getPlayerData(playerId);
+        return playerData.isCustomPhaseComplete(blockingPhase);
+    }
+
+    /**
+     * 🎯 NOVO: Encontrar qual fase bloqueia uma dimensão específica
+     */
+    public static String findBlockingPhaseForDimension(String dimensionString) {
+        for (var entry : loadedRequirements.entrySet()) {
+            for (var phaseEntry : entry.getValue().customPhases.entrySet()) {
+                var phase = phaseEntry.getValue();
+                if (phase.dimensionAccess != null && phase.dimensionAccess.contains(dimensionString)) {
+                    return phaseEntry.getKey();
+                }
+            }
+        }
+        return null;
     }
     
     /**

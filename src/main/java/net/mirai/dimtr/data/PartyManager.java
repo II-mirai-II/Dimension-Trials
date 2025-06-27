@@ -128,6 +128,25 @@ public class PartyManager extends SavedData {
         UUID partyId = UUID.randomUUID();
         PartyData newParty = new PartyData(partyId, partyName.trim(), password, leaderId);
 
+        // 🎯 CORREÇÃO: Transferir progresso individual do líder para a party
+        if (serverForContext != null) {
+            ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
+            if (overworldLevel != null) {
+                ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
+                if (progressionManager != null) {
+                    // Obter progresso individual do líder
+                    Map<String, Integer> leaderProgress = progressionManager.getPlayerMobKills(leaderId);
+                    PlayerProgressionData leaderData = progressionManager.getPlayerData(leaderId);
+                    
+                    // Transferir progresso de mobs
+                    newParty.transferIndividualProgress(leaderId, leaderProgress);
+                    
+                    // Transferir objetivos especiais
+                    transferSpecialObjectives(newParty, leaderData);
+                }
+            }
+        }
+
         parties.put(partyId, newParty);
         playerToParty.put(leaderId, partyId);
 
@@ -168,14 +187,21 @@ public class PartyManager extends SavedData {
 
         playerToParty.put(playerId, targetParty.getPartyId());
         
-        // 🎯 NOVO: Transferir progresso individual do jogador para a party
+        // 🎯 CORREÇÃO: Transferir progresso individual do jogador para a party
         if (serverForContext != null) {
             ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
             if (overworldLevel != null) {
                 ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
                 if (progressionManager != null) {
+                    // Obter progresso individual do jogador
                     Map<String, Integer> playerProgress = progressionManager.getPlayerMobKills(playerId);
+                    PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
+                    
+                    // Transferir progresso de mobs
                     targetParty.transferIndividualProgress(playerId, playerProgress);
+                    
+                    // Transferir objetivos especiais
+                    transferSpecialObjectives(targetParty, playerData);
                 }
             }
         }
@@ -209,10 +235,10 @@ public class PartyManager extends SavedData {
             }
         }
 
-        // 🎯 NOVO: Remover contribuições individuais e restaurar progresso do jogador
+        // 🎯 CORREÇÃO: Remover contribuições individuais e restaurar progresso completo
         Map<String, Integer> playerContributions = party.removeIndividualContributions(playerId);
         
-        // Restaurar progresso individual do jogador
+        // Restaurar progresso individual do jogador (mob kills)
         if (serverForContext != null && !playerContributions.isEmpty()) {
             ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
             if (overworldLevel != null) {
@@ -222,6 +248,12 @@ public class PartyManager extends SavedData {
                 }
             }
         }
+        
+        // 🎯 NOVO: Restaurar objetivos especiais do jogador
+        restoreSpecialObjectivesToPlayer(playerId, party);
+
+        // 🎯 NOVO: Transferir objetivos especiais de volta ao jogador que sai
+        restoreSpecialObjectivesToPlayer(playerId, party);
 
         // Remover jogador da party
         party.removeMember(playerId);
@@ -264,10 +296,14 @@ public class PartyManager extends SavedData {
      */
     public boolean processPartyMobKill(UUID playerId, String mobType) {
         UUID partyId = playerToParty.get(playerId);
-        if (partyId == null) return false;
+        if (partyId == null) {
+            return false;
+        }
 
         PartyData party = parties.get(partyId);
-        if (party == null) return false;
+        if (party == null) {
+            return false;
+        }
 
         // 🎯 NOVO: Incrementar kill compartilhado e registrar contribuição individual
         boolean updated = party.incrementSharedMobKillWithContribution(mobType, playerId);
@@ -275,14 +311,6 @@ public class PartyManager extends SavedData {
         if (updated) {
             setDirty();
             syncPartyToMembers(partyId);
-
-            // Também atualizar progressão individual de todos os membros
-            ProgressionManager progressionManager = ProgressionManager.get(
-                    (ServerLevel) serverForContext.overworld());
-
-            for (UUID memberId : party.getMembers()) {
-                progressionManager.incrementMobKill(memberId, mobType);
-            }
         }
 
         return updated;
@@ -417,7 +445,11 @@ public class PartyManager extends SavedData {
                 party.isSharedWitherKilled(),
                 party.isSharedWardenKilled(),
                 party.isPhase1SharedCompleted(),
-                party.isPhase2SharedCompleted()
+                party.isPhase2SharedCompleted(),
+                // 🎯 NOVO: Custom Phases data
+                party.getSharedCustomPhaseCompletion(),
+                party.getSharedCustomMobKills(),
+                party.getSharedCustomObjectiveCompletion()
         );
     }
 
@@ -432,10 +464,95 @@ public class PartyManager extends SavedData {
                 1.0, // progressionMultiplier (default)
                 0, // memberCount
                 new HashMap<>(), // sharedMobKills (vazio)
-                false, false, false, false, false, false, false, false // todos objetivos false
+                false, false, false, false, false, false, false, false, // todos objetivos false
+                // 🎯 NOVO: Custom Phases data vazios
+                new HashMap<>(), // sharedCustomPhaseCompletion (vazio)
+                new HashMap<>(), // sharedCustomMobKills (vazio)
+                new HashMap<>() // sharedCustomObjectiveCompletion (vazio)
         );
         
         PacketDistributor.sendToPlayer(player, emptyPayload);
+    }
+
+    // ============================================================================
+    // 🎯 MÉTODOS AUXILIARES PARA TRANSFERÊNCIA DE PROGRESSO
+    // ============================================================================
+
+    /**
+     * Transferir objetivos especiais do jogador para a party
+     */
+    private void transferSpecialObjectives(PartyData party, PlayerProgressionData playerData) {
+        // Fase 1 objectives
+        if (playerData.elderGuardianKilled) {
+            party.setSharedElderGuardianKilled(true);
+        }
+        if (playerData.raidWon) {
+            party.setSharedRaidWon(true);
+        }
+        if (playerData.trialVaultAdvancementEarned) {
+            party.setSharedTrialVaultAdvancementEarned(true);
+        }
+        if (playerData.voluntaireExileAdvancementEarned) {
+            party.setSharedVoluntaireExileAdvancementEarned(true);
+        }
+        
+        // Fase 2 objectives
+        if (playerData.witherKilled) {
+            party.setSharedWitherKilled(true);
+        }
+        if (playerData.wardenKilled) {
+            party.setSharedWardenKilled(true);
+        }
+        
+        // Verificar se as fases devem ser marcadas como completas
+        if (playerData.phase1Completed) {
+            party.setPhase1SharedCompleted(true);
+        }
+        if (playerData.phase2Completed) {
+            party.setPhase2SharedCompleted(true);
+        }
+        
+        // 🎯 NOVO: Transferir Custom Phases
+        party.transferCustomProgressFromPlayer(playerData);
+    }
+
+    /**
+     * 🎯 NOVO: Transferir objetivos especiais de volta ao jogador que sai
+     */
+    private void restoreSpecialObjectivesToPlayer(UUID playerId, PartyData party) {
+        if (serverForContext != null) {
+            ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
+            if (overworldLevel != null) {
+                ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
+                if (progressionManager != null) {
+                    PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
+                    
+                    // Restaurar objetivos especiais usando métodos públicos
+                    // LÓGICA: Se a party tem o objetivo, todos os membros devem tê-lo ao sair
+                    if (party.isSharedElderGuardianKilled()) {
+                        progressionManager.updateElderGuardianKilled(playerId);
+                    }
+                    if (party.isSharedRaidWon()) {
+                        progressionManager.updateRaidWon(playerId);
+                    }
+                    if (party.isSharedTrialVaultAdvancementEarned()) {
+                        progressionManager.updateTrialVaultAdvancementEarned(playerId);
+                    }
+                    if (party.isSharedVoluntaireExileAdvancementEarned()) {
+                        progressionManager.updateVoluntaireExileAdvancementEarned(playerId);
+                    }
+                    if (party.isSharedWitherKilled()) {
+                        progressionManager.updateWitherKilled(playerId);
+                    }
+                    if (party.isSharedWardenKilled()) {
+                        progressionManager.updateWardenKilled(playerId);
+                    }
+                    
+                    // 🎯 NOVO: Restaurar Custom Phases
+                    party.restoreCustomProgressToPlayer(playerData);
+                }
+            }
+        }
     }
 
     // ============================================================================

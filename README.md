@@ -2,157 +2,164 @@
 
 [![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)](https://www.minecraft.net/)
 [![Mod Version](https://img.shields.io/badge/Version-1.3-blue.svg)]()
-[![Party System](https://img.shields.io/badge/NEW-Party%20System-brightgreen.svg)]()
-[![Custom Requirements](https://img.shields.io/badge/NEW-Custom%20Requirements-orange.svg)]()
+
+**Transform your Minecraft experience with meaningful progression challenges. Gate dimensional access behind achievements and objectives, forcing players to truly master each dimension before advancing to the next.**
 
 ![HUD Preview](https://github.com/II-mirai-II/Dimension-Trials/blob/main/img_1.png?raw=true)
 
-## **A challenging Minecraft mod that gates access to other dimensions behind specific achievements and mob elimination goals, forcing players to fully explore and master each dimension before progressing further.**
+---
 
-### 🆕 **What's New in v1.3?**
-- **🎮 Redesigned HUD Interface** - Completely revamped progression HUD with modern design and improved navigation
-- **👥 Complete Party System** - Team up with friends for reduced individual requirements and shared progress
-- **🎨 Custom Requirements System** - Unlimited custom phases through JSON configuration
-- **🔧 Enhanced Multiplayer** - Persistent party names and real-time synchronization
+## 🎯 **What This Mod Does**
 
-**[📋 View Full Changelog](Changelog%20v1.3.md)**
+🚪 **Block Dimensional Access** - No more rushing to the Nether or End on day one  
+👥 **Team Up with Friends** - NEW Party System with shared objectives and reduced requirements  
+🎮 **Track Your Progress** - Beautiful HUD showing real-time progression  
+🎨 **Infinite Customization** - Create unlimited custom phases with JSON configuration  
+⚙️ **Server-Friendly** - Highly configurable for any playstyle or server size  
 
 ---
 
-## 🌟 **Key Features**
+## 🌟 **Core Progression System**
 
-### 🚪 **Progressive Dimension Access**
-- **Phase 1 → Nether:** Complete Overworld challenges first
-- **Phase 2 → The End:** Master the Nether before final dimension
-- **Custom Phases:** Create unlimited additional phases with JSON config
-- **Smart Blocking:** Safe teleportation back to spawn for unauthorized access
+### **Phase 1: Unlock the Nether** 🔥
+Complete Overworld challenges before accessing the Nether:
+- **Kill 16 mob types** (Zombies: 50, Skeletons: 40, Spiders: 30, etc.)
+- **Defeat special bosses** (Elder Guardian, complete Pillager Raid)
+- **Earn key advancements** (Trial Vault exploration)
 
-### 🎮 **Modern HUD System** *(Redesigned in v1.3)*
-- **Press `J`** to open the sleek new progression interface
-- **Tabbed Navigation:** Easy switching between objectives and progress
-- **Live Tracking:** Real-time counters with visual completion indicators
-- **Party Integration:** See team members, leader status, and shared progress
-- **Interactive Design:** Click navigation with comprehensive tooltips
+### **Phase 2: Unlock the End** 🌌
+Master the Nether before reaching the final dimension:
+- **Eliminate 7 Nether mob types** (Blazes: 20, Wither Skeletons: 15, Ghasts: 10, etc.)
+- **Conquer ultimate bosses** (Wither, Warden)
+- **Prove your worthiness** for the End dimension
 
-### 👥 **Party System** *(NEW in v1.3)*
-- **Reduced Requirements:** Kill counts divided by party size
-- **Shared Progress:** All team members contribute to same objectives
-- **Real-time Updates:** Dynamic requirement scaling as members join/leave
-- **Persistent Names:** Offline members show actual usernames, not generic IDs
-
-**[📖 Full Party System Guide →](PARTY_SYSTEM.md)**
-
-### 🎨 **Custom Requirements** *(NEW in v1.3)*
-- **Unlimited Phases:** Create Phase 3, 4, 5+ through JSON files
-- **Mod Integration:** Full support for Twilight Forest, Aether, and any mod
-- **No Coding Required:** Easy JSON configuration system
-- **Automatic Examples:** Creates sample files on first run
-
-**[📋 Custom Requirements Guide →](CUSTOM_REQUIREMENTS.md)**
+### **Custom Phases: Unlimited Possibilities** ✨
+Create Phase 3, 4, 5+ with JSON files - integrate any mod seamlessly!
 
 ---
 
-## 🎯 **Default Progression**
+## 👥 **Party System** 
 
-### **Phase 1: THE NETHER** 🔥
-**Requirements:** 16 Overworld mob types + special objectives
-- 🧟 Zombies: 50 kills | 💀 Skeletons: 40 kills | 🕷 Spiders: 30 kills
-- 🛡 Elder Guardian defeat | 🏴 Pillager Raid victory | 🗝 Trial Vault advancement
+**Team up and share the challenge!**
+- **Reduced Requirements:** 4 players = 25% individual effort each
+- **Shared Progress:** All kills count toward the same pool
+- **Real-time Updates:** Dynamic scaling as members join/leave
+- **Cross-Dimensional:** Hunt in different dimensions simultaneously
 
-### **Phase 2: THE END** 🌌  
-**Requirements:** 8 Nether mob types + 125% of Phase 1 mobs
-- 🔥 Blazes: 20 kills | 💀 Wither Skeletons: 15 kills | 👻 Ghasts: 10 kills
-- 💀 Wither boss defeat | 🌑 Warden defeat
-
-*All requirements are fully configurable and can be disabled individually*
-
----
-
-## 🚀 **Quick Start**
-
-1. **Install the mod** and start your world
-2. **Press `J`** to open the new HUD and see your objectives
-3. **Work through Phase 1** - complete Overworld challenges
-4. **Access the Nether** once Phase 1 is complete
-5. **Complete Phase 2** to unlock The End
-6. **Optional:** Create parties with `/dimtr party create` for team play
-
-### 🎮 **Navigation:**
-- **`J` Key:** Open/close progression HUD
-- **Arrow Keys:** Switch between HUD tabs
-- **Q/E Keys:** Navigate pages within tabs
-- **Mouse:** Click tabs and hover for tooltips
+```
+/dimtr party create         # Start your team
+/dimtr party invite <player> # Invite friends
+```
 
 ---
 
-## ⚙️ **Configuration & Customization**
+## 🎮 **Modern Interface**
 
-### **📁 Easy Configuration**
-- **Server Config:** Adjust requirements, toggle phases, set multipliers
-- **Client Config:** Customize HUD appearance, keybinds, and UI settings
-- **Custom Requirements:** Create unlimited phases with JSON files
+**Press `J` to open the sleek progression HUD:**
+- ✅ **Live Progress Tracking** with visual completion indicators
+- 👥 **Party Integration** showing team members and shared objectives  
+- 🎯 **Interactive Navigation** with tabs and comprehensive tooltips
+- 📊 **Real-time Synchronization** across all party members
 
-**[📋 Complete Configuration Guide →](CONFIGURATION.md)**
+---
 
-### **🎨 Popular Customizations**
+## ⚙️ **Perfect for Any Server**
+
+### 🏰 **Casual Servers**
 ```toml
-# Quick examples
-reqZombieKills = 25          # Reduce zombie requirement
-enablePhase1 = false         # Skip Phase 1 entirely
-phase1Multiplier = 2.0       # Double mob difficulty after Phase 1
-maxPartySize = 8             # Allow larger parties
+reqZombieKills = 25          # Reduce requirements
+reqWarden = false            # Skip optional bosses
+```
+
+### ⚔️ **Hardcore Servers**
+```toml
+reqZombieKills = 100         # Double requirements  
+phase1Multiplier = 2.5       # Massive difficulty scaling
+```
+
+### 👥 **Party-Focused Servers**
+```toml
+maxPartySize = 10            # Large teams (max: 10)
+enablePartySystem = true     # Essential cooperative play
 ```
 
 ---
 
-## 🔧 **Commands**
+## 🚀 **Quick Start Guide**
 
-### **Administrative Commands**
-```
-/dimtr complete phase1       # Force complete Phase 1
-/dimtr reset all            # Reset all progress  
-/dimtr status               # Show current status
-/dimtr sync                 # Force client sync
+1. **Install & Launch** - Start your world normally
+2. **Press `J`** - Open progression HUD to see your objectives
+3. **Complete Phase 1** - Hunt mobs and defeat bosses in the Overworld
+4. **Access Nether** - Unlock when Phase 1 is complete
+5. **Master Phase 2** - Conquer Nether challenges to unlock the End
+6. **Optional: Team Up** - Create parties for cooperative progression
+
+---
+
+## 🎨 **Unlimited Customization**
+
+### **JSON-Based Custom Phases**
+```json
+{
+  "name": "Phase 3: Twilight Forest",
+  "dimensionAccess": ["twilightforest:twilight_forest"],
+  "mobRequirements": {
+    "twilightforest:lich": 1,
+    "twilightforest:hydra": 1
+  },
+  "healthMultiplier": 2.5
+}
 ```
 
-### **Party Commands** *(NEW)*
+**Works with ANY mod:** Twilight Forest, Aether, Create, AllTheMods, Industrial mods, and more!
+
+---
+
+## 📋 **Essential Commands**
+
 ```
-/dimtr party create         # Create new party
-/dimtr party invite <player>  # Invite player
-/dimtr party info           # Show party details
-/dimtr party leave          # Leave party
+# Party Management
+/dimtr party create              # Create a new party
+/dimtr party invite <player>     # Invite player to party
+
+# Personal Progression  
+/dimtr status                    # Check your progression
+
+# Admin Commands (OP level 2)
+/dimtr player <player> status    # Check any player's progression
+/dimtr complete phase1           # Complete Phase 1 for yourself
+/dimtr complete phase2           # Complete Phase 2 for yourself
+/dimtr player <player> complete phase1  # Complete Phase 1 for target player
 ```
 
 ---
 
-## 🌍 **Multiplayer & Compatibility**
+## 🌍 **Why Choose Dimension Trials?**
 
-- **✅ Fully Multiplayer:** Global progression with party support
-- **✅ Highly Configurable:** Adapt to any server style
-- **✅ Multi-Language:** 9+ language translations
-- **✅ Mod Compatible:** Integrates with any mod through custom requirements
-- **✅ Performance Optimized:** Minimal server impact
+✅ **Meaningful Progression** - No more rushing through dimensions  
+✅ **Cooperative Gameplay** - Team up with friends for shared challenges  
+✅ **Infinite Content** - Create custom phases for any modpack  
+✅ **Server-Friendly** - Highly configurable, minimal performance impact  
+✅ **Modern Interface** - Beautiful, intuitive progression tracking  
+✅ **Multi-Language** - 9+ language translations available  
 
 ---
 
-## 📚 **Documentation**
+## 📚 **Learn More**
 
-- **[👥 Party System Guide](PARTY_SYSTEM.md)** - Complete party features guide
+- **[👥 Party System Guide](PARTY_SYSTEM.md)** - Complete cooperative gameplay guide
 - **[🎨 Custom Requirements](CUSTOM_REQUIREMENTS.md)** - Create unlimited custom phases
-- **[⚙️ Configuration Guide](CONFIGURATION.md)** - Complete setup instructions
-- **[📋 Changelog v1.3](Changelog%20v1.3.md)** - All new features and fixes
+- **[⚙️ Configuration](CONFIGURATION.md)** - Complete setup and customization guide
+- **[📋 Full Changelog v1.3](Changelog%20v1.3.md)** - All new features and improvements
 
 ---
 
-## 🤝 **Community & Support**
+## 🤝 **Support & Community**
 
-- **🐛 Bug Reports:** [GitHub Issues](https://github.com/II-mirai-II/Dimension-Trials/issues)
-- **💡 Feature Requests:** [GitHub Discussions](https://github.com/II-mirai-II/Dimension-Trials/discussions)
-- **📖 Wiki:** [Complete Documentation](https://github.com/II-mirai-II/Dimension-Trials/wiki)
-- **🎮 Community Configs:** Share your custom requirements and configurations
+**🐛 Issues:** [GitHub Issues](https://github.com/II-mirai-II/Dimension-Trials/issues) | **💡 Ideas:** [GitHub Discussions](https://github.com/II-mirai-II/Dimension-Trials/discussions)
 
 ---
 
 **Made with ❤️ for the Minecraft community**
 
-*Perfect for survival servers seeking meaningful progression challenges with unlimited customization possibilities!*
+*Perfect for survival servers seeking meaningful progression with unlimited customization possibilities!*
