@@ -423,12 +423,35 @@ public class ModEventHandlers {
             return;
         }
 
-        // 🎯 MUDANÇA PRINCIPAL: Enviar dados individuais do jogador
+        // 🔧 CORREÇÃO CRÍTICA: Sincronização robusta ao fazer login
         ServerLevel serverLevel = player.serverLevel();
         ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+        PartyManager partyManager = PartyManager.get(serverLevel);
+        
+        UUID playerId = player.getUUID();
 
-        // Enviar dados específicos do jogador
-        progressionManager.sendToClient(player);
+        // 🔧 CORREÇÃO: Verificar se jogador está em party
+        if (partyManager.isPlayerInParty(playerId)) {
+            PartyData party = partyManager.getPlayerParty(playerId);
+            if (party != null) {
+                // 🔧 CORREÇÃO CRÍTICA: Enviar dados de progressão da PARTY atualizados
+                partyManager.sendPartyProgressionToClient(player);
+                partyManager.sendPartyToClient(player);
+                
+                DimTrMod.LOGGER.info("✅ Player {} reconectado - dados de party sincronizados (party: {})", 
+                    player.getName().getString(), party.getName());
+            } else {
+                // Fallback - enviar dados individuais se party não encontrada
+                progressionManager.sendToClient(player);
+                DimTrMod.LOGGER.warn("⚠️ Player {} estava em party mas dados não encontrados - enviando dados individuais", 
+                    player.getName().getString());
+            }
+        } else {
+            // 🔧 CORREÇÃO: Jogador não está em party - enviar dados individuais
+            progressionManager.sendToClient(player);
+            DimTrMod.LOGGER.info("✅ Player {} reconectado - dados individuais sincronizados", 
+                player.getName().getString());
+        }
     }
 
     // ============================================================================
