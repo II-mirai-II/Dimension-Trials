@@ -1,13 +1,6 @@
 # Dimension Trials 💀
 
-[![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)](https://www.minecraf### **Mod Integration: Automatic Boss Detection** 🤖
-**NEW in v1.3:** Automatic integration with popular mods!
-- **Mowzie's Mobs** - Ferrous Wroughtnaut, Frostmaw, Umvuthi, Naga, Sculptor
-- **L_Ender's Cataclysm** - Netherite Monstrosity, Ignis, Harbinger, Ender Guardian, Ender Golem
-- **Phase 3 Creation** - End-tier bosses automatically create a new post-End phase
-- **Smart Classification** - Bosses sorted by spawn dimension (Overworld=Phase1, Nether=Phase2, End=Phase3)
-
-> 📖 **[Complete Integration Guide](CUSTOM_REQUIREMENTS.md#-popular-integrations)**
+![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)
 [![Mod Version](https://img.shields.io/badge/Version-1.3-blue.svg)]()
 [![NeoForge](https://img.shields.io/badge/NeoForge-Compatible-orange.svg)](https://neoforged.net/)
 
@@ -26,6 +19,8 @@
 ⚙️ **Server-Friendly** - Highly configurable for any playstyle or server size  
 💾 **Data Safety** - Backup & recovery system prevents progress loss
 ✨ **XP Multipliers** - Earn bonus XP as you progress through phases
+
+**❓NEW in v1.3:** Automatic integration with 2 popular mods, Multiplayer/Solo Progression system and much more!
 
 ---
 
@@ -126,7 +121,7 @@ enablePartySystem = true     # Essential cooperative play
 }
 ```
 
-**Works with ANY mod:** Twilight Forest, Aether, Create, AllTheMods, Industrial mods, and more!
+**Works with ANY mod ( PROBABLY ):** Twilight Forest, Aether, Create, AllTheMods, Industrial mods, and more!
 
 ---
 
