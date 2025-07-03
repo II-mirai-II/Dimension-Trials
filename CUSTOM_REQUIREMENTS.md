@@ -1,4 +1,4 @@
-# 🎨 Custom Requirements System
+# 🎨 Custom Requirements System ( BETA )
 
 **Create unlimited custom phases and integrate any mod - no coding required!**
 
@@ -12,6 +12,7 @@ Transform Dimension Trials into the perfect progression system for your modpack 
 - **Complex Dependencies:** Build intricate progression chains between phases
 - **Custom Multipliers:** Define unique difficulty scaling per phase
 - **Zero Coding:** Simple JSON configuration system
+- **Party Integration:** Custom phases fully compatible with the party system
 
 ---
 
@@ -125,6 +126,97 @@ Transform Dimension Trials into the perfect progression system for your modpack 
 }
 ```
 
+### Applied Energistics 2 Integration
+```json
+{
+  "name": "AE2 Progression",
+  "description": "Advanced storage system progression",
+  "enabled": true,
+  "customPhases": {
+    "ae2_phase": {
+      "name": "Digital Storage Mastery",
+      "description": "Master the art of digital storage",
+      "requiredPreviousPhases": ["phase1"],
+      "specialObjectives": {
+        "me_controller": {
+          "displayName": "ME Controller",
+          "description": "Build a working ME Controller",
+          "required": true
+        },
+        "me_drive": {
+          "displayName": "ME Drive",
+          "description": "Create an ME Drive with storage cells",
+          "required": true
+        },
+        "autocrafting": {
+          "displayName": "Autocrafting Setup",
+          "description": "Set up a functional autocrafting system",
+          "required": false
+        }
+      }
+    }
+  }
+}
+```
+
+### Botania Integration
+```json
+{
+  "name": "Botania Progression",
+  "description": "Master the magical flowers",
+  "enabled": true,
+  "customPhases": {
+    "botania_phase": {
+      "name": "Botanical Mastery",
+      "description": "Master the art of magical flowers",
+      "requiredPreviousPhases": ["phase1"],
+      "specialObjectives": {
+        "alfheim_portal": {
+          "displayName": "Alfheim Portal",
+          "description": "Create a portal to Alfheim",
+          "required": true
+        },
+        "gaia_guardian": {
+          "displayName": "Gaia Guardian",
+          "description": "Defeat the Gaia Guardian",
+          "required": true
+        }
+      },
+      "healthMultiplier": 1.8,
+      "damageMultiplier": 1.5
+    }
+  }
+}
+```
+
+### Blood Magic Integration
+```json
+{
+  "name": "Blood Magic Progression",
+  "description": "Master the art of blood magic",
+  "enabled": true,
+  "customPhases": {
+    "blood_magic_phase": {
+      "name": "Blood Magic Mastery",
+      "description": "Master the art of blood magic",
+      "requiredPreviousPhases": ["phase1", "phase2"],
+      "specialObjectives": {
+        "tier3_altar": {
+          "displayName": "Tier 3 Blood Altar",
+          "description": "Build a Tier 3 Blood Altar",
+          "required": true
+        },
+        "demon_crucible": {
+          "displayName": "Demon Crucible",
+          "description": "Create a Demon Crucible",
+          "required": false
+        }
+      }
+    }
+  }
+}
+```
+
 ---
 
 ## 🔧 Configuration Reference
@@ -148,19 +240,70 @@ Transform Dimension Trials into the perfect progression system for your modpack 
 
 ---
 
+## 👥 Party System Integration
+
+Custom phases fully integrate with the party system, providing these benefits:
+
+### Shared Progress
+- **Mob Kills:** All party members contribute to mob kill requirements
+- **Special Objectives:** When one party member completes an objective, it's shared with all members
+- **Phase Completion:** When a phase is completed, all party members gain access to the unlocked dimensions
+
+### Requirement Scaling
+- Requirements automatically scale based on party size
+- Example: With 4 players, each player only needs to contribute 25% of the mob kills
+- Formula: `Individual Requirement = Base Requirement ÷ Party Size`
+
+### Synchronization
+- Progress is synchronized in real-time between all party members
+- When a new player joins a party, they gain access to all completed phases
+- If a player leaves a party, they retain their individual progress
+
+### Party Celebration
+- When a custom phase is completed, all online party members receive a notification
+- Special celebration effects (fireworks) are triggered for all party members
+- The HUD updates in real-time to show completion status
+
+---
+
 ## 🛠️ Troubleshooting
 
 ### Common Issues
 - **Phase not loading:** Validate JSON syntax, ensure `"enabled": true`
 - **Mob requirements not working:** Verify mob IDs with F3 debug info
 - **Dimension blocking not working:** Check dimension ID format and mod installation
+- **Party progress not syncing:** Ensure party system is enabled in configuration
 
 ### Debug Commands
 ```
 /dimtr debug custom_requirements true    # Enable debug logging
 /dimtr status custom                     # Check loaded phases
 /dimtr reload custom_requirements        # Reload configuration
+/dimtr validate custom_requirements      # Validate custom requirements JSON
 ```
+
+## 🔍 Data Validation System
+
+The mod includes a robust validation system to ensure your custom requirements are properly configured:
+
+### Automatic Validation
+- **Syntax Checking:** JSON files are validated on load
+- **Dependency Validation:** Ensures required phases exist
+- **Mod Integration:** Verifies that referenced mods are installed
+- **Entity Validation:** Checks that mob IDs are valid
+
+### Manual Validation
+Run `/dimtr validate custom_requirements` to perform a comprehensive check:
+- **Structure Check:** Ensures all required fields are present
+- **Reference Check:** Verifies all phase references are valid
+- **Dimension Check:** Validates dimension IDs
+- **Mob Check:** Confirms mob entities exist
+- **Conflict Detection:** Identifies potential conflicts between phases
+
+### Validation Logs
+- Check server logs for detailed validation information
+- Warnings are shown for potential issues
+- Errors are displayed for critical problems that prevent loading
 
 ---
 
@@ -171,13 +314,12 @@ Transform Dimension Trials into the perfect progression system for your modpack 
 3. **Balance Multipliers:** Consider server population and intended difficulty
 4. **Document Changes:** Keep clear descriptions for server players
 5. **Backup Configs:** Save working configurations before major changes
+6. **Use Descriptive Names:** Choose clear phase and objective names
+7. **Consider Party Balance:** Adjust requirements based on expected party sizes
 
 ---
 
 **🔗 Related Guides:** [Configuration](CONFIGURATION.md) | [Party System](PARTY_SYSTEM.md) | [Main README](README.md)**
-  }
-}
-```
 
 ### Mod-Specific Progression:
 ```json
@@ -299,3 +441,25 @@ Transform Dimension Trials into the perfect progression system for your modpack 
 ---
 
 **Back to [Main README](README.md)**
+
+## 🔍 Automatic Mod Integration
+
+Dimension Trials automatically detects and integrates with several popular mods:
+
+### Mowzie's Mobs
+- **Detected Bosses**: Ferrous Wroughtnaut, Frostmaw, Umvuthi, Naga, Sculptor
+- **Phase Assignment**: All are assigned to Phase 1 (Overworld bosses)
+- **Integration Control**: Use `integrateMowziesMobs = true/false` in server config
+
+### L_Ender's Cataclysm
+- **Detected Bosses**: 
+  - **Phase 1 (Overworld)**: Ancient Remnant, Leviathan
+  - **Phase 2 (Nether)**: Netherite Monstrosity, Ignis, Harbinger, Maledictus
+  - **Phase 3 (End)**: Ender Guardian, Ender Golem
+- **Integration Control**: Use `integrateCataclysm = true/false` in server config
+
+### Other Supported Mods
+- **Twilight Forest**: Supports dimension lock and boss objectives
+- **The Aether**: Supports dimension lock and entity requirements
+
+> 🔧 The automatic integration system uses entity detection to identify boss mobs and assign them to appropriate phases based on their spawn dimension.

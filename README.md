@@ -1,7 +1,15 @@
 # Dimension Trials 💀
 
-[![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)](https://www.minecraft.net/)
+[![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)](https://www.minecraf### **Mod Integration: Automatic Boss Detection** 🤖
+**NEW in v1.3:** Automatic integration with popular mods!
+- **Mowzie's Mobs** - Ferrous Wroughtnaut, Frostmaw, Umvuthi, Naga, Sculptor
+- **L_Ender's Cataclysm** - Netherite Monstrosity, Ignis, Harbinger, Ender Guardian, Ender Golem
+- **Phase 3 Creation** - End-tier bosses automatically create a new post-End phase
+- **Smart Classification** - Bosses sorted by spawn dimension (Overworld=Phase1, Nether=Phase2, End=Phase3)
+
+> 📖 **[Complete Integration Guide](CUSTOM_REQUIREMENTS.md#-popular-integrations)**
 [![Mod Version](https://img.shields.io/badge/Version-1.3-blue.svg)]()
+[![NeoForge](https://img.shields.io/badge/NeoForge-Compatible-orange.svg)](https://neoforged.net/)
 
 **Transform your Minecraft experience with meaningful progression challenges. Gate dimensional access behind achievements and objectives, forcing players to truly master each dimension before advancing to the next.**
 
@@ -16,6 +24,8 @@
 🎮 **Track Your Progress** - Beautiful HUD showing real-time progression  
 🎨 **Infinite Customization** - Create unlimited custom phases with JSON configuration  
 ⚙️ **Server-Friendly** - Highly configurable for any playstyle or server size  
+💾 **Data Safety** - Backup & recovery system prevents progress loss
+✨ **XP Multipliers** - Earn bonus XP as you progress through phases
 
 ---
 
@@ -41,7 +51,7 @@ Create Phase 3, 4, 5+ with JSON files - integrate any mod seamlessly!
 ## 👥 **Party System** 
 
 **Team up and share the challenge!**
-- **Reduced Requirements:** 4 players = 25% individual effort each
+- **Reduced Requirements:** Party members share the load (with dynamic scaling)
 - **Shared Progress:** All kills count toward the same pool
 - **Real-time Updates:** Dynamic scaling as members join/leave
 - **Cross-Dimensional:** Hunt in different dimensions simultaneously
@@ -87,16 +97,21 @@ enablePartySystem = true     # Essential cooperative play
 
 ## 🚀 **Quick Start Guide**
 
-1. **Install & Launch** - Start your world normally
-2. **Press `J`** - Open progression HUD to see your objectives
-3. **Complete Phase 1** - Hunt mobs and defeat bosses in the Overworld
-4. **Access Nether** - Unlock when Phase 1 is complete
-5. **Master Phase 2** - Conquer Nether challenges to unlock the End
-6. **Optional: Team Up** - Create parties for cooperative progression
+1. **Install the Mod**:
+   - Ensure you have NeoForge for Minecraft 1.21.1 installed
+   - Download the mod JAR from CurseForge or GitHub
+   - Place in your `mods` folder
+
+2. **In-Game Setup**:
+   - Start your world normally
+   - Press `J` to open progression HUD to see your objectives
+   - Complete Phase 1 to unlock the Nether
+   - Master Phase 2 to unlock the End
+   - Optional: Use `/party create` to team up with friends
 
 ---
 
-## 🎨 **Unlimited Customization**
+## 🎨 **Unlimited Customization (- BETA -)**
 
 ### **JSON-Based Custom Phases**
 ```json
@@ -116,13 +131,13 @@ enablePartySystem = true     # Essential cooperative play
 ---
 
 ### **Mod Integration: Automatic Boss Detection** 🤖
-**NEW in v1.3:** Automatic integration with popular mods!
-- **Mowzie's Mobs** - Ferrous Wroughtnaut, Frostmaw, Barako, Umvuthi become required bosses
+**NEW in v1.3:** Automatic integration with 2 popular mods!
+- **Mowzie's Mobs** - Ferrous Wroughtnaut, Frostmaw, Umvuthi, Naga, Sculptor become required bosses
 - **L_Ender's Cataclysm** - Netherite Monstrosity, Ignis, Harbinger, End bosses auto-added
 - **Phase 3 Creation** - End-tier bosses automatically create a new post-End phase
 - **Smart Classification** - Bosses sorted by spawn dimension (Overworld=Phase1, Nether=Phase2, End=Phase3)
 
-> 📖 **[Complete Integration Guide →](EXTERNAL_MOD_INTEGRATION.md)**
+> 📖 **[Complete Integration Guide](CUSTOM_REQUIREMENTS.md#-popular-integrations)**
 
 ---
 
@@ -132,6 +147,9 @@ enablePartySystem = true     # Essential cooperative play
 # Party Management
 /party create              # Create a new party
 /party invite <player>     # Invite player to party
+/party accept              # Accept party invitation
+/party leave               # Leave current party
+/party info                # View party details
 
 # Personal Progression  
 /dimtr status                    # Check your progression
@@ -141,18 +159,9 @@ enablePartySystem = true     # Essential cooperative play
 /dimtr complete phase1           # Complete Phase 1 for yourself
 /dimtr complete phase2           # Complete Phase 2 for yourself
 /dimtr player <player> complete phase1  # Complete Phase 1 for target player
+/dimtr backup create             # Create manual data backup
+/dimtr backup restore <id>       # Restore from backup
 ```
-
----
-
-## 🌍 **Why Choose Dimension Trials?**
-
-✅ **Meaningful Progression** - No more rushing through dimensions  
-✅ **Cooperative Gameplay** - Team up with friends for shared challenges  
-✅ **Infinite Content** - Create custom phases for any modpack  
-✅ **Server-Friendly** - Highly configurable, minimal performance impact  
-✅ **Modern Interface** - Beautiful, intuitive progression tracking  
-✅ **Multi-Language** - 9+ language translations available  
 
 ---
 
@@ -168,6 +177,15 @@ enablePartySystem = true     # Essential cooperative play
 ## 🤝 **Support & Community**
 
 **🐛 Issues:** [GitHub Issues](https://github.com/II-mirai-II/Dimension-Trials/issues) | **💡 Ideas:** [GitHub Discussions](https://github.com/II-mirai-II/Dimension-Trials/discussions)
+
+---
+
+## 🧩 **Compatibility**
+
+- **Required**: Minecraft 1.21.1 with NeoForge
+- **Optional integrations**: Mowzie's Mobs, L_Ender's Cataclysm
+- **Compatible with (- BETA -)**: Most dimension-adding mods including Twilight Forest, The Aether
+- **Multiplayer**: Full server support with synchronized progression
 
 ---
 

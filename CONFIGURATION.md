@@ -7,6 +7,7 @@
 - **`dimtr-server.toml`** - Core server settings (requirements, phases, multipliers, party system)
 - **`dimtr-client.toml`** - Client preferences (HUD appearance, keybinds, UI settings)  
 - **`dimtr/custom_requirements/`** - JSON files for unlimited custom phases
+- **`dimtr/templates/`** - Configuration templates for different server types
 
 ---
 
@@ -50,6 +51,8 @@ enableMultipliers = true
 phase1Multiplier = 1.5      # 1.5x mob health/damage after Phase 1
 phase2Multiplier = 2.0      # 2.0x mob health/damage after Phase 2
 enableXpMultiplier = true   # Bonus XP from combat
+xpMultiplierPhase1 = 1.25   # 25% bonus XP after Phase 1
+xpMultiplierPhase2 = 1.5    # 50% bonus XP after Phase 2
 ```
 
 ### Party System Settings
@@ -57,6 +60,21 @@ enableXpMultiplier = true   # Bonus XP from combat
 enablePartySystem = true
 maxPartySize = 10            # Maximum players per party
 partyInviteTimeout = 300    # Invitation timeout (seconds)
+partyProgressionSharing = true # Share progression between members
+```
+
+### Backup System
+```toml
+enableAutomaticBackups = true  # Enable automatic data backups
+backupInterval = 30           # Backup interval in minutes
+maxBackupCount = 10           # Maximum number of backups to keep
+```
+
+### Debug & Logging
+```toml
+enableDebugLogging = false    # Enable detailed debug logs
+logProgressionEvents = true   # Log progression milestones
+logPartyEvents = true         # Log party system events
 ```
 
 ---
@@ -125,12 +143,60 @@ enableMultipliers = false  # No difficulty scaling
 /dimtr status               # Current configuration and progress
 /dimtr reload config        # Reload configuration files
 /dimtr debug config         # Detailed configuration info
+/dimtr debug logging true   # Enable debug logging temporarily
 ```
 
 ### Common Issues
 - **Config not loading:** Check TOML syntax, restart server after changes
 - **Mob requirements not working:** Verify `enableMobKillsPhase1/2` is true
 - **Multipliers not applying:** Ensure `enableMultipliers` is true and phases completed
+- **Party progress not syncing:** Check `partyProgressionSharing` is enabled
+
+---
+
+## 🔧 External Mod Integration
+
+### Automatic Boss Detection
+```toml
+# Enable automatic integration with supported mods
+enableExternalModIntegration = true
+
+# Configure which mods to integrate with
+integrateMowziesMobs = true       # Mowzie's Mobs bosses
+integrateCataclysm = true         # L_Ender's Cataclysm bosses
+integrateAether = true            # Aether bosses
+```
+
+### Custom Integration Example
+```toml
+# Define custom boss requirements for external mods
+[externalBossRequirements]
+"twilightforest:naga" = { required = true, phase = 1 }
+"twilightforest:lich" = { required = true, phase = 1 }
+"twilightforest:hydra" = { required = true, phase = 2 }
+```
+
+---
+
+## 📁 Configuration Templates
+
+The mod includes several pre-made configuration templates in `config/dimtr/templates/` that you can use as a starting point:
+
+### Available Templates
+- **`casual.toml`** - Relaxed requirements for casual play
+- **`hardcore.toml`** - Extreme requirements for challenge servers
+- **`party_focused.toml`** - Optimized for party gameplay
+- **`boss_only.toml`** - Only boss objectives, no mob grinding
+- **`speedrun.toml`** - Minimal requirements for fast progression
+
+### Using Templates
+1. Navigate to `config/dimtr/templates/`
+2. Copy your chosen template file
+3. Paste and rename to `dimtr-server.toml` in the `config/` directory
+4. Restart your server to apply the configuration
+5. Customize further as needed
+
+You can also create your own templates by copying your working configuration to the templates directory.
 
 ---
 
@@ -178,74 +244,11 @@ compactMode = false          # Compact HUD layout
 
 ## 📋 Common Configuration Scenarios
 
-### 1. Casual Server (Reduced Requirements)
-```toml
-# Reduce mob kill requirements by 50%
-reqZombieKills = 25
-reqSkeletonKills = 20
-reqSpiderKills = 15
-reqCreeperKills = 15
-reqDrownedKills = 10
+*For quick configuration templates, check the `config/dimtr/templates/` directory*
 
-# Disable some special objectives
-reqWarden = false
-reqVoluntaryExile = false
+### Specialized Server Types
 
-# Lower multipliers
-phase1Multiplier = 1.2
-phase2Multiplier = 1.5
-```
-
-### 2. Hardcore Server (Increased Requirements)
-```toml
-# Double mob kill requirements
-reqZombieKills = 100
-reqSkeletonKills = 80
-reqSpiderKills = 60
-reqCreeperKills = 60
-
-# Enable all objectives
-reqWarden = true
-reqVoluntaryExile = true
-reqTrialVaultAdv = true
-
-# Higher multipliers
-phase1Multiplier = 2.0
-phase2Multiplier = 3.0
-```
-
-### 3. Party-Focused Server
-```toml
-# Encourage party play
-maxPartySize = 10
-enablePartySystem = true
-
-# Higher base requirements (balanced by party scaling)
-reqZombieKills = 80
-reqSkeletonKills = 60
-
-# Significant multipliers for challenge
-phase1Multiplier = 2.5
-phase2Multiplier = 4.0
-```
-
-### 4. Quick Progression Server
-```toml
-# Minimal requirements for fast progression
-reqZombieKills = 10
-reqSkeletonKills = 8
-reqSpiderKills = 5
-
-# Disable some objectives
-reqElderGuardian = false
-reqRaid = false
-reqWarden = false
-
-# No multipliers
-enableMultipliers = false
-```
-
-### 5. Boss-Only Challenge
+1. **Boss-Only Challenge**
 ```toml
 # Disable all mob kills
 enableMobKillsPhase1 = false
@@ -260,8 +263,6 @@ reqWarden = true
 phase1Multiplier = 3.0
 phase2Multiplier = 5.0
 ```
-
-## 🎛️ Advanced Configuration
 
 ### Individual Player Progression
 ```toml
