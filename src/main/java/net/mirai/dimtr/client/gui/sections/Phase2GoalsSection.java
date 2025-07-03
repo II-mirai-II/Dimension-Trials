@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Seção de objetivos/mobs da Fase 2
@@ -103,8 +104,10 @@ public class Phase2GoalsSection implements HUDSection {
         String[] netherMobs = {"blaze", "wither_skeleton", "piglin_brute", "hoglin", "zoglin", "ghast", "piglin"};
         String[] overworldMobs = {"zombie", "skeleton", "creeper", "spider", "enderman", "witch", "pillager", "ravager", "evoker"};
 
+        Map<String, Integer> mobKills = progress.getMobKills();
+        
         for (String mobType : netherMobs) {
-            int current = progress.getMobKillCount(mobType);
+            int current = mobKills.getOrDefault(mobType, 0);
             int required = progress.getMobKillRequirement(mobType, 2);
             if (required > 0) {
                 netherTotal++;
@@ -113,7 +116,7 @@ public class Phase2GoalsSection implements HUDSection {
         }
 
         for (String mobType : overworldMobs) {
-            int current = progress.getMobKillCount(mobType);
+            int current = mobKills.getOrDefault(mobType, 0);
             int required = progress.getMobKillRequirement(mobType, 2);
             if (required > 0) {
                 overworldTotal++;
@@ -135,7 +138,8 @@ public class Phase2GoalsSection implements HUDSection {
 
     private void addMobCounterLine(List<Component> contentList, ClientProgressionData progress,
                                    String translationKey, String mobType, int phase) {
-        int current = progress.getMobKillCount(mobType);
+        Map<String, Integer> mobKills = progress.getMobKills();
+        int current = mobKills.getOrDefault(mobType, 0);
         int required = progress.getMobKillRequirement(mobType, phase);
 
         if (required <= 0) return;

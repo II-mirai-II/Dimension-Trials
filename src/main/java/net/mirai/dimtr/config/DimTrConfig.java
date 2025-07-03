@@ -95,6 +95,13 @@ public class DimTrConfig {
         public final ModConfigSpec.BooleanValue enableProgressionSync;
         public final ModConfigSpec.IntValue syncInterval;
 
+        // 🎯 NOVO: Configurações para integração com mods externos
+        public final ModConfigSpec.BooleanValue enableExternalModIntegration;
+        public final ModConfigSpec.BooleanValue enableMowziesModsIntegration;
+        public final ModConfigSpec.BooleanValue enableCataclysmIntegration;
+        public final ModConfigSpec.BooleanValue requireExternalModBosses;
+        public final ModConfigSpec.BooleanValue createPhase3ForEndBosses;
+
         Server(ModConfigSpec.Builder builder) {
             // ========================================================================
             // 🎯 CONFIGURAÇÕES PRINCIPAIS DE FASE
@@ -327,6 +334,33 @@ public class DimTrConfig {
             syncInterval = builder
                     .comment("Progression sync interval in ticks (20 ticks = 1 second)")
                     .defineInRange("syncInterval", 100, 20, 1200);
+
+            builder.pop();
+
+            // ========================================================================
+            // 🎯 INTEGRAÇÃO COM MODS EXTERNOS
+            // ========================================================================
+            builder.push("External Mod Integration");
+
+            enableExternalModIntegration = builder
+                    .comment("Enable automatic integration with supported external mods (Mowzie's Mobs, L_Ender's Cataclysm)")
+                    .define("enableExternalModIntegration", true);
+
+            enableMowziesModsIntegration = builder
+                    .comment("Enable integration with Mowzie's Mobs (requires enableExternalModIntegration)")
+                    .define("enableMowziesModsIntegration", true);
+
+            enableCataclysmIntegration = builder
+                    .comment("Enable integration with L_Ender's Cataclysm (requires enableExternalModIntegration)")
+                    .define("enableCataclysmIntegration", true);
+
+            requireExternalModBosses = builder
+                    .comment("Make external mod bosses required for progression (if set to false, they become optional objectives)")
+                    .define("requireExternalModBosses", true);
+
+            createPhase3ForEndBosses = builder
+                    .comment("Create Phase 3 for End-tier bosses from external mods")
+                    .define("createPhase3ForEndBosses", true);
 
             builder.pop();
         }

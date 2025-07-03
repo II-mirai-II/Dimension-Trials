@@ -50,6 +50,16 @@ public class PlayerProgressionData {
     public int zoglinKills = 0;
     public int ghastKills = 0;
     public int piglinKills = 0;
+    public int caveSpiderKills = 0;
+    public int silverfishKills = 0;
+    public int magmaCubeKills = 0;
+    public int zombifiedPiglinKills = 0;
+    public int shulkerKills = 0;
+    public int enderDragonKills = 0;
+    
+    // Dimensões visitadas
+    public boolean netherVisited = false;
+    public boolean endVisited = false;
 
     // Sistema de fases customizadas
     private Map<String, Boolean> customPhaseCompletion = new HashMap<>();
@@ -399,5 +409,238 @@ public class PlayerProgressionData {
     
     public Map<String, Map<String, Boolean>> getCustomObjectiveCompletionMap() {
         return customObjectiveCompletion;
+    }
+    
+    /**
+     * 🔄 NOVO: Criar cópia profunda dos dados para DeltaUpdateSystem
+     */
+    public PlayerProgressionData copy() {
+        PlayerProgressionData copy = new PlayerProgressionData(this.playerId);
+        
+        // Copiar objetivos especiais
+        copy.elderGuardianKilled = this.elderGuardianKilled;
+        copy.raidWon = this.raidWon;
+        copy.trialVaultAdvancementEarned = this.trialVaultAdvancementEarned;
+        copy.voluntaireExileAdvancementEarned = this.voluntaireExileAdvancementEarned;
+        copy.phase1Completed = this.phase1Completed;
+        copy.witherKilled = this.witherKilled;
+        copy.wardenKilled = this.wardenKilled;
+        copy.phase2Completed = this.phase2Completed;
+        
+        // Copiar contadores de mobs - Fase 1
+        copy.zombieKills = this.zombieKills;
+        copy.skeletonKills = this.skeletonKills;
+        copy.strayKills = this.strayKills;
+        copy.huskKills = this.huskKills;
+        copy.spiderKills = this.spiderKills;
+        copy.creeperKills = this.creeperKills;
+        copy.drownedKills = this.drownedKills;
+        copy.endermanKills = this.endermanKills;
+        copy.witchKills = this.witchKills;
+        copy.pillagerKills = this.pillagerKills;
+        copy.captainKills = this.captainKills;
+        copy.vindicatorKills = this.vindicatorKills;
+        copy.boggedKills = this.boggedKills;
+        copy.breezeKills = this.breezeKills;
+        copy.ravagerKills = this.ravagerKills;
+        copy.evokerKills = this.evokerKills;
+        
+        // Copiar contadores de mobs - Fase 2
+        copy.blazeKills = this.blazeKills;
+        copy.witherSkeletonKills = this.witherSkeletonKills;
+        copy.piglinBruteKills = this.piglinBruteKills;
+        copy.hoglinKills = this.hoglinKills;
+        copy.zoglinKills = this.zoglinKills;
+        copy.ghastKills = this.ghastKills;
+        copy.piglinKills = this.piglinKills;
+        
+        // Copiar mapas customizados (deep copy)
+        for (Map.Entry<String, Map<String, Integer>> phaseEntry : this.customMobKills.entrySet()) {
+            Map<String, Integer> phaseCopy = new HashMap<>(phaseEntry.getValue());
+            copy.customMobKills.put(phaseEntry.getKey(), phaseCopy);
+        }
+        
+        for (Map.Entry<String, Map<String, Boolean>> phaseEntry : this.customObjectiveCompletion.entrySet()) {
+            Map<String, Boolean> phaseCopy = new HashMap<>(phaseEntry.getValue());
+            copy.customObjectiveCompletion.put(phaseEntry.getKey(), phaseCopy);
+        }
+        
+        copy.customPhaseCompletion.putAll(this.customPhaseCompletion);
+        
+        return copy;
+    }
+    
+    /**
+     * Escreve os dados de progressão para um CompoundTag
+     * @param tag Tag onde os dados serão escritos
+     */
+    public void writeToNBT(CompoundTag tag) {
+        tag.putUUID("playerId", playerId);
+        
+        // Objetivos especiais
+        tag.putBoolean("elderGuardianKilled", elderGuardianKilled);
+        tag.putBoolean("raidWon", raidWon);
+        tag.putBoolean("trialVaultAdvancementEarned", trialVaultAdvancementEarned);
+        tag.putBoolean("voluntaireExileAdvancementEarned", voluntaireExileAdvancementEarned);
+        tag.putBoolean("phase1Completed", phase1Completed);
+        tag.putBoolean("witherKilled", witherKilled);
+        tag.putBoolean("wardenKilled", wardenKilled);
+        tag.putBoolean("phase2Completed", phase2Completed);
+        
+        // Contadores de mobs - Fase 1
+        tag.putInt("zombieKills", zombieKills);
+        tag.putInt("skeletonKills", skeletonKills);
+        tag.putInt("strayKills", strayKills);
+        tag.putInt("huskKills", huskKills);
+        tag.putInt("drownedKills", drownedKills);
+        tag.putInt("spiderKills", spiderKills);
+        tag.putInt("caveSpiderKills", caveSpiderKills);
+        tag.putInt("creeperKills", creeperKills);
+        tag.putInt("witchKills", witchKills);
+        tag.putInt("silverfishKills", silverfishKills);
+        tag.putInt("pillagerKills", pillagerKills);
+        tag.putInt("captainKills", captainKills);
+        tag.putInt("vindicatorKills", vindicatorKills);
+        tag.putInt("boggedKills", boggedKills);
+        tag.putInt("breezeKills", breezeKills);
+        tag.putInt("ravagerKills", ravagerKills);
+        tag.putInt("evokerKills", evokerKills);
+        tag.putInt("endermanKills", endermanKills);
+        
+        // Contadores de mobs - Fase 2
+        tag.putInt("ghastKills", ghastKills);
+        tag.putInt("blazeKills", blazeKills);
+        tag.putInt("magmaCubeKills", magmaCubeKills);
+        tag.putInt("witherSkeletonKills", witherSkeletonKills);
+        tag.putInt("piglinBruteKills", piglinBruteKills);
+        tag.putInt("zombifiedPiglinKills", zombifiedPiglinKills);
+        tag.putInt("shulkerKills", shulkerKills);
+        tag.putInt("enderDragonKills", enderDragonKills);
+        tag.putInt("hoglinKills", hoglinKills);
+        tag.putInt("zoglinKills", zoglinKills);
+        tag.putInt("piglinKills", piglinKills);
+        
+        // Dimensões visitadas
+        tag.putBoolean("netherVisited", netherVisited);
+        tag.putBoolean("endVisited", endVisited);
+        
+        // Fases customizadas
+        CompoundTag customPhaseCompletionTag = new CompoundTag();
+        for (Map.Entry<String, Boolean> entry : customPhaseCompletion.entrySet()) {
+            customPhaseCompletionTag.putBoolean(entry.getKey(), entry.getValue());
+        }
+        tag.put("customPhaseCompletionMap", customPhaseCompletionTag);
+        
+        // Contadores de mobs de fases customizadas
+        CompoundTag customMobKillsTag = new CompoundTag();
+        for (Map.Entry<String, Map<String, Integer>> phaseEntry : customMobKills.entrySet()) {
+            CompoundTag phaseTag = new CompoundTag();
+            for (Map.Entry<String, Integer> mobEntry : phaseEntry.getValue().entrySet()) {
+                phaseTag.putInt(mobEntry.getKey(), mobEntry.getValue());
+            }
+            customMobKillsTag.put(phaseEntry.getKey(), phaseTag);
+        }
+        tag.put("customMobKillsMap", customMobKillsTag);
+        
+        // Objetivos customizados
+        CompoundTag customObjectiveCompletionTag = new CompoundTag();
+        for (Map.Entry<String, Map<String, Boolean>> phaseEntry : customObjectiveCompletion.entrySet()) {
+            CompoundTag phaseTag = new CompoundTag();
+            for (Map.Entry<String, Boolean> objectiveEntry : phaseEntry.getValue().entrySet()) {
+                phaseTag.putBoolean(objectiveEntry.getKey(), objectiveEntry.getValue());
+            }
+            customObjectiveCompletionTag.put(phaseEntry.getKey(), phaseTag);
+        }
+        tag.put("customObjectiveCompletionMap", customObjectiveCompletionTag);
+    }
+    
+    /**
+     * Lê os dados de progressão de um CompoundTag
+     * @param tag Tag contendo os dados
+     */
+    public void readFromNBT(CompoundTag tag) {
+        // Objetivos especiais
+        elderGuardianKilled = tag.getBoolean("elderGuardianKilled");
+        raidWon = tag.getBoolean("raidWon");
+        trialVaultAdvancementEarned = tag.getBoolean("trialVaultAdvancementEarned");
+        voluntaireExileAdvancementEarned = tag.getBoolean("voluntaireExileAdvancementEarned");
+        phase1Completed = tag.getBoolean("phase1Completed");
+        witherKilled = tag.getBoolean("witherKilled");
+        wardenKilled = tag.getBoolean("wardenKilled");
+        phase2Completed = tag.getBoolean("phase2Completed");
+        
+        // Contadores de mobs - Fase 1
+        zombieKills = tag.getInt("zombieKills");
+        skeletonKills = tag.getInt("skeletonKills");
+        strayKills = tag.getInt("strayKills");
+        huskKills = tag.getInt("huskKills");
+        drownedKills = tag.getInt("drownedKills");
+        spiderKills = tag.getInt("spiderKills");
+        caveSpiderKills = tag.getInt("caveSpiderKills");
+        creeperKills = tag.getInt("creeperKills");
+        witchKills = tag.getInt("witchKills");
+        silverfishKills = tag.getInt("silverfishKills");
+        pillagerKills = tag.getInt("pillagerKills");
+        captainKills = tag.getInt("captainKills");
+        vindicatorKills = tag.getInt("vindicatorKills");
+        boggedKills = tag.getInt("boggedKills");
+        breezeKills = tag.getInt("breezeKills");
+        ravagerKills = tag.getInt("ravagerKills");
+        evokerKills = tag.getInt("evokerKills");
+        endermanKills = tag.getInt("endermanKills");
+        
+        // Contadores de mobs - Fase 2
+        ghastKills = tag.getInt("ghastKills");
+        blazeKills = tag.getInt("blazeKills");
+        magmaCubeKills = tag.getInt("magmaCubeKills");
+        witherSkeletonKills = tag.getInt("witherSkeletonKills");
+        piglinBruteKills = tag.getInt("piglinBruteKills");
+        zombifiedPiglinKills = tag.getInt("zombifiedPiglinKills");
+        shulkerKills = tag.getInt("shulkerKills");
+        enderDragonKills = tag.getInt("enderDragonKills");
+        hoglinKills = tag.getInt("hoglinKills");
+        zoglinKills = tag.getInt("zoglinKills");
+        piglinKills = tag.getInt("piglinKills");
+        
+        // Dimensões visitadas
+        netherVisited = tag.getBoolean("netherVisited");
+        endVisited = tag.getBoolean("endVisited");
+        
+        // Fases customizadas
+        customPhaseCompletion.clear();
+        if (tag.contains("customPhaseCompletionMap")) {
+            CompoundTag customPhaseCompletionTag = tag.getCompound("customPhaseCompletionMap");
+            for (String key : customPhaseCompletionTag.getAllKeys()) {
+                customPhaseCompletion.put(key, customPhaseCompletionTag.getBoolean(key));
+            }
+        }
+        
+        // Contadores de mobs de fases customizadas
+        customMobKills.clear();
+        if (tag.contains("customMobKillsMap")) {
+            CompoundTag customMobKillsTag = tag.getCompound("customMobKillsMap");
+            for (String phaseId : customMobKillsTag.getAllKeys()) {
+                CompoundTag phaseTag = customMobKillsTag.getCompound(phaseId);
+                Map<String, Integer> mobKills = new HashMap<>();
+                for (String mobType : phaseTag.getAllKeys()) {
+                    mobKills.put(mobType, phaseTag.getInt(mobType));
+                }
+                customMobKills.put(phaseId, mobKills);
+            }
+        }
+        
+        // Objetivos customizados
+        customObjectiveCompletion.clear();
+        if (tag.contains("customObjectiveCompletionMap")) {
+            CompoundTag customObjectiveCompletionTag = tag.getCompound("customObjectiveCompletionMap");
+            for (String phaseId : customObjectiveCompletionTag.getAllKeys()) {
+                CompoundTag phaseTag = customObjectiveCompletionTag.getCompound(phaseId);
+                Map<String, Boolean> objectiveCompletion = new HashMap<>();
+                for (String objectiveId : phaseTag.getAllKeys()) {
+                    objectiveCompletion.put(objectiveId, phaseTag.getBoolean(objectiveId));
+                }
+                customObjectiveCompletion.put(phaseId, objectiveCompletion);
+            }
+        }
     }
 }

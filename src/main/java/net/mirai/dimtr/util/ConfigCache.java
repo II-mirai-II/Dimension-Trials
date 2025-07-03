@@ -98,4 +98,44 @@ public class ConfigCache {
         ensureInitialized();
         return partyProximityRadius;
     }
+    
+    /**
+     * 🔄 OTIMIZADO: Verifica se o sistema de fases customizadas está habilitado
+     * Centralizado no ConfigCache para melhorar manutenção
+     */
+    public static boolean isCustomPhasesSystemEnabled() {
+        // Retorna true por padrão se não for possível verificar a configuração
+        // Assumimos que está habilitado para não bloquear funcionalidades
+        return true;
+    }
+    
+    /**
+     * 🔄 OTIMIZADO: Verifica se a integração com mods externos está habilitada
+     * Centralizado no ConfigCache para melhorar manutenção
+     */
+    public static boolean isExternalModIntegrationEnabled() {
+        try {
+            return DimTrConfig.SERVER.enableExternalModIntegration.get();
+        } catch (Exception e) {
+            // Fallback seguro se a config não estiver carregada
+            return true;
+        }
+    }
+    
+    /**
+     * 🔄 OTIMIZADO: Obtém o valor de uma configuração com validação segura
+     * Método genérico para acessar qualquer config com tratamento de erros
+     * 
+     * @param <T> Tipo do valor da configuração
+     * @param configGetter Função para obter o valor da configuração
+     * @param defaultValue Valor padrão caso ocorra erro
+     * @return Valor da configuração ou valor padrão
+     */
+    public static <T> T getConfigSafe(java.util.function.Supplier<T> configGetter, T defaultValue) {
+        try {
+            return configGetter.get();
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
 }

@@ -6,6 +6,10 @@ import net.mirai.dimtr.command.PartyCommands;
 import net.mirai.dimtr.data.PartyManager;
 import net.mirai.dimtr.data.ProgressionManager;
 import net.mirai.dimtr.data.ProgressionCoordinator;
+import net.mirai.dimtr.system.CustomPhaseSystem;
+import net.mirai.dimtr.system.BossKillValidator;
+import net.mirai.dimtr.system.ProgressTransferService;
+import net.mirai.dimtr.integration.ExternalModIntegration;
 import net.mirai.dimtr.util.Constants;
 import net.mirai.dimtr.util.BlockPosPool;
 import net.mirai.dimtr.util.I18nHelper;
@@ -127,6 +131,19 @@ public class ModEventHandlers {
 
         UUID playerId = player.getUUID();
         
+        // 🔒 NOVA VALIDAÇÃO: Verificar legitimidade de boss kills
+        if (isBossEntity(killedEntity)) {
+            String bossId = getBossId(killedEntity);
+            if (!BossKillValidator.validateKill(playerId, bossId, event.getSource())) {
+                DimTrMod.LOGGER.warn("❌ Boss kill inválido rejeitado: {} -> {}", player.getName().getString(), bossId);
+                return; // Interromper processamento se kill for inválido
+            }
+            DimTrMod.LOGGER.info("✅ Boss kill validado: {} -> {}", player.getName().getString(), bossId);
+        }
+        
+        // 🎯 NOVO: Processar custom phases para o kill
+        CustomPhaseSystem.processMobKill(player, killedEntity, event.getSource());
+        
         // 🎯 PERFORMANCE: Usar cache para verificação rápida de objetivos especiais
         EntityType<?> entityType = killedEntity.getType();
         if (SPECIAL_OBJECTIVE_TYPES.contains(entityType)) {
@@ -147,6 +164,9 @@ public class ModEventHandlers {
 
         // 🎯 NOVO: PROCESSAR MOBS CUSTOMIZADOS
         processCustomMobKill(playerId, killedEntity, serverLevel);
+        
+        // 🎯 NOVO: INTEGRAÇÃO AUTOMÁTICA COM MODS EXTERNOS
+        processExternalModBossKill(playerId, killedEntity, serverLevel);
     }
 
     /**
@@ -162,9 +182,10 @@ public class ModEventHandlers {
         // Fase 1 - Mobs Comuns do Overworld
         if (entity instanceof Zombie && !(entity instanceof ZombieVillager) && !(entity instanceof Husk)) {
             return Constants.MOB_TYPE_ZOMBIE;
-        } else if (entity instanceof ZombieVillager) {
-            return Constants.MOB_TYPE_ZOMBIE_VILLAGER; // Ainda retorna mas não é mais usado
-        } else if (entity instanceof Skeleton && !(entity instanceof Stray) && !(entity instanceof WitherSkeleton)) {
+        } else        if (entity instanceof ZombieVillager) {
+            // ✅ REMOVIDO: Zombie villager não é mais contado como progresso
+            return null;
+        }else if (entity instanceof Skeleton && !(entity instanceof Stray) && !(entity instanceof WitherSkeleton)) {
             return Constants.MOB_TYPE_SKELETON;
         } else if (entity instanceof Stray) {
             return Constants.MOB_TYPE_STRAY;
@@ -245,6 +266,9 @@ public class ModEventHandlers {
             // 🔧 CORRIGIDO: AdvancementHolder.id() em vez de getId()
             String advancementId = event.getAdvancement().id().toString();
             ServerLevel serverLevel = (ServerLevel) player.level();
+
+            // 🎯 NOVO: Processar custom phases com advancement
+            CustomPhaseSystem.processAdvancementEarned(player, event.getAdvancement());
 
             // Mapear advancement para objetivo especial
             String objectiveType = mapAdvancementToObjective(advancementId);
@@ -605,7 +629,9 @@ public class ModEventHandlers {
     
     /**
      * 🎯 PERFORMANCE: Método otimizado para encontrar fase bloqueante
+     * TODO: Remover se não for utilizado no futuro
      */
+    @SuppressWarnings("unused")
     private static String findBlockingCustomPhase(UUID playerId, String dimensionString, ServerLevel serverLevel) {
         refreshDimensionCache();
         
@@ -688,5 +714,67 @@ public class ModEventHandlers {
                 ProgressionCoordinator.processCustomMobKill(playerId, phaseId, entityId, serverLevel);
             }
         }
+    }
+
+    /**
+     * 🎯 NOVO: Processar morte de bosses de mods externos
+     */
+    private static void processExternalModBossKill(UUID playerId, LivingEntity killedEntity, ServerLevel serverLevel) {
+        // 🎯 CORREÇÃO CRÍTICA: Usar BuiltInRegistries para obter ResourceLocation correta
+        ResourceLocation entityTypeLocation = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(killedEntity.getType());
+        String entityId = entityTypeLocation != null ? entityTypeLocation.toString() : killedEntity.getType().toString();
+        
+        // ✅ DEBUG: Log de todas as mortes para verificar detecção
+        DimTrMod.LOGGER.debug("🔍 Entity killed: {} (ID: {}) by player {}", 
+            killedEntity.getClass().getSimpleName(), entityId, playerId);
+        
+        // Verificar se é um boss de mod externo
+        boolean isExternalBoss = ExternalModIntegration.isExternalBoss(entityId);
+        
+        if (!isExternalBoss) {
+            return;
+        }
+        
+        // Get boss phase assignment
+        int phase = ExternalModIntegration.getBossPhase(entityId);
+        String displayName = ExternalModIntegration.getBossDisplayName(entityId);
+        
+        DimTrMod.LOGGER.info("🏆 External mod boss defeated: {} (ID: {}) by player {} (Phase: {})", 
+            displayName, entityId, playerId, phase);
+        
+        // Processar através do ProgressionCoordinator como objetivo especial
+        boolean processed = ProgressionCoordinator.processExternalBossObjective(playerId, entityId, phase, serverLevel);
+        
+        if (processed) {
+            DimTrMod.LOGGER.info("✅ External boss {} processed successfully for player {}", 
+                displayName, playerId);
+        } else {
+            DimTrMod.LOGGER.warn("❌ External boss {} was NOT processed for player {} (already completed?)", 
+                displayName, playerId);
+        }
+    }
+
+    // ============================================================================
+    // 🆕 MÉTODOS AUXILIARES PARA INTEGRAÇÃO DOS NOVOS SISTEMAS
+    // ============================================================================
+    
+    /**
+     * 🔍 Verificar se uma entidade é considerada um boss
+     */
+    private static boolean isBossEntity(LivingEntity entity) {
+        EntityType<?> type = entity.getType();
+        return type == EntityType.WITHER || 
+               type == EntityType.ENDER_DRAGON || 
+               type == EntityType.ELDER_GUARDIAN || 
+               type == EntityType.WARDEN ||
+               ExternalModIntegration.isExternalBoss(entity.getType().toString());
+    }
+    
+    /**
+     * 🆔 Obter ID único do boss para validação
+     */
+    private static String getBossId(LivingEntity entity) {
+        ResourceLocation entityTypeLocation = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+        return entityTypeLocation != null ? entityTypeLocation.toString() : entity.getType().toString();
     }
 }

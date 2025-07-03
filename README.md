@@ -47,8 +47,8 @@ Create Phase 3, 4, 5+ with JSON files - integrate any mod seamlessly!
 - **Cross-Dimensional:** Hunt in different dimensions simultaneously
 
 ```
-/dimtr party create         # Start your team
-/dimtr party invite <player> # Invite friends
+/party create         # Start your team
+/party invite <player> # Invite friends
 ```
 
 ---
@@ -115,12 +115,23 @@ enablePartySystem = true     # Essential cooperative play
 
 ---
 
+### **Mod Integration: Automatic Boss Detection** 🤖
+**NEW in v1.3:** Automatic integration with popular mods!
+- **Mowzie's Mobs** - Ferrous Wroughtnaut, Frostmaw, Barako, Umvuthi become required bosses
+- **L_Ender's Cataclysm** - Netherite Monstrosity, Ignis, Harbinger, End bosses auto-added
+- **Phase 3 Creation** - End-tier bosses automatically create a new post-End phase
+- **Smart Classification** - Bosses sorted by spawn dimension (Overworld=Phase1, Nether=Phase2, End=Phase3)
+
+> 📖 **[Complete Integration Guide →](EXTERNAL_MOD_INTEGRATION.md)**
+
+---
+
 ## 📋 **Essential Commands**
 
 ```
 # Party Management
-/dimtr party create              # Create a new party
-/dimtr party invite <player>     # Invite player to party
+/party create              # Create a new party
+/party invite <player>     # Invite player to party
 
 # Personal Progression  
 /dimtr status                    # Check your progression

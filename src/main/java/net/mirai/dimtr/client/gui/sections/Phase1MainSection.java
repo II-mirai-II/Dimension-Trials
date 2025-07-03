@@ -41,6 +41,9 @@ public class Phase1MainSection implements HUDSection {
 
     @Override
     public List<Component> generateContent(ClientProgressionData progress) {
+        // 🎯 NOVO: Ensure client-side external mod integration is initialized
+        net.mirai.dimtr.integration.ExternalModIntegration.initializeClientSide();
+        
         List<Component> content = new ArrayList<>();
 
         if (!progress.isServerEnablePhase1()) {
@@ -124,6 +127,21 @@ public class Phase1MainSection implements HUDSection {
                 content.add(Component.literal(totalMobsCompleted + "/" + totalMobsRequired + " Mobs Completed")
                         .withStyle(totalMobsCompleted == totalMobsRequired ?
                                 ChatFormatting.GREEN : ChatFormatting.YELLOW));
+            }
+        }
+
+        // 🎯 NOVO: Bosses de mods externos para Fase 1
+        var externalBossesPhase1 = progress.getExternalBossesForPhase(1);
+        if (!externalBossesPhase1.isEmpty()) {
+            content.add(Component.empty());
+            content.add(Component.translatable("gui.dimtr.external.bosses.phase1")
+                    .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+
+            for (var boss : externalBossesPhase1) {
+                boolean killed = progress.isExternalBossKilled(boss.entityId);
+                content.add(createGoalLine(
+                        Component.literal(boss.displayName),
+                        killed));
             }
         }
 

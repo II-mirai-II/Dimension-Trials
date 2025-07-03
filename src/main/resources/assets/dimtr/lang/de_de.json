@@ -241,10 +241,10 @@
   "gui.dimtr.parties.progress.will.transfer": "• Individueller Fortschritt wird übertragen",
   "gui.dimtr.parties.progress.will.preserve": "• Fortschritt wird beim Verlassen erhalten",
   
-  "gui.dimtr.parties.cmd.leave": "/dimtr party leave - Gruppe verlassen",
-  "gui.dimtr.parties.cmd.info": "/dimtr party info - Gruppen-Info",
-  "gui.dimtr.parties.cmd.kick": "/dimtr party kick <spieler> - Rauswerfen",
-  "gui.dimtr.parties.cmd.promote": "/dimtr party promote <spieler> - Befördern",
+  "gui.dimtr.parties.cmd.leave": "/party leave - Gruppe verlassen",
+  "gui.dimtr.parties.cmd.info": "/party info - Gruppen-Info",
+  "gui.dimtr.parties.cmd.kick": "/party kick <spieler> - Rauswerfen",
+  "gui.dimtr.parties.cmd.promote": "/party promote <spieler> - Befördern",
 
   "_comment_party_commands": "=== 👥 GRUPPEN-BEFEHL-NACHRICHTEN ===",
 

@@ -31,14 +31,23 @@ public class ProgressionHUDScreen extends Screen {
     private ViewState currentView = ViewState.SUMMARY;
     private HUDSection currentSection = null;
 
-    // Constantes do HUD (mantidas)
-    private static final int HUD_WIDTH = 525;
-    private static final int HUD_HEIGHT = 300;
-    private static final int HUD_MARGIN = 20;
+    // 🎯 NOVO: Constantes responsivas para HUD
+    private static final double HUD_WIDTH_RATIO = 0.65;   // 65% da largura da tela
+    private static final double HUD_HEIGHT_RATIO = 0.75;  // 75% da altura da tela
+    private static final int MIN_HUD_WIDTH = 400;         // Largura mínima
+    private static final int MIN_HUD_HEIGHT = 250;        // Altura mínima
+    private static final int MAX_HUD_WIDTH = 800;         // Largura máxima
+    private static final int MAX_HUD_HEIGHT = 600;        // Altura máxima
+    private static final double HUD_MARGIN_RATIO = 0.04;  // 4% da largura como margem
+    
+    // Dimensões calculadas dinamicamente
+    private int hudWidth;
+    private int hudHeight;
+    private int hudMargin;
     private static final int TITLE_Y_OFFSET = 10;
     private static final int CONTENT_Y_OFFSET = 45;
     private static final int COLUMN_GAP = 20;
-    private static final int COLUMN_WIDTH = (HUD_WIDTH - (HUD_MARGIN * 2) - COLUMN_GAP) / 2;
+    // COLUMN_WIDTH será calculado dinamicamente
     private static final int LINE_HEIGHT = 12;
     private static final int MAX_LINES_PER_COLUMN = 15;
     private static final int MAX_TOTAL_LINES = MAX_LINES_PER_COLUMN * 2;
@@ -78,6 +87,50 @@ public class ProgressionHUDScreen extends Screen {
     public ProgressionHUDScreen() {
         super(Component.translatable(Constants.HUD_TITLE));
         this.summarySections = initializeSummarySections();
+        calculateHUDDimensions(); // 🎯 NOVO: Calcular dimensões iniciais
+    }
+
+    /**
+     * 🎯 NOVO: Calcular dimensões do HUD baseadas no tamanho da tela
+     */
+    private void calculateHUDDimensions() {
+        // Calcular dimensões proporcionais
+        int screenWidth = this.width > 0 ? this.width : 1024; // Fallback para inicialização
+        int screenHeight = this.height > 0 ? this.height : 768;
+
+        hudWidth = (int) Math.round(screenWidth * HUD_WIDTH_RATIO);
+        hudHeight = (int) Math.round(screenHeight * HUD_HEIGHT_RATIO);
+
+        // Aplicar limites mínimos e máximos
+        hudWidth = Math.max(MIN_HUD_WIDTH, Math.min(MAX_HUD_WIDTH, hudWidth));
+        hudHeight = Math.max(MIN_HUD_HEIGHT, Math.min(MAX_HUD_HEIGHT, hudHeight));
+
+        // Calcular margem proporcional
+        hudMargin = Math.max(10, (int) Math.round(hudWidth * HUD_MARGIN_RATIO));
+    }
+
+    /**
+     * 🎯 NOVO: Calcular largura da coluna dinamicamente
+     */
+    private int getColumnWidth() {
+        return (hudWidth - (hudMargin * 2) - COLUMN_GAP) / 2;
+    }
+
+    /**
+     * 🎯 NOVO: Método de redimensionamento sobrescrito
+     */
+    @Override
+    public void resize(@javax.annotation.Nonnull net.minecraft.client.Minecraft minecraft, int width, int height) {
+        super.resize(minecraft, width, height);
+        
+        // Recalcular dimensões do HUD
+        calculateHUDDimensions();
+        
+        // Recalcular posições das seções
+        calculateSummarySectionPositions();
+        
+        // Recalcular limites do scroll
+        calculateScrollLimits();
     }
 
     // Enums para estados (mantidos)
@@ -111,7 +164,9 @@ public class ProgressionHUDScreen extends Screen {
         sections.add(new SummarySection(SectionManager.getSection(HUDSection.SectionType.PHASE1_GOALS)));
         sections.add(new SummarySection(SectionManager.getSection(HUDSection.SectionType.PHASE2_MAIN)));
         sections.add(new SummarySection(SectionManager.getSection(HUDSection.SectionType.PHASE2_GOALS)));
+        sections.add(new SummarySection(SectionManager.getSection(HUDSection.SectionType.PHASE3_MAIN))); // 🎯 NOVA SEÇÃO PHASE 3
         sections.add(new SummarySection(SectionManager.getSection(HUDSection.SectionType.PARTIES))); // 🎯 NOVA SEÇÃO
+        sections.add(new SummarySection(SectionManager.getSection(HUDSection.SectionType.CUSTOM_PHASES))); // 🎯 FASES CUSTOMIZADAS
 
         return sections;
     }
@@ -119,31 +174,32 @@ public class ProgressionHUDScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        calculateHUDDimensions(); // 🎯 NOVO: Recalcular dimensões no init
         calculateSummarySectionPositions();
         calculateScrollLimits(); // 🎯 NOVO
         playHudOpenSound();
     }
 
     /**
-     * 🎯 MÉTODO COMPLETAMENTE REFATORADO: Calcular posições com scroll
+     * 🎯 MÉTODO COMPLETAMENTE REFATORADO: Calcular posições com scroll e dimensões dinâmicas
      */
     private void calculateSummarySectionPositions() {
-        int hudX = (this.width - HUD_WIDTH) / 2;
-        int hudY = (this.height - HUD_HEIGHT) / 2;
+        int hudX = (this.width - hudWidth) / 2;
+        int hudY = (this.height - hudHeight) / 2;
 
         int sectionStartY = hudY + SCROLL_AREA_TOP_OFFSET;
-        int sectionWidth = HUD_WIDTH - (HUD_MARGIN * 2) - SCROLLBAR_WIDTH - 5; // Espaço para scrollbar
+        int sectionWidth = hudWidth - (hudMargin * 2) - SCROLLBAR_WIDTH - 5; // Espaço para scrollbar
 
         for (int i = 0; i < summarySections.size(); i++) {
             SummarySection section = summarySections.get(i);
-            section.x = hudX + HUD_MARGIN;
+            section.x = hudX + hudMargin;
             section.y = sectionStartY + (i * (SECTION_HEIGHT + SECTION_SPACING)) - scrollOffset; // 🎯 APLICAR SCROLL
             section.width = sectionWidth;
             section.height = SECTION_HEIGHT;
 
             // 🎯 NOVO: Calcular visibilidade baseada na posição
             int scrollAreaTop = hudY + SCROLL_AREA_TOP_OFFSET;
-            int scrollAreaBottom = hudY + HUD_HEIGHT - SCROLL_AREA_BOTTOM_OFFSET;
+            int scrollAreaBottom = hudY + hudHeight - SCROLL_AREA_BOTTOM_OFFSET;
 
             section.visible = (section.y + section.height >= scrollAreaTop) &&
                     (section.y <= scrollAreaBottom);
@@ -151,7 +207,7 @@ public class ProgressionHUDScreen extends Screen {
     }
 
     /**
-     * 🎯 CORRIGIDO: Calcular limites do scroll com precisão
+     * 🎯 CORRIGIDO: Calcular limites do scroll com precisão e dimensões dinâmicas
      */
     private void calculateScrollLimits() {
         if (summarySections.isEmpty()) {
@@ -162,8 +218,8 @@ public class ProgressionHUDScreen extends Screen {
         // Calcular altura total do conteúdo
         int totalContentHeight = summarySections.size() * (SECTION_HEIGHT + SECTION_SPACING) - SECTION_SPACING;
         
-        // Calcular altura disponível para visualização
-        int availableHeight = HUD_HEIGHT - SCROLL_AREA_TOP_OFFSET - SCROLL_AREA_BOTTOM_OFFSET;
+        // Calcular altura disponível para visualização usando dimensões dinâmicas
+        int availableHeight = hudHeight - SCROLL_AREA_TOP_OFFSET - SCROLL_AREA_BOTTOM_OFFSET;
 
         // Calcular o máximo offset de scroll necessário
         maxScrollOffset = Math.max(0, totalContentHeight - availableHeight);
@@ -173,14 +229,14 @@ public class ProgressionHUDScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        // Calcular posição centralizada da janela principal
-        int hudX = (this.width - HUD_WIDTH) / 2;
-        int hudY = (this.height - HUD_HEIGHT) / 2;
+    public void render(@javax.annotation.Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // Calcular posição centralizada da janela principal usando dimensões dinâmicas
+        int hudX = (this.width - hudWidth) / 2;
+        int hudY = (this.height - hudHeight) / 2;
 
         // Renderizar fundo da janela principal
-        guiGraphics.fill(hudX, hudY, hudX + HUD_WIDTH, hudY + HUD_HEIGHT, WINDOW_BACKGROUND);
-        renderWindowBorder(guiGraphics, hudX, hudY, HUD_WIDTH, HUD_HEIGHT);
+        guiGraphics.fill(hudX, hudY, hudX + hudWidth, hudY + hudHeight, WINDOW_BACKGROUND);
+        renderWindowBorder(guiGraphics, hudX, hudY, hudWidth, hudHeight);
 
         if (currentView == ViewState.SUMMARY) {
             renderSummaryView(guiGraphics, hudX, hudY, mouseX, mouseY);
@@ -193,29 +249,29 @@ public class ProgressionHUDScreen extends Screen {
     }
 
     /**
-     * 🎯 MÉTODO REFATORADO: Renderizar sumário com scroll
+     * 🎯 MÉTODO REFATORADO: Renderizar sumário com scroll e dimensões dinâmicas
      */
     private void renderSummaryView(GuiGraphics guiGraphics, int hudX, int hudY, int mouseX, int mouseY) {
         // Título do sumário
         Component title = Component.translatable("gui.dimtr.summary.title")
                 .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
-        int titleX = hudX + (HUD_WIDTH - this.font.width(title)) / 2;
+        int titleX = hudX + (hudWidth - this.font.width(title)) / 2;
         int titleY = hudY + TITLE_Y_OFFSET;
         guiGraphics.drawString(this.font, title, titleX, titleY, TITLE_COLOR);
 
         // Subtítulo
         Component subtitle = Component.translatable("gui.dimtr.summary.subtitle")
                 .withStyle(ChatFormatting.GRAY);
-        int subtitleX = hudX + (HUD_WIDTH - this.font.width(subtitle)) / 2;
+        int subtitleX = hudX + (hudWidth - this.font.width(subtitle)) / 2;
         int subtitleY = hudY + TITLE_Y_OFFSET + 15;
         guiGraphics.drawString(this.font, subtitle, subtitleX, subtitleY, 0xFFAAAAAA);
 
-        // 🎯 NOVO: Definir área de clipping para scroll
+        // 🎯 NOVO: Definir área de clipping para scroll usando dimensões dinâmicas
         int clipTop = hudY + SCROLL_AREA_TOP_OFFSET;
-        int clipBottom = hudY + HUD_HEIGHT - SCROLL_AREA_BOTTOM_OFFSET;
+        int clipBottom = hudY + hudHeight - SCROLL_AREA_BOTTOM_OFFSET;
 
         // Aplicar clipping
-        guiGraphics.enableScissor(hudX, clipTop, hudX + HUD_WIDTH, clipBottom);
+        guiGraphics.enableScissor(hudX, clipTop, hudX + hudWidth, clipBottom);
 
         // Renderizar seções usando o sistema modular (com scroll)
         ClientProgressionData progress = ClientProgressionData.INSTANCE;
@@ -242,12 +298,12 @@ public class ProgressionHUDScreen extends Screen {
     }
 
     /**
-     * 🎯 CORRIGIDO: Renderizar scrollbar com posicionamento adequado
+     * 🎯 CORRIGIDO: Renderizar scrollbar com posicionamento adequado e dimensões dinâmicas
      */
     private void renderScrollbar(GuiGraphics guiGraphics, int hudX, int hudY, int mouseX, int mouseY) {
-        int scrollbarX = hudX + HUD_WIDTH - HUD_MARGIN - SCROLLBAR_WIDTH;
+        int scrollbarX = hudX + hudWidth - hudMargin - SCROLLBAR_WIDTH;
         int scrollbarY = hudY + SCROLL_AREA_TOP_OFFSET;
-        int scrollbarHeight = HUD_HEIGHT - SCROLL_AREA_TOP_OFFSET - SCROLL_AREA_BOTTOM_OFFSET;
+        int scrollbarHeight = hudHeight - SCROLL_AREA_TOP_OFFSET - SCROLL_AREA_BOTTOM_OFFSET;
 
         // Track da scrollbar
         guiGraphics.fill(scrollbarX, scrollbarY, scrollbarX + SCROLLBAR_WIDTH,
@@ -346,11 +402,11 @@ public class ProgressionHUDScreen extends Screen {
     }
 
     private void renderGeneralStats(GuiGraphics guiGraphics, int hudX, int hudY, ClientProgressionData progress) {
-        int statsY = hudY + HUD_HEIGHT - 70;
+        int statsY = hudY + hudHeight - 70;
 
         // Título das estatísticas
         Component statsTitle = Component.translatable("gui.dimtr.summary.general_stats").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD);
-        int statsTitleX = hudX + HUD_MARGIN;
+        int statsTitleX = hudX + hudMargin;
         guiGraphics.drawString(this.font, statsTitle, statsTitleX, statsY, 0xFF44FFFF);
 
         // Estatísticas
@@ -383,7 +439,7 @@ public class ProgressionHUDScreen extends Screen {
         // Título da seção (usando dados modulares)
         Component sectionTitle = currentSection.getTitle()
                 .copy().withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
-        int titleX = hudX + (HUD_WIDTH - this.font.width(sectionTitle)) / 2;
+        int titleX = hudX + (hudWidth - this.font.width(sectionTitle)) / 2;
         int titleY = hudY + TITLE_Y_OFFSET;
         guiGraphics.drawString(this.font, sectionTitle, titleX, titleY, TITLE_COLOR);
 
@@ -396,8 +452,8 @@ public class ProgressionHUDScreen extends Screen {
         // Botão de volta (visual)
         Component backButton = Component.translatable("gui.dimtr.back_to_summary")
                 .withStyle(ChatFormatting.GRAY);
-        int backX = hudX + HUD_MARGIN;
-        int backY = hudY + HUD_HEIGHT - 35;
+        int backX = hudX + hudMargin;
+        int backY = hudY + hudHeight - 35;
         guiGraphics.drawString(this.font, backButton, backX, backY, 0xFF888888);
     }
 
@@ -413,7 +469,7 @@ public class ProgressionHUDScreen extends Screen {
         if (allContent.isEmpty()) {
             Component emptyMsg = Component.translatable("gui.dimtr.no.content")
                     .withStyle(ChatFormatting.GRAY);
-            int emptyX = hudX + (HUD_WIDTH - this.font.width(emptyMsg)) / 2;
+            int emptyX = hudX + (hudWidth - this.font.width(emptyMsg)) / 2;
             int emptyY = hudY + CONTENT_Y_OFFSET + 50;
             guiGraphics.drawString(this.font, emptyMsg, emptyX, emptyY, 0xFF888888);
             return;
@@ -436,17 +492,18 @@ public class ProgressionHUDScreen extends Screen {
             }
         }
 
-        // Renderizar colunas
-        int leftColumnX = hudX + HUD_MARGIN;
-        int rightColumnX = hudX + HUD_MARGIN + COLUMN_WIDTH + COLUMN_GAP;
+        // Renderizar colunas usando dimensões dinâmicas
+        int columnWidth = getColumnWidth();
+        int leftColumnX = hudX + hudMargin;
+        int rightColumnX = hudX + hudMargin + columnWidth + COLUMN_GAP;
 
         renderColumn(guiGraphics, leftColumn, leftColumnX, hudY + CONTENT_Y_OFFSET);
         renderColumn(guiGraphics, rightColumn, rightColumnX, hudY + CONTENT_Y_OFFSET);
 
         // Linha divisória
-        int dividerX = hudX + HUD_MARGIN + COLUMN_WIDTH + (COLUMN_GAP / 2);
+        int dividerX = hudX + hudMargin + columnWidth + (COLUMN_GAP / 2);
         int dividerStartY = hudY + CONTENT_Y_OFFSET - 5;
-        int dividerEndY = hudY + HUD_HEIGHT - 50;
+        int dividerEndY = hudY + hudHeight - 50;
         guiGraphics.fill(dividerX, dividerStartY, dividerX + 1, dividerEndY, 0xFF444444);
     }
 
@@ -481,8 +538,8 @@ public class ProgressionHUDScreen extends Screen {
         Component pageIndicator = Component.translatable("gui.dimtr.page.indicator", currentPage + 1, totalPages)
                 .withStyle(ChatFormatting.GRAY);
 
-        int indicatorX = hudX + HUD_WIDTH - HUD_MARGIN - this.font.width(pageIndicator);
-        int indicatorY = hudY + HUD_HEIGHT - 45;
+        int indicatorX = hudX + hudWidth - hudMargin - this.font.width(pageIndicator);
+        int indicatorY = hudY + hudHeight - 45;
         guiGraphics.drawString(this.font, pageIndicator, indicatorX, indicatorY, 0xFFFFFFFF);
     }
 
@@ -520,15 +577,15 @@ public class ProgressionHUDScreen extends Screen {
         // 🎯 CORRIGIDO: Renderizar instruções com posicionamento dinâmico correto
         int lineSpacing = 8; // Espaçamento compacto entre linhas
         int totalInstructionHeight = (instructions.size() * lineSpacing) + this.font.lineHeight;
-        int instructionStartY = hudY + HUD_HEIGHT - totalInstructionHeight - 8; // 8px de margem inferior
+        int instructionStartY = hudY + hudHeight - totalInstructionHeight - 8; // 8px de margem inferior
         
         for (int i = 0; i < instructions.size(); i++) {
             Component instruction = instructions.get(i);
-            int instructionX = hudX + (HUD_WIDTH - this.font.width(instruction)) / 2;
+            int instructionX = hudX + (hudWidth - this.font.width(instruction)) / 2;
             int currentY = instructionStartY + (i * lineSpacing);
             
             // Renderizar apenas se estiver dentro dos limites do HUD
-            if (currentY >= hudY && currentY + this.font.lineHeight <= hudY + HUD_HEIGHT) {
+            if (currentY >= hudY && currentY + this.font.lineHeight <= hudY + hudHeight) {
                 guiGraphics.drawString(this.font, instruction, instructionX, currentY, 0xFFFFFFFF);
             }
         }
@@ -538,10 +595,10 @@ public class ProgressionHUDScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) { // Clique esquerdo
             if (currentView == ViewState.SUMMARY) {
-                // Verificar clique nas seções do sumário
-                int hudY = (this.height - HUD_HEIGHT) / 2;
+                // Verificar clique nas seções do sumário usando dimensões dinâmicas
+                int hudY = (this.height - hudHeight) / 2;
                 int clipTop = hudY + SCROLL_AREA_TOP_OFFSET;
-                int clipBottom = hudY + HUD_HEIGHT - SCROLL_AREA_BOTTOM_OFFSET;
+                int clipBottom = hudY + hudHeight - SCROLL_AREA_BOTTOM_OFFSET;
 
                 for (SummarySection section : summarySections) {
                     if (section.clickable && section.visible &&

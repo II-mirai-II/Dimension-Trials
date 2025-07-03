@@ -1,8 +1,10 @@
 package net.mirai.dimtr;
 
 import net.mirai.dimtr.config.DimTrConfig;
+// import net.mirai.dimtr.config.ConfigurationManager; // TODO: Integrar quando estiver compilando
 import net.mirai.dimtr.network.ModNetworking;
 import net.mirai.dimtr.util.Constants;
+import net.mirai.dimtr.integration.ExternalModIntegration;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -44,10 +46,20 @@ public class DimTrMod {
         LOGGER.info(Constants.LOG_NETWORKING_REGISTERED);
 
         // ============================================================================
-        // 🎯 CUSTOM REQUIREMENTS (NOVO SISTEMA)
+        // 🎯 CUSTOM REQUIREMENTS & CONFIGURATION MANAGER (NOVOS SISTEMAS)
         // ============================================================================
         modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent event) -> {
-            net.mirai.dimtr.config.CustomRequirements.loadCustomRequirements();
+            event.enqueueWork(() -> {
+                // TODO: Inicializar o sistema de configuração robusto
+                // ConfigurationManager.initialize();
+                
+                // Carregar requisitos customizados
+                net.mirai.dimtr.config.CustomRequirements.loadCustomRequirements();
+                
+                // 🎯 NOVO: Inicializar integração automática com mods externos
+                // Executado após as configurações estarem carregadas
+                ExternalModIntegration.initialize();
+            });
         });
 
         LOGGER.info(Constants.LOG_CUSTOM_REQUIREMENTS_INITIALIZED);

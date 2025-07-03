@@ -25,17 +25,17 @@
 
 ### Essential Commands
 ```
-/dimtr party create          # Create new party (become leader)
-/dimtr party invite <player> # Invite player to your party
-/dimtr party accept          # Accept pending invitation
-/dimtr party leave           # Leave current party
-/dimtr party info            # Show detailed party status
+/party create          # Create new party (become leader)
+/party invite <player> # Invite player to your party
+/party accept          # Accept pending invitation
+/party leave           # Leave current party
+/party info            # Show detailed party status
 ```
 
 ### Leadership Commands *(Leaders only)*
 ```
-/dimtr party kick <player>    # Remove member from party
-/dimtr party promote <player> # Transfer leadership
+/party kick <player>    # Remove member from party
+/party promote <player> # Transfer leadership
 ```
 
 ---
@@ -53,7 +53,7 @@
 - **Communication:** Use voice chat or coordinate through game chat
 
 ### **Leadership Tips**
-- Monitor progress regularly with `/dimtr party info`
+- Monitor progress regularly with `/party info`
 - Remove inactive players to maintain group efficiency
 - Celebrate milestone completions to maintain motivation
 

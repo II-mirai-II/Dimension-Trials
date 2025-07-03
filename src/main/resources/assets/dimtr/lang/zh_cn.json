@@ -241,10 +241,10 @@
   "gui.dimtr.parties.progress.will.transfer": "• 个人进度将被转移",
   "gui.dimtr.parties.progress.will.preserve": "• 离开时进度将被保留",
   
-  "gui.dimtr.parties.cmd.leave": "/dimtr party leave - 离开队伍",
-  "gui.dimtr.parties.cmd.info": "/dimtr party info - 队伍信息",
-  "gui.dimtr.parties.cmd.kick": "/dimtr party kick <玩家> - 踢出",
-  "gui.dimtr.parties.cmd.promote": "/dimtr party promote <玩家> - 提升",
+  "gui.dimtr.parties.cmd.leave": "/party leave - 离开队伍",
+  "gui.dimtr.parties.cmd.info": "/party info - 队伍信息",
+  "gui.dimtr.parties.cmd.kick": "/party kick <玩家> - 踢出",
+  "gui.dimtr.parties.cmd.promote": "/party promote <玩家> - 提升",
 
   "_comment_party_commands": "=== 👥 队伍命令消息 ===",
 

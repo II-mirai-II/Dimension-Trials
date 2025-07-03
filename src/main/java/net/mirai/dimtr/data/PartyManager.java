@@ -310,6 +310,41 @@ public class PartyManager extends SavedData {
 
         if (updated) {
             setDirty();
+            
+            // 🎆 NOVO: Verificar se completou alguma fase e lançar fogos de artifício
+            boolean wasPhase1Complete = party.isPhase1SharedCompleted();
+            boolean wasPhase2Complete = party.isPhase2SharedCompleted();
+            
+            // Verificar se Phase 1 foi completada pela primeira vez
+            if (!wasPhase1Complete && party.isPhase1Complete()) {
+                party.setPhase1SharedCompleted(true);
+                
+                // Lançar fogos de artifício para todos os membros da party
+                if (serverForContext != null) {
+                    for (UUID memberId : party.getMembers()) {
+                        ServerPlayer member = serverForContext.getPlayerList().getPlayer(memberId);
+                        if (member != null) {
+                            net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(member, 1);
+                        }
+                    }
+                }
+            }
+            
+            // Verificar se Phase 2 foi completada pela primeira vez
+            if (!wasPhase2Complete && party.isPhase2Complete()) {
+                party.setPhase2SharedCompleted(true);
+                
+                // Lançar fogos de artifício para todos os membros da party
+                if (serverForContext != null) {
+                    for (UUID memberId : party.getMembers()) {
+                        ServerPlayer member = serverForContext.getPlayerList().getPlayer(memberId);
+                        if (member != null) {
+                            net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(member, 2);
+                        }
+                    }
+                }
+            }
+            
             syncPartyToMembers(partyId);
         }
 
@@ -594,5 +629,100 @@ public class PartyManager extends SavedData {
             this.maxMembers = maxMembers;
             this.isPublic = isPublic;
         }
+    }
+
+    /**
+     * Serializa os dados de party para um backup
+     * @return CompoundTag contendo todos os dados serializados
+     */
+    public CompoundTag serializeForBackup() {
+        CompoundTag root = new CompoundTag();
+        
+        // Serializar dados de todas as parties
+        CompoundTag partiesTag = new CompoundTag();
+        for (Map.Entry<UUID, PartyData> entry : parties.entrySet()) {
+            UUID partyId = entry.getKey();
+            PartyData data = entry.getValue();
+            
+            CompoundTag partyTag = new CompoundTag();
+            // Usar o método save com um HolderLookup nulo (para backup não precisamos)
+            partyTag = data.save(null);
+            partiesTag.put(partyId.toString(), partyTag);
+        }
+        
+        root.put("parties", partiesTag);
+        
+        // Serializar mapeamento jogador -> party
+        CompoundTag playerMappingTag = new CompoundTag();
+        for (Map.Entry<UUID, UUID> entry : playerToParty.entrySet()) {
+            playerMappingTag.putUUID(entry.getKey().toString(), entry.getValue());
+        }
+        root.put("playerToParty", playerMappingTag);
+        
+        root.putLong("backupTimestamp", System.currentTimeMillis());
+        
+        return root;
+    }
+    
+    /**
+     * Restaura os dados de parties a partir de um backup
+     * @param backupTag Tag contendo os dados do backup
+     */
+    public void deserializeFromBackup(CompoundTag backupTag) {
+        if (!backupTag.contains("parties") || !backupTag.contains("playerToParty")) {
+            net.mirai.dimtr.DimTrMod.LOGGER.error("Dados de backup de parties inválidos: tags necessárias não encontradas");
+            return;
+        }
+        
+        // Restaurar parties
+        CompoundTag partiesTag = backupTag.getCompound("parties");
+        Map<UUID, PartyData> restoredParties = new HashMap<>();
+        
+        for (String partyIdStr : partiesTag.getAllKeys()) {
+            try {
+                UUID partyId = UUID.fromString(partyIdStr);
+                CompoundTag partyTag = partiesTag.getCompound(partyIdStr);
+                
+                // Criar party vazia e preencher com dados do backup
+                PartyData data = new PartyData(partyId, "", "", null);
+                // Corrigir para usar o método correto com um HolderLookup nulo
+                data = PartyData.load(partyTag, null);
+                
+                restoredParties.put(partyId, data);
+            } catch (IllegalArgumentException e) {
+                net.mirai.dimtr.DimTrMod.LOGGER.warn("UUID de party inválido no backup: {}", partyIdStr);
+            }
+        }
+        
+        // Restaurar mapeamento jogador -> party
+        CompoundTag playerMappingTag = backupTag.getCompound("playerToParty");
+        Map<UUID, UUID> restoredMapping = new HashMap<>();
+        
+        for (String playerIdStr : playerMappingTag.getAllKeys()) {
+            try {
+                UUID playerId = UUID.fromString(playerIdStr);
+                UUID partyId = playerMappingTag.getUUID(playerIdStr);
+                
+                // Só adicionar se a party existir
+                if (restoredParties.containsKey(partyId)) {
+                    restoredMapping.put(playerId, partyId);
+                }
+            } catch (IllegalArgumentException e) {
+                net.mirai.dimtr.DimTrMod.LOGGER.warn("UUID de jogador inválido no backup: {}", playerIdStr);
+            }
+        }
+        
+        // Substituir dados atuais pelos restaurados
+        this.parties.clear();
+        this.parties.putAll(restoredParties);
+        
+        this.playerToParty.clear();
+        this.playerToParty.putAll(restoredMapping);
+        
+        // Marcar como alterado para salvar
+        this.setDirty();
+        
+        net.mirai.dimtr.DimTrMod.LOGGER.info("Dados de parties restaurados: {} parties e {} jogadores", 
+            restoredParties.size(), restoredMapping.size());
     }
 }

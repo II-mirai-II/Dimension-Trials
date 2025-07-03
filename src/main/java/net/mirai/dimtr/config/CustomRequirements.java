@@ -175,16 +175,6 @@ public class CustomRequirements {
     public static CustomPhase getCustomPhase(String phaseId) {
         return getAllCustomPhases().get(phaseId);
     }
-    
-    /**
-     * Verificar se um jogador pode acessar uma dimensão customizada
-     * @deprecated Use ProgressionCoordinator.canPlayerAccessCustomDimension() instead
-     */
-    @Deprecated
-    public static boolean canAccessCustomDimension(UUID playerId, ResourceLocation dimension) {
-        DimTrMod.LOGGER.warn("Using deprecated canAccessCustomDimension - use ProgressionCoordinator instead");
-        return true; // Sempre permitir - verificação real deve ser feita via ProgressionCoordinator
-    }
 
     /**
      * 🎯 NOVO: Verificar se um jogador pode acessar uma dimensão customizada (com ServerLevel)
@@ -276,6 +266,32 @@ public class CustomRequirements {
         return current >= required;
     }
     
+    /**
+     * 🎯 NOVO: Salvar um conjunto de requisitos customizados em arquivo
+     */
+    public static void saveCustomRequirement(String fileName, CustomRequirementSet requirementSet) throws IOException {
+        File configDir = new File(CONFIG_DIR);
+        if (!configDir.exists()) {
+            configDir.mkdirs();
+        }
+        
+        if (!fileName.endsWith(".json")) {
+            fileName += ".json";
+        }
+        
+        File configFile = new File(configDir, fileName);
+        try (FileWriter writer = new FileWriter(configFile)) {
+            GSON.toJson(requirementSet, writer);
+        }
+        
+        // Recarregar requisitos após salvar
+        if (requirementSet.enabled) {
+            loadedRequirements.put(fileName.replace(".json", ""), requirementSet);
+        }
+        
+        DimTrMod.LOGGER.info("💾 Configuração customizada salva: {}", fileName);
+    }
+
     // ============================================================================
     // CLASSES DE DADOS
     // ============================================================================

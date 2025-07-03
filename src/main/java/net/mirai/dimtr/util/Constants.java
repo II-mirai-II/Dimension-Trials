@@ -620,7 +620,7 @@ public class Constants {
     public static final String LOG_FEATURE_PARTY_SYSTEM = "   • Collaborative party system ✅";
     public static final String LOG_FEATURE_HUD_INTERFACE = "   • Modular HUD interface";
     public static final String LOG_FEATURE_ADMIN_COMMANDS = "   • Administrative commands (/dimtr)";
-    public static final String LOG_FEATURE_PARTY_COMMANDS = "   • Party management (/dimtr party) ✅";
+    public static final String LOG_FEATURE_PARTY_COMMANDS = "   • Party management (/party) ✅";
     public static final String LOG_FEATURE_INDIVIDUAL_TRACKING = "   • Individual progression tracking ✅";
     public static final String LOG_FEATURE_PROXIMITY_MULTIPLIERS = "   • Proximity-based multipliers ✅";
     public static final String LOG_FEATURE_CUSTOM_REQUIREMENTS = "   • Custom requirements system 🎯 NEW";
@@ -661,7 +661,7 @@ public class Constants {
     // Phase 1 mob types
     public static final String MOB_TYPE_DROWNED = "drowned";
     public static final String MOB_TYPE_ZOMBIE = "zombie";
-    public static final String MOB_TYPE_ZOMBIE_VILLAGER = "zombie_villager";
+    // ✅ REMOVIDO: MOB_TYPE_ZOMBIE_VILLAGER - funcionalidade descontinuada
     public static final String MOB_TYPE_SKELETON = "skeleton";
     public static final String MOB_TYPE_STRAY = "stray";
     public static final String MOB_TYPE_HUSK = "husk";
@@ -815,11 +815,11 @@ public class Constants {
     public static final String HELP_COMPLETE_PHASE1_CONTENT = "• Complete Phase 1 objectives to unlock the Nether";
     public static final String HELP_COMPLETE_PHASE2_CONTENT = "• Complete Phase 2 objectives to unlock The End";
     public static final String HELP_PLAYER_COMMANDS_CONTENT = "⚙ Player Commands:";
-    public static final String HELP_PARTY_CREATE_CONTENT = "• /dimtr party create <n> [password] - Create a party";
-    public static final String HELP_PARTY_JOIN_CONTENT = "• /dimtr party join <n> [password] - Join a party";
-    public static final String HELP_PARTY_LEAVE_CONTENT = "• /dimtr party leave - Leave your party";
-    public static final String HELP_PARTY_LIST_CONTENT = "• /dimtr party list - List public parties";
-    public static final String HELP_PARTY_INFO_CONTENT = "• /dimtr party info - View party information";
+    public static final String HELP_PARTY_CREATE_CONTENT = "• /party create <n> [password] - Create a party";
+    public static final String HELP_PARTY_JOIN_CONTENT = "• /party join <n> [password] - Join a party";
+    public static final String HELP_PARTY_LEAVE_CONTENT = "• /party leave - Leave your party";
+    public static final String HELP_PARTY_LIST_CONTENT = "• /party list - List public parties";
+    public static final String HELP_PARTY_INFO_CONTENT = "• /party info - View party information";
     public static final String HELP_ADMIN_COMMANDS_CONTENT = "👑 Admin Commands:";
     public static final String HELP_ADMIN_COMPLETE_CONTENT = "• /dimtr player <player> complete phase1|phase2";
     public static final String HELP_ADMIN_RESET_CONTENT = "• /dimtr player <player> reset all|phase1|phase2";

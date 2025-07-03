@@ -10,6 +10,9 @@ import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.config.DimTrConfig;
 import net.mirai.dimtr.data.ProgressionManager;
 import net.mirai.dimtr.data.PlayerProgressionData;
+import net.mirai.dimtr.system.CustomPhaseSystem;
+import net.mirai.dimtr.system.BossKillValidator;
+import net.mirai.dimtr.system.ProgressTransferService;
 import net.mirai.dimtr.network.UpdateProgressionToClientPayload;
 import net.mirai.dimtr.util.Constants;
 import net.minecraft.commands.CommandSourceStack;
@@ -115,7 +118,31 @@ public class DimTrCommands {
                         .then(Commands.literal("list_players")
                                 .executes(DimTrCommands::executeDebugListPlayers))
                         .then(Commands.literal("multipliers")
-                                .executes(DimTrCommands::executeDebugMultipliers))));
+                                .executes(DimTrCommands::executeDebugMultipliers)))
+
+                // ============================================================================
+                // 🆕 COMANDOS DOS NOVOS SISTEMAS FUNCIONAIS
+                // ============================================================================
+                .then(Commands.literal("systems")
+                        .then(Commands.literal("transfer")
+                                .then(Commands.literal("to_party")
+                                        .then(Commands.argument("target", EntityArgument.player())
+                                                .executes(DimTrCommands::executeTransferToParty)))
+                                .then(Commands.literal("to_individual")
+                                        .then(Commands.argument("target", EntityArgument.player())
+                                                .executes(DimTrCommands::executeTransferToIndividual))))
+                        .then(Commands.literal("custom_phase")
+                                .then(Commands.literal("reload")
+                                        .executes(DimTrCommands::executeReloadCustomPhases))
+                                .then(Commands.literal("status")
+                                        .then(Commands.argument("target", EntityArgument.player())
+                                                .executes(DimTrCommands::executeCustomPhaseStatus))))
+                        .then(Commands.literal("boss_validation")
+                                .then(Commands.literal("reload")
+                                        .executes(DimTrCommands::executeReloadBossValidation))
+                                .then(Commands.literal("reputation")
+                                        .then(Commands.argument("target", EntityArgument.player())
+                                                .executes(DimTrCommands::executeBossValidationReputation))))));
     }
 
     // ============================================================================
@@ -286,6 +313,9 @@ public class DimTrCommands {
             ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayer(playerId);
             if (player != null) {
                 progressionManager.sendToClient(player);
+                
+                // 🎆 NOVO: Lançar fogos de artifício ao completar fase via comando admin
+                net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(player, 1);
             }
         }
 
@@ -346,6 +376,9 @@ public class DimTrCommands {
             ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayer(playerId);
             if (player != null) {
                 progressionManager.sendToClient(player);
+                
+                // 🎆 NOVO: Lançar fogos de artifício ao completar fase via comando admin
+                net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(player, 2);
             }
         }
 
@@ -828,5 +861,177 @@ public class DimTrCommands {
     private static String capitalizeFirst(String str) {
         if (str == null || str.isEmpty()) return str;
         return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase().replace("_", " ");
+    }
+
+    // ============================================================================
+    // 🆕 MÉTODOS DOS NOVOS SISTEMAS FUNCIONAIS
+    // ============================================================================
+    
+    /**
+     * 🔄 Transferir progresso de individual para party
+     */
+    private static int executeTransferToParty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer target = EntityArgument.getPlayer(context, "target");
+        UUID playerId = target.getUUID();
+        
+        try {
+            ProgressTransferService.transferFromIndividualToParty(playerId);
+            context.getSource().sendSuccess(() ->
+                    Component.literal("✅ Progresso transferido para party: " + target.getName().getString())
+                            .withStyle(ChatFormatting.GREEN), true);
+            return 1;
+        } catch (Exception e) {
+            context.getSource().sendFailure(
+                    Component.literal("❌ Erro ao transferir progresso: " + e.getMessage())
+                            .withStyle(ChatFormatting.RED));
+            return 0;
+        }
+    }
+    
+    /**
+     * 🔄 Transferir progresso de party para individual
+     */
+    private static int executeTransferToIndividual(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer target = EntityArgument.getPlayer(context, "target");
+        UUID playerId = target.getUUID();
+        
+        try {
+            ProgressTransferService.transferFromPartyToIndividual(playerId);
+            context.getSource().sendSuccess(() ->
+                    Component.literal("✅ Progresso transferido para individual: " + target.getName().getString())
+                            .withStyle(ChatFormatting.GREEN), true);
+            return 1;
+        } catch (Exception e) {
+            context.getSource().sendFailure(
+                    Component.literal("❌ Erro ao transferir progresso: " + e.getMessage())
+                            .withStyle(ChatFormatting.RED));
+            return 0;
+        }
+    }
+    
+    /**
+     * 🔧 Recarregar configurações de custom phases
+     */
+    private static int executeReloadCustomPhases(CommandContext<CommandSourceStack> context) {
+        try {
+            CustomPhaseSystem.loadPhaseDefinitions();
+            context.getSource().sendSuccess(() ->
+                    Component.literal("✅ Configurações de custom phases recarregadas!")
+                            .withStyle(ChatFormatting.GREEN), true);
+            return 1;
+        } catch (Exception e) {
+            context.getSource().sendFailure(
+                    Component.literal("❌ Erro ao recarregar custom phases: " + e.getMessage())
+                            .withStyle(ChatFormatting.RED));
+            return 0;
+        }
+    }
+    
+    /**
+     * 📊 Status de custom phases do jogador
+     */
+    private static int executeCustomPhaseStatus(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer target = EntityArgument.getPlayer(context, "target");
+        UUID playerId = target.getUUID();
+        
+        try {
+            var phaseProgress = CustomPhaseSystem.getPlayerPhaseProgress(playerId);
+            context.getSource().sendSuccess(() ->
+                    Component.literal("📊 Custom Phases - " + target.getName().getString())
+                            .withStyle(ChatFormatting.AQUA), false);
+            
+            if (phaseProgress.isEmpty()) {
+                context.getSource().sendSuccess(() ->
+                        Component.literal("  Nenhuma custom phase ativa")
+                                .withStyle(ChatFormatting.GRAY), false);
+            } else {
+                for (var entry : phaseProgress.entrySet()) {
+                    String phaseId = entry.getKey();
+                    var progress = entry.getValue();
+                    boolean isComplete = progress.completed;
+                    ChatFormatting color = isComplete ? ChatFormatting.GREEN : ChatFormatting.YELLOW;
+                    String status = isComplete ? "✅" : "🔄";
+                    
+                    int completedObjs = (int) progress.currentObjectives.values().stream().mapToInt(b -> b ? 1 : 0).sum();
+                    int totalObjs = progress.currentObjectives.size();
+                    
+                    context.getSource().sendSuccess(() ->
+                            Component.literal("  " + status + " " + phaseId + ": " + 
+                                    completedObjs + "/" + totalObjs + " (" + String.format("%.1f%%", progress.completionPercentage) + ")")
+                                    .withStyle(color), false);
+                }
+            }
+            return 1;
+        } catch (Exception e) {
+            context.getSource().sendFailure(
+                    Component.literal("❌ Erro ao obter status: " + e.getMessage())
+                            .withStyle(ChatFormatting.RED));
+            return 0;
+        }
+    }
+    
+    /**
+     * 🔧 Recarregar configurações de boss validation
+     */
+    private static int executeReloadBossValidation(CommandContext<CommandSourceStack> context) {
+        try {
+            // Recarregar através do initialize que chama loadBossConfigurations
+            BossKillValidator.initialize();
+            context.getSource().sendSuccess(() ->
+                    Component.literal("✅ Configurações de boss validation recarregadas!")
+                            .withStyle(ChatFormatting.GREEN), true);
+            return 1;
+        } catch (Exception e) {
+            context.getSource().sendFailure(
+                    Component.literal("❌ Erro ao recarregar boss validation: " + e.getMessage())
+                            .withStyle(ChatFormatting.RED));
+            return 0;
+        }
+    }
+    
+    /**
+     * 📊 Reputação de boss validation do jogador
+     */
+    private static int executeBossValidationReputation(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer target = EntityArgument.getPlayer(context, "target");
+        UUID playerId = target.getUUID();
+        
+        try {
+            var reputation = BossKillValidator.getPlayerReputation(playerId);
+            context.getSource().sendSuccess(() ->
+                    Component.literal("📊 Boss Validation - " + target.getName().getString())
+                            .withStyle(ChatFormatting.AQUA), false);
+            
+            if (reputation == null) {
+                context.getSource().sendSuccess(() ->
+                        Component.literal("  Sem histórico de boss kills")
+                                .withStyle(ChatFormatting.GRAY), false);
+            } else {
+                context.getSource().sendSuccess(() ->
+                        Component.literal("  🎯 Reputação: " + String.format("%.1f/100", reputation.reputationScore))
+                                .withStyle(ChatFormatting.YELLOW), false);
+                context.getSource().sendSuccess(() ->
+                        Component.literal("  ✅ Kills legítimos: " + reputation.legitimateKills)
+                                .withStyle(ChatFormatting.GREEN), false);
+                context.getSource().sendSuccess(() ->
+                        Component.literal("  ⚠️ Kills suspeitos: " + reputation.suspiciousKills)
+                                .withStyle(ChatFormatting.YELLOW), false);
+                context.getSource().sendSuccess(() ->
+                        Component.literal("  ❌ Kills inválidos: " + reputation.invalidKills)
+                                .withStyle(ChatFormatting.RED), false);
+                
+                if (reputation.isBlacklisted) {
+                    context.getSource().sendSuccess(() ->
+                            Component.literal("  🚫 Status: BLACKLISTED")
+                                    .withStyle(ChatFormatting.DARK_RED), false);
+                }
+            }
+            return 1;
+        } catch (Exception e) {
+            context.getSource().sendFailure(
+                    Component.literal("❌ Erro ao obter reputação: " + e.getMessage())
+                            .withStyle(ChatFormatting.RED));
+            return 0;
+        }
     }
 }

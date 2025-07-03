@@ -147,10 +147,10 @@
   "gui.dimtr.parties.progress.will.transfer": "• Progresso individual será transferido",
   "gui.dimtr.parties.progress.will.preserve": "• Progresso será preservado ao sair",
   
-  "gui.dimtr.parties.cmd.leave": "/dimtr party leave - Sair da party",
-  "gui.dimtr.parties.cmd.info": "/dimtr party info - Info da party",
-  "gui.dimtr.parties.cmd.kick": "/dimtr party kick <jogador> - Expulsar",
-  "gui.dimtr.parties.cmd.promote": "/dimtr party promote <jogador> - Promover",
+  "gui.dimtr.parties.cmd.leave": "/party leave - Sair da party",
+  "gui.dimtr.parties.cmd.info": "/party info - Info da party",
+  "gui.dimtr.parties.cmd.kick": "/party kick <jogador> - Expulsar",
+  "gui.dimtr.parties.cmd.promote": "/party promote <jogador> - Promover",
 
   "_comment_new_individual_system": "=== 🎯 NOVO SISTEMA DE PROGRESSÃO INDIVIDUAL ===",
 
@@ -161,19 +161,19 @@
 
   "party.dimtr.create.success": "✅ Party '%s' (%s) criada com sucesso!",
   "party.dimtr.create.success.leader": "👑 Você é o líder da party!",
-  "party.dimtr.create.success.info": "💡 Outros jogadores podem entrar com '/dimtr party join %s'",
+  "party.dimtr.create.success.info": "💡 Outros jogadores podem entrar com '/party join %s'",
   "party.dimtr.create.success.multiplier": "⚡ Multiplicador atual: +0%% (1 membro). +%d%% por cada membro adicional!",
   "party.dimtr.create.password_info": "🔒 Party protegida por senha. Compartilhe a senha com quem quiser convidar!",
   
   "party.dimtr.join.success": "✅ Você entrou na party '%s'!",
   "party.dimtr.join.success.benefit": "🎉 Agora você compartilha progresso com os membros da party!",
-  "party.dimtr.join.success.info": "💡 Use '/dimtr party info' para ver detalhes da party",
+  "party.dimtr.join.success.info": "💡 Use '/party info' para ver detalhes da party",
   
   "party.dimtr.leave.success": "✅ Você saiu da party!",
   "party.dimtr.leave.success.individual": "📊 Sua progressão agora é individual novamente",
 
   "party.dimtr.error.not_player": "❌ Comando deve ser executado por um jogador",
-  "party.dimtr.error.already_in_party": "❌ Você já está em uma party! Use '/dimtr party leave' primeiro",
+  "party.dimtr.error.already_in_party": "❌ Você já está em uma party! Use '/party leave' primeiro",
   "party.dimtr.error.not_in_party": "❌ Você não está em nenhuma party!",
   "party.dimtr.error.invalid_name": "❌ Nome da party inválido! Use 1-20 caracteres",
   "party.dimtr.error.name_taken": "❌ Já existe uma party com esse nome!",

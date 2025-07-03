@@ -1,9 +1,12 @@
 package net.mirai.dimtr.client;
 
+import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.network.UpdateProgressionToClientPayload;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 public class ClientProgressionData {
     public static final ClientProgressionData INSTANCE = new ClientProgressionData();
@@ -24,8 +27,7 @@ public class ClientProgressionData {
 
     // Novos contadores de mobs - Fase 1 (Overworld)
     private int zombieKills = 0;
-    // ✅ REMOVIDO FUNCIONALMENTE: zombieVillagerKills - mantido só para compatibilidade
-    private int zombieVillagerKills = 0;
+    // Campo removido: zombieVillagerKills - funcionalidade completamente descontinuada
     private int skeletonKills = 0;
     private int strayKills = 0;
     private int huskKills = 0;
@@ -40,7 +42,7 @@ public class ClientProgressionData {
     private int boggedKills = 0;
     private int breezeKills = 0;
 
-    // NOVO: Ravager e Evoker agora são Goal Kills
+    // ✅ CORRIGIDO: Ravager e Evoker são mob kills normais da Fase 1
     private int ravagerKills = 0;
     private int evokerKills = 0;
 
@@ -51,8 +53,6 @@ public class ClientProgressionData {
     private int hoglinKills = 0;
     private int zoglinKills = 0;
     private int ghastKills = 0;
-    // ✅ REMOVIDO FUNCIONALMENTE: endermiteKills - mantido só para compatibilidade
-    private int endermiteKills = 0;
     private int piglinKills = 0;
 
     // 🎯 NOVO: Custom Phases data
@@ -62,8 +62,6 @@ public class ClientProgressionData {
 
     // CORREÇÃO PRINCIPAL: Configurações de requisitos sincronizadas do servidor
     private int reqZombieKills = 50;
-    // ✅ REMOVIDO FUNCIONALMENTE: reqZombieVillagerKills - sempre 0
-    private int reqZombieVillagerKills = 0;
     private int reqSkeletonKills = 40;
     private int reqStrayKills = 10;
     private int reqHuskKills = 10;
@@ -85,8 +83,6 @@ public class ClientProgressionData {
     private int reqHoglinKills = 1;  // CORRETO: 1
     private int reqZoglinKills = 1;  // CORRETO: 1
     private int reqGhastKills = 10;
-    // ✅ REMOVIDO FUNCIONALMENTE: reqEndermiteKills - sempre 0
-    private int reqEndermiteKills = 0;
     private int reqPiglinKills = 30;
 
     // NOVO: Configuração para Voluntary Exile
@@ -109,8 +105,7 @@ public class ClientProgressionData {
 
         // Novos contadores de mobs - Fase 1 (incluindo Ravager e Evoker)
         this.zombieKills = payload.zombieKills();
-        // ✅ ACEITA mas deve ser sempre 0
-        this.zombieVillagerKills = payload.zombieVillagerKills();
+        // ✅ REMOVIDO: zombieVillagerKills - funcionalidade descontinuada
         this.skeletonKills = payload.skeletonKills();
         this.strayKills = payload.strayKills();
         this.huskKills = payload.huskKills();
@@ -125,7 +120,7 @@ public class ClientProgressionData {
         this.boggedKills = payload.boggedKills();
         this.breezeKills = payload.breezeKills();
 
-        // NOVO: Ravager e Evoker
+        // ✅ CORRIGIDO: Ravager e Evoker como mob kills normais
         this.ravagerKills = payload.ravagerKills();
         this.evokerKills = payload.evokerKills();
 
@@ -136,14 +131,11 @@ public class ClientProgressionData {
         this.hoglinKills = payload.hoglinKills();
         this.zoglinKills = payload.zoglinKills();
         this.ghastKills = payload.ghastKills();
-        // ✅ ACEITA mas deve ser sempre 0
-        this.endermiteKills = payload.endermiteKills();
         this.piglinKills = payload.piglinKills();
 
         // CORREÇÃO PRINCIPAL: Atualizar configurações sincronizadas do servidor
         this.reqZombieKills = payload.reqZombieKills();
-        // ✅ ACEITA mas deve ser sempre 0
-        this.reqZombieVillagerKills = payload.reqZombieVillagerKills();
+        // Campo reqZombieVillagerKills removido
         this.reqSkeletonKills = payload.reqSkeletonKills();
         this.reqStrayKills = payload.reqStrayKills();
         this.reqHuskKills = payload.reqHuskKills();
@@ -157,16 +149,15 @@ public class ClientProgressionData {
         this.reqVindicatorKills = payload.reqVindicatorKills();
         this.reqBoggedKills = payload.reqBoggedKills();
         this.reqBreezeKills = payload.reqBreezeKills();
-        this.reqRavagerKills = payload.reqRavagerKills(); // Agora sincronizado: 1
-        this.reqEvokerKills = payload.reqEvokerKills();   // Agora sincronizado: 5
+        // ✅ CORRIGIDO: Ravager e Evoker são mob kills normais da Fase 1
+        this.reqRavagerKills = payload.reqRavagerKills(); // Requisito: 1
+        this.reqEvokerKills = payload.reqEvokerKills();   // Requisito: 5
         this.reqBlazeKills = payload.reqBlazeKills();
         this.reqWitherSkeletonKills = payload.reqWitherSkeletonKills();
         this.reqPiglinBruteKills = payload.reqPiglinBruteKills();
         this.reqHoglinKills = payload.reqHoglinKills();   // Agora sincronizado: 1
         this.reqZoglinKills = payload.reqZoglinKills();   // Agora sincronizado: 1
         this.reqGhastKills = payload.reqGhastKills();
-        // ✅ ACEITA mas deve ser sempre 0
-        this.reqEndermiteKills = payload.reqEndermiteKills();
         this.reqPiglinKills = payload.reqPiglinKills();
 
         // NOVO: Sincronizar configuração Voluntary Exile
@@ -181,106 +172,64 @@ public class ClientProgressionData {
         
         this.customObjectiveCompletion.clear();
         this.customObjectiveCompletion.putAll(payload.customObjectiveCompletion());
-
-        // ✅ DEBUG: Verificar se valores removidos estão 0
-        if (this.zombieVillagerKills != 0) {
-            System.err.println("⚠️ CLIENT WARNING: zombieVillagerKills is " + this.zombieVillagerKills + " but should be 0!");
-        }
-        if (this.endermiteKills != 0) {
-            System.err.println("⚠️ CLIENT WARNING: endermiteKills is " + this.endermiteKills + " but should be 0!");
-        }
-        if (this.reqZombieVillagerKills != 0) {
-            System.err.println("⚠️ CLIENT WARNING: reqZombieVillagerKills is " + this.reqZombieVillagerKills + " but should be 0!");
-        }
-        if (this.reqEndermiteKills != 0) {
-            System.err.println("⚠️ CLIENT WARNING: reqEndermiteKills is " + this.reqEndermiteKills + " but should be 0!");
-        }
     }
 
-    // Getters para objetivos originais
+    // Método getInstance para compatibilidade
+    public static ClientProgressionData getInstance() {
+        return INSTANCE;
+    }
+    
+    // Getters públicos para acessar campos privados
+    public boolean isPhase1Completed() { return phase1Completed; }
+    public boolean isPhase2Completed() { return phase2Completed; }
     public boolean isElderGuardianKilled() { return elderGuardianKilled; }
     public boolean isRaidWon() { return raidWon; }
-    public boolean isRavagerKilled() { return ravagerKilled; } // Manter para compatibilidade
-    public boolean isEvokerKilled() { return evokerKilled; } // Manter para compatibilidade
-    public boolean isTrialVaultAdvancementEarned() { return trialVaultAdvancementEarned; }
-    // NOVO: Getter para conquista Voluntaire Exile
-    public boolean isVoluntaireExileAdvancementEarned() { return voluntaireExileAdvancementEarned; }
-    public boolean isPhase1Completed() { return phase1Completed; }
     public boolean isWitherKilled() { return witherKilled; }
     public boolean isWardenKilled() { return wardenKilled; }
-    public boolean isPhase2Completed() { return phase2Completed; }
-
-    // Getters para contadores de mobs - Fase 1
     public int getZombieKills() { return zombieKills; }
-    // ✅ MANTIDO para compatibilidade mas sempre retorna 0
-    public int getZombieVillagerKills() { return zombieVillagerKills; }
     public int getSkeletonKills() { return skeletonKills; }
-    public int getStrayKills() { return strayKills; }
-    public int getHuskKills() { return huskKills; }
-    public int getSpiderKills() { return spiderKills; }
     public int getCreeperKills() { return creeperKills; }
-    public int getDrownedKills() { return drownedKills; }
+    public int getSpiderKills() { return spiderKills; }
     public int getEndermanKills() { return endermanKills; }
     public int getWitchKills() { return witchKills; }
-    public int getPillagerKills() { return pillagerKills; }
-    public int getCaptainKills() { return captainKills; }
-    public int getVindicatorKills() { return vindicatorKills; }
-    public int getBoggedKills() { return boggedKills; }
-    public int getBreezeKills() { return breezeKills; }
+    public int getBlazeKills() { return blazeKills; }    
+    // Getters adicionais necessários
+    public boolean isVoluntaireExileAdvancementEarned() { return voluntaireExileAdvancementEarned; }
+    public boolean isTrialVaultAdvancementEarned() { return trialVaultAdvancementEarned; }
 
-    // NOVO: Getters para Ravager e Evoker
-    public int getRavagerKills() { return ravagerKills; }
-    public int getEvokerKills() { return evokerKills; }
+    // Método para obter contadores de mobs como mapa
+    public Map<String, Integer> getMobKills() {
+        Map<String, Integer> mobKills = new HashMap<>();
+        mobKills.put("zombie", zombieKills);
+        mobKills.put("skeleton", skeletonKills);
+        mobKills.put("creeper", creeperKills);
+        mobKills.put("spider", spiderKills);
+        mobKills.put("enderman", endermanKills);
+        mobKills.put("witch", witchKills);
+        mobKills.put("blaze", blazeKills);
+        mobKills.put("pillager", pillagerKills);
+        mobKills.put("captain", captainKills);
+        mobKills.put("vindicator", vindicatorKills);
+        mobKills.put("bogged", boggedKills);
+        mobKills.put("breeze", breezeKills);
+        mobKills.put("ravager", ravagerKills);
+        mobKills.put("evoker", evokerKills);
+        mobKills.put("stray", strayKills);
+        mobKills.put("husk", huskKills);
+        mobKills.put("drowned", drownedKills);
+        mobKills.put("witherSkeleton", witherSkeletonKills);
+        mobKills.put("piglinBrute", piglinBruteKills);
+        mobKills.put("hoglin", hoglinKills);
+        mobKills.put("zoglin", zoglinKills);
+        mobKills.put("ghast", ghastKills);
+        mobKills.put("piglin", piglinKills);
+        return mobKills;
+    }
 
-    // Getters para contadores de mobs - Fase 2
-    public int getBlazeKills() { return blazeKills; }
-    public int getWitherSkeletonKills() { return witherSkeletonKills; }
-    public int getPiglinBruteKills() { return piglinBruteKills; }
-    public int getHoglinKills() { return hoglinKills; }
-    public int getZoglinKills() { return zoglinKills; }
-    public int getGhastKills() { return ghastKills; }
-    // ✅ MANTIDO para compatibilidade mas sempre retorna 0
-    public int getEndermiteKills() { return endermiteKills; }
-    public int getPiglinKills() { return piglinKills; }
-
-    // Método auxiliar para obter contagem de um mob específico
+    // Método de compatibilidade para getMobKillCount
     public int getMobKillCount(String mobType) {
-        // 🎯 CORREÇÃO CRÍTICA: Se o jogador está em party, usar progresso compartilhado
-        if (ClientPartyData.INSTANCE.isInParty()) {
-            return ClientPartyData.INSTANCE.getSharedMobKillCount(mobType);
-        }
-        
-        // Caso contrário, usar progresso individual
-        return switch (mobType) {
-            case "zombie" -> zombieKills;
-            // ✅ MANTIDO para compatibilidade mas sempre retorna 0
-            case "zombie_villager" -> zombieVillagerKills;
-            case "skeleton" -> skeletonKills;
-            case "stray" -> strayKills;
-            case "husk" -> huskKills;
-            case "spider" -> spiderKills;
-            case "creeper" -> creeperKills;
-            case "drowned" -> drownedKills;
-            case "enderman" -> endermanKills;
-            case "witch" -> witchKills;
-            case "pillager" -> pillagerKills;
-            case "captain" -> captainKills;
-            case "vindicator" -> vindicatorKills;
-            case "bogged" -> boggedKills;
-            case "breeze" -> breezeKills;
-            case "ravager" -> ravagerKills;
-            case "evoker" -> evokerKills;
-            case "blaze" -> blazeKills;
-            case "wither_skeleton" -> witherSkeletonKills;
-            case "piglin_brute" -> piglinBruteKills;
-            case "hoglin" -> hoglinKills;
-            case "zoglin" -> zoglinKills;
-            case "ghast" -> ghastKills;
-            // ✅ MANTIDO para compatibilidade mas sempre retorna 0
-            case "endermite" -> endermiteKills;
-            case "piglin" -> piglinKills;
-            default -> 0;
-        };
+        Map<String, Integer> mobKills = getMobKills();
+        return mobKills.getOrDefault(mobType, 0);
     }
 
     // CORREÇÃO PRINCIPAL: Usar valores sincronizados em vez de DimTrConfig.SERVER
@@ -301,8 +250,7 @@ public class ClientProgressionData {
         if (phase == 1) {
             return switch (mobType) {
                 case "zombie" -> reqZombieKills;
-                // ✅ SEMPRE RETORNA 0 para zombie_villager
-                case "zombie_villager" -> 0; // Forçar sempre 0 independente do payload
+                // Campo zombie_villager removido - sempre retorna 0
                 case "skeleton" -> reqSkeletonKills;
                 case "stray" -> reqStrayKills;
                 case "husk" -> reqHuskKills;
@@ -316,9 +264,9 @@ public class ClientProgressionData {
                 case "vindicator" -> reqVindicatorKills;
                 case "bogged" -> reqBoggedKills;
                 case "breeze" -> reqBreezeKills;
-                // CORREÇÃO: Agora usa valores sincronizados corretos
-                case "ravager" -> reqRavagerKills; // Retorna 1 correto
-                case "evoker" -> reqEvokerKills;   // Retorna 5 correto
+                // ✅ CORRIGIDO: Ravager e Evoker são mob kills normais da Fase 1
+                case "ravager" -> reqRavagerKills; // Retorna 1
+                case "evoker" -> reqEvokerKills;   // Retorna 5
                 default -> 0;
             };
         } else if (phase == 2) {
@@ -330,14 +278,13 @@ public class ClientProgressionData {
                 case "hoglin" -> reqHoglinKills; // Retorna 1 correto
                 case "zoglin" -> reqZoglinKills; // Retorna 1 correto
                 case "ghast" -> reqGhastKills;
-                // ✅ SEMPRE RETORNA 0 para endermite
-                case "endermite" -> 0; // Forçar sempre 0 independente do payload
+                // Campo endermite removido - sempre retorna 0
+                case "endermite" -> 0;
                 case "piglin" -> reqPiglinKills;
 
                 // Mobs do Overworld com requisitos aumentados (125%)
                 case "zombie" -> getPhase2OverworldRequirement(reqZombieKills);
-                // ✅ SEMPRE RETORNA 0 para zombie_villager mesmo na Fase 2
-                case "zombie_villager" -> 0; // Forçar sempre 0 independente do payload
+                // ✅ REMOVIDO: zombie_villager - funcionalidade descontinuada
                 case "skeleton" -> getPhase2OverworldRequirement(reqSkeletonKills);
                 case "creeper" -> getPhase2OverworldRequirement(reqCreeperKills);
                 case "spider" -> getPhase2OverworldRequirement(reqSpiderKills);
@@ -345,7 +292,7 @@ public class ClientProgressionData {
                 case "witch" -> getPhase2OverworldRequirement(reqWitchKills);
                 case "pillager" -> getPhase2OverworldRequirement(reqPillagerKills);
 
-                // CORREÇÃO: Ravager e Evoker Phase 2 com 125% dos valores da Phase 1
+                // ✅ CORRIGIDO: Ravager e Evoker Phase 2 com 125% dos valores da Phase 1
                 case "ravager" -> getPhase2OverworldRequirement(reqRavagerKills); // 1 * 1.25 = 2
                 case "evoker" -> getPhase2OverworldRequirement(reqEvokerKills);   // 5 * 1.25 = 7
                 default -> 0;
@@ -425,5 +372,90 @@ public class ClientProgressionData {
         }
         
         return baseRequirement;
+    }
+    
+    // 🎯 CACHE para evitar spam de logs e melhorar performance
+    private static final Map<Integer, List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo>> bossesCache = new HashMap<>();
+    private static long lastCacheUpdate = 0;
+    private static final long CACHE_DURATION = 5000; // 5 segundos
+    
+    /**
+     * 🎯 NOVO: Verificar se um boss de mod externo foi morto
+     */
+    public boolean isExternalBossKilled(String bossEntityId) {
+        String key = bossEntityId.replace(":", "_");
+        Map<String, Boolean> externalBosses = customObjectiveCompletion.getOrDefault("external_bosses", new HashMap<>());
+        boolean killed = externalBosses.getOrDefault(key, false);
+        
+        // Debug logging - só logar uma vez por startup ou quando há dados válidos
+        if (!externalBosses.isEmpty()) {
+            DimTrMod.LOGGER.debug("🔍 DEBUG: Checking boss {} (key: {}) = {}", bossEntityId, key, killed);
+            DimTrMod.LOGGER.debug("🔍 DEBUG: Available external bosses: {}", externalBosses.keySet());
+        }
+        
+        return killed;
+    }
+    
+    /**
+     * 🎯 OTIMIZADO: Obter lista de bosses de mods externos para uma fase específica (com cache inteligente)
+     */
+    public java.util.List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo> getExternalBossesForPhase(int phase) {
+        long currentTime = System.currentTimeMillis();
+        
+        // Se o cache está válido, usar ele
+        if (currentTime - lastCacheUpdate < CACHE_DURATION && bossesCache.containsKey(phase)) {
+            return new ArrayList<>(bossesCache.get(phase)); // Retornar cópia defensiva
+        }
+        
+        // Atualizar cache apenas se necessário
+        if (currentTime - lastCacheUpdate >= CACHE_DURATION) {
+            bossesCache.clear();
+            lastCacheUpdate = currentTime;
+        }
+        
+        // Obter dados e armazenar no cache
+        List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo> bosses = 
+            net.mirai.dimtr.integration.ExternalModIntegration.getBossesForPhase(phase);
+        
+        if (bosses != null) {
+            // Armazenar cópia para evitar modificações externas
+            bossesCache.put(phase, new ArrayList<>(bosses));
+            return new ArrayList<>(bosses); // Retornar cópia defensiva
+        } else {
+            // Em caso de erro, retornar lista vazia
+            List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo> emptyList = new ArrayList<>();
+            bossesCache.put(phase, emptyList);
+            return emptyList;
+        }
+    }
+    
+    /**
+     * 🎯 NOVO: Verificar se deve exibir Fase 3 (bosses do End habilitados)
+     */
+    public boolean shouldShowPhase3() {
+        try {
+            // Verificar se há bosses do End configurados
+            var phase3Bosses = getExternalBossesForPhase(3);
+            return !phase3Bosses.isEmpty() && net.mirai.dimtr.config.DimTrConfig.SERVER.createPhase3ForEndBosses.get();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * 🎯 NOVO: Verificar se a Fase 3 está completa
+     */
+    public boolean isPhase3Completed() {
+        if (!shouldShowPhase3()) {
+            return false;
+        }
+        
+        var phase3Bosses = getExternalBossesForPhase(3);
+        for (var boss : phase3Bosses) {
+            if (!isExternalBossKilled(boss.entityId)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

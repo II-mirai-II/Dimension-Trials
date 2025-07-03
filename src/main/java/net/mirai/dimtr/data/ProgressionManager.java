@@ -151,6 +151,9 @@ public class ProgressionManager extends SavedData {
                 if (player != null) {
                     player.sendSystemMessage(Component.translatable("message.dimtr.phase1_complete_individual")
                             .withStyle(ChatFormatting.GREEN));
+                    
+                    // 🎆 NOVO: Lançar fogos de artifício para celebrar
+                    net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(player, 1);
                 }
             }
         }
@@ -174,6 +177,9 @@ public class ProgressionManager extends SavedData {
                 if (player != null) {
                     player.sendSystemMessage(Component.translatable("message.dimtr.phase2_complete_individual")
                             .withStyle(ChatFormatting.GREEN));
+                    
+                    // 🎆 NOVO: Lançar fogos de artifício para celebrar
+                    net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(player, 2);
                 }
             }
         }
@@ -493,6 +499,15 @@ public class ProgressionManager extends SavedData {
     public void completePhase1ForPlayer(UUID playerId) {
         PlayerProgressionData playerData = getPlayerData(playerId);
         playerData.phase1Completed = true;
+        
+        // 🎆 NOVO: Lançar fogos de artifício ao completar fase via método administrativo
+        if (serverForContext != null) {
+            ServerPlayer player = serverForContext.getPlayerList().getPlayer(playerId);
+            if (player != null) {
+                net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(player, 1);
+            }
+        }
+        
         markDirtyAndSendUpdates(playerId);
     }
 
@@ -500,6 +515,15 @@ public class ProgressionManager extends SavedData {
         PlayerProgressionData playerData = getPlayerData(playerId);
         playerData.phase1Completed = true;
         playerData.phase2Completed = true;
+        
+        // 🎆 NOVO: Lançar fogos de artifício ao completar fase via método administrativo
+        if (serverForContext != null) {
+            ServerPlayer player = serverForContext.getPlayerList().getPlayer(playerId);
+            if (player != null) {
+                net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(player, 2);
+            }
+        }
+        
         markDirtyAndSendUpdates(playerId);
     }
 
@@ -597,5 +621,66 @@ public class ProgressionManager extends SavedData {
             playerData.getCustomPhaseCompletionMap().size(),
             multiplier
         );
+    }
+    
+    /**
+     * Serializa os dados de progressão para um backup
+     * @return CompoundTag contendo todos os dados serializados
+     */
+    public CompoundTag serializeForBackup() {
+        CompoundTag root = new CompoundTag();
+        
+        // Serializar dados de todos os jogadores
+        CompoundTag playersTag = new CompoundTag();
+        for (Map.Entry<UUID, PlayerProgressionData> entry : playerProgressions.entrySet()) {
+            UUID playerId = entry.getKey();
+            PlayerProgressionData data = entry.getValue();
+            
+            CompoundTag playerTag = new CompoundTag();
+            data.writeToNBT(playerTag);
+            playersTag.put(playerId.toString(), playerTag);
+        }
+        
+        root.put("players", playersTag);
+        root.putLong("backupTimestamp", System.currentTimeMillis());
+        
+        return root;
+    }
+    
+    /**
+     * Restaura os dados de progressão a partir de um backup
+     * @param backupTag Tag contendo os dados do backup
+     */
+    public void deserializeFromBackup(CompoundTag backupTag) {
+        if (!backupTag.contains("players")) {
+            DimTrMod.LOGGER.error("Dados de backup inválidos: tag 'players' não encontrada");
+            return;
+        }
+        
+        CompoundTag playersTag = backupTag.getCompound("players");
+        Map<UUID, PlayerProgressionData> restoredProgressions = new ConcurrentHashMap<>();
+        
+        for (String uuidString : playersTag.getAllKeys()) {
+            try {
+                UUID playerId = UUID.fromString(uuidString);
+                CompoundTag playerTag = playersTag.getCompound(uuidString);
+                
+                PlayerProgressionData data = new PlayerProgressionData(playerId);
+                data.readFromNBT(playerTag);
+                
+                restoredProgressions.put(playerId, data);
+            } catch (IllegalArgumentException e) {
+                DimTrMod.LOGGER.warn("UUID inválido no backup: {}", uuidString);
+            }
+        }
+        
+        // Substituir dados atuais pelos restaurados
+        this.playerProgressions.clear();
+        this.playerProgressions.putAll(restoredProgressions);
+        
+        // Marcar como alterado para salvar
+        this.setDirty();
+        
+        DimTrMod.LOGGER.info("Dados de progressão restaurados para {} jogadores", restoredProgressions.size());
     }
 }

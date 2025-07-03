@@ -49,6 +49,7 @@ public interface HUDSection {
         PHASE1_GOALS(Constants.WINDOW_PHASE1_GOALS_TITLE, "⚔"),
         PHASE2_MAIN(Constants.WINDOW_PHASE2_MAIN_TITLE, "🌌"),
         PHASE2_GOALS(Constants.WINDOW_PHASE2_GOALS_TITLE, "👹"),
+        PHASE3_MAIN("Phase 3 - End Bosses", "🌟"),
         // 🔧 CORRIGIDO: Usar constante definida em Constants.java
         PARTIES(Constants.WINDOW_PARTIES_TITLE, "👥"),
         CUSTOM_PHASES("Custom Phases", "🔧");

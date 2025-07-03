@@ -241,10 +241,10 @@
   "gui.dimtr.parties.progress.will.transfer": "• व्यक्तिगत प्रगति स्थानांतरित होगी",
   "gui.dimtr.parties.progress.will.preserve": "• छोड़ने पर प्रगति संरक्षित होगी",
   
-  "gui.dimtr.parties.cmd.leave": "/dimtr party leave - पार्टी छोड़ें",
-  "gui.dimtr.parties.cmd.info": "/dimtr party info - पार्टी जानकारी",
-  "gui.dimtr.parties.cmd.kick": "/dimtr party kick <खिलाड़ी> - निकालें",
-  "gui.dimtr.parties.cmd.promote": "/dimtr party promote <खिलाड़ी> - प्रमोट करें",
+  "gui.dimtr.parties.cmd.leave": "/party leave - पार्टी छोड़ें",
+  "gui.dimtr.parties.cmd.info": "/party info - पार्टी जानकारी",
+  "gui.dimtr.parties.cmd.kick": "/party kick <खिलाड़ी> - निकालें",
+  "gui.dimtr.parties.cmd.promote": "/party promote <खिलाड़ी> - प्रमोट करें",
 
   "_comment_party_commands": "=== 👥 पार्टी कमांड संदेश ===",
 

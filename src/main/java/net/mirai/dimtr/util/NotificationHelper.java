@@ -244,4 +244,48 @@ public class NotificationHelper {
                 String.format("%.1fx", multiplier), reason).getString();
         sendSuccess(player, title, message);
     }
+
+    /**
+     * Launches fireworks at the player's location to celebrate phase completion
+     * @param player The player who completed a phase
+     * @param phaseNumber The phase that was completed (for different firework colors)
+     */
+    public static void launchCelebrationFireworks(ServerPlayer player, int phaseNumber) {
+        if (player == null || player.level() == null) return;
+        
+        net.minecraft.world.level.Level level = player.level();
+        net.minecraft.core.BlockPos playerPos = player.blockPosition();
+        
+        // Launch multiple fireworks for more spectacle
+        for (int i = 0; i < 3; i++) {
+            // Create simple firework rocket
+            net.minecraft.world.item.ItemStack fireworkItem = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.FIREWORK_ROCKET);
+            
+            net.minecraft.world.entity.projectile.FireworkRocketEntity firework = 
+                new net.minecraft.world.entity.projectile.FireworkRocketEntity(
+                    level, 
+                    player.getX() + (Math.random() - 0.5) * 2, 
+                    player.getY() + 0.5, 
+                    player.getZ() + (Math.random() - 0.5) * 2, 
+                    fireworkItem
+                );
+            
+            level.addFreshEntity(firework);
+            
+            // Small delay between fireworks
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                // Ignore
+            }
+        }
+        
+        // Play celebration sound
+        level.playSound(null, playerPos, SoundEvents.FIREWORK_ROCKET_LAUNCH, 
+                       SoundSource.PLAYERS, 1.0F, 1.0F);
+        
+        // Additional celebration sound
+        level.playSound(null, playerPos, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 
+                       SoundSource.PLAYERS, 1.0F, 1.0F);
+    }
 }

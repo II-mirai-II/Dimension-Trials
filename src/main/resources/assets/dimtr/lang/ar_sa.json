@@ -241,10 +241,10 @@
   "gui.dimtr.parties.progress.will.transfer": "• سيتم نقل التقدم الفردي",
   "gui.dimtr.parties.progress.will.preserve": "• سيتم حفظ التقدم عند المغادرة",
   
-  "gui.dimtr.parties.cmd.leave": "/dimtr party leave - مغادرة الفريق",
-  "gui.dimtr.parties.cmd.info": "/dimtr party info - معلومات الفريق",
-  "gui.dimtr.parties.cmd.kick": "/dimtr party kick <لاعب> - طرد",
-  "gui.dimtr.parties.cmd.promote": "/dimtr party promote <لاعب> - ترقية",
+  "gui.dimtr.parties.cmd.leave": "/party leave - مغادرة الفريق",
+  "gui.dimtr.parties.cmd.info": "/party info - معلومات الفريق",
+  "gui.dimtr.parties.cmd.kick": "/party kick <لاعب> - طرد",
+  "gui.dimtr.parties.cmd.promote": "/party promote <لاعب> - ترقية",
 
   "_comment_party_commands": "=== 👥 رسائل أوامر الفريق ===",
 

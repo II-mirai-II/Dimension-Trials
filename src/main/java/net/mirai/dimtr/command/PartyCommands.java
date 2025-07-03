@@ -6,6 +6,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.mirai.dimtr.data.PartyData;
 import net.mirai.dimtr.data.PartyManager;
+import net.mirai.dimtr.system.ProgressTransferService;
 import net.mirai.dimtr.util.Constants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -194,6 +195,19 @@ public class PartyCommands {
                         Component.translatable(Constants.PARTY_JOIN_SUCCESS_FORMAT, partyName)
                                 .withStyle(ChatFormatting.GREEN), true);
 
+                // 🆕 NOVO: Transferir progresso individual para party
+                UUID playerId = player.getUUID();
+                try {
+                    ProgressTransferService.transferFromIndividualToParty(playerId);
+                    context.getSource().sendSuccess(() ->
+                            Component.literal("🔄 Progresso individual transferido para party!")
+                                    .withStyle(ChatFormatting.AQUA), false);
+                } catch (Exception e) {
+                    context.getSource().sendFailure(
+                            Component.literal("⚠️ Aviso: Erro ao transferir progresso: " + e.getMessage())
+                                    .withStyle(ChatFormatting.YELLOW));
+                }
+
                 // Mostrar benefícios da party
                 context.getSource().sendSuccess(() ->
                         Component.translatable(Constants.PARTY_JOIN_PROGRESS_SHARING_INFO)
@@ -254,6 +268,19 @@ public class PartyCommands {
                 context.getSource().sendSuccess(() ->
                         Component.translatable(Constants.PARTY_LEAVE_SUCCESS)
                                 .withStyle(ChatFormatting.GREEN), true);
+
+                // 🆕 NOVO: Transferir progresso de party para individual
+                UUID playerId = player.getUUID();
+                try {
+                    ProgressTransferService.transferFromPartyToIndividual(playerId);
+                    context.getSource().sendSuccess(() ->
+                            Component.literal("🔄 Progresso da party transferido para individual!")
+                                    .withStyle(ChatFormatting.AQUA), false);
+                } catch (Exception e) {
+                    context.getSource().sendFailure(
+                            Component.literal("⚠️ Aviso: Erro ao transferir progresso: " + e.getMessage())
+                                    .withStyle(ChatFormatting.YELLOW));
+                }
 
                 context.getSource().sendSuccess(() ->
                         Component.translatable(Constants.PARTY_LEAVE_SUCCESS_INDIVIDUAL)

@@ -1,7 +1,6 @@
 package net.mirai.dimtr.client.gui.sections;
 
 import net.mirai.dimtr.client.ClientProgressionData;
-import net.mirai.dimtr.util.Constants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
@@ -9,13 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Seção principal da Fase 2
+ * Seção principal da Fase 3 (End Dimension)
  */
-public class Phase2MainSection implements HUDSection {
+public class Phase3MainSection implements HUDSection {
 
     @Override
     public SectionType getType() {
-        return SectionType.PHASE2_MAIN;
+        return SectionType.PHASE3_MAIN;
     }
 
     @Override
@@ -26,7 +25,7 @@ public class Phase2MainSection implements HUDSection {
 
     @Override
     public Component getDescription() {
-        return Component.translatable("gui.dimtr.summary.phase2_main.desc");
+        return Component.translatable("gui.dimtr.summary.phase3_main.desc");
     }
 
     @Override
@@ -36,7 +35,7 @@ public class Phase2MainSection implements HUDSection {
 
     @Override
     public boolean isAccessible(ClientProgressionData progress) {
-        return progress.isServerEnablePhase2() && progress.isPhase1EffectivelyComplete();
+        return progress.shouldShowPhase3() && progress.isPhase2Completed();
     }
 
     @Override
@@ -46,85 +45,70 @@ public class Phase2MainSection implements HUDSection {
         
         List<Component> content = new ArrayList<>();
 
-        if (!progress.isPhase1EffectivelyComplete()) {
-            content.add(Component.translatable("gui.dimtr.complete.phase1.first")
+        if (!progress.isPhase2Completed()) {
+            content.add(Component.translatable("gui.dimtr.complete.phase2.first")
                     .withStyle(ChatFormatting.RED));
             content.add(Component.empty());
-            content.add(Component.translatable("gui.dimtr.phase2.locked.line1")
+            content.add(Component.translatable("gui.dimtr.phase3.locked.line1")
                     .withStyle(ChatFormatting.GRAY));
-            content.add(Component.translatable("gui.dimtr.phase2.locked.line2")
+            content.add(Component.translatable("gui.dimtr.phase3.locked.line2")
                     .withStyle(ChatFormatting.GRAY));
-            content.add(Component.translatable("gui.dimtr.phase2.locked.line3")
-                    .withStyle(ChatFormatting.GRAY));
-            return content;
-        }
-
-        if (!progress.isServerEnablePhase2()) {
-            content.add(Component.translatable("gui.dimtr.phase2.disabled")
+            content.add(Component.translatable("gui.dimtr.phase3.locked.line3")
                     .withStyle(ChatFormatting.GRAY));
             return content;
         }
 
-        if (progress.isPhase2Completed()) {
+        if (!progress.shouldShowPhase3()) {
+            content.add(Component.translatable("gui.dimtr.phase3.disabled")
+                    .withStyle(ChatFormatting.GRAY));
+            return content;
+        }
+
+        if (progress.isPhase3Completed()) {
             content.add(Component.translatable("gui.dimtr.phase.complete")
                     .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
             content.add(Component.empty());
         }
 
-        // Objetivos especiais
-        content.add(Component.translatable(Constants.HUD_SECTION_SPECIAL_OBJECTIVES)
+        // Objetivos especiais da Fase 3 (Bosses do End)
+        content.add(Component.translatable("gui.dimtr.end.boss.objectives")
                 .withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
 
-        if (progress.isServerReqWither()) {
-            content.add(createGoalLine(
-                    Component.translatable(Constants.HUD_WITHER_KILLED),
-                    progress.isWitherKilled()));
-        }
-
-        if (progress.isServerReqWarden()) {
-            content.add(createGoalLine(
-                    Component.translatable(Constants.HUD_WARDEN_KILLED),
-                    progress.isWardenKilled()));
-        }
-
-        // 🎯 NOVO: Bosses de mods externos para Fase 2
-        var externalBossesPhase2 = progress.getExternalBossesForPhase(2);
-        if (!externalBossesPhase2.isEmpty()) {
-            content.add(Component.empty());
-            content.add(Component.translatable("gui.dimtr.external.bosses.phase2")
-                    .withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
-
-            for (var boss : externalBossesPhase2) {
+        // Bosses de mods externos para Fase 3
+        var externalBossesPhase3 = progress.getExternalBossesForPhase(3);
+        if (!externalBossesPhase3.isEmpty()) {
+            for (var boss : externalBossesPhase3) {
                 boolean killed = progress.isExternalBossKilled(boss.entityId);
                 content.add(createGoalLine(
                         Component.literal(boss.displayName),
                         killed));
             }
+        } else {
+            content.add(Component.translatable("gui.dimtr.phase3.no.bosses")
+                    .withStyle(ChatFormatting.GRAY));
         }
 
         content.add(Component.empty());
 
         // Status da fase
-        if (progress.isPhase2Completed()) {
-            content.add(Component.translatable("gui.dimtr.end.unlocked")
+        if (progress.isPhase3Completed()) {
+            content.add(Component.translatable("gui.dimtr.phase3.complete.ultimate")
                     .withStyle(ChatFormatting.GREEN));
         } else {
-            content.add(Component.translatable("gui.dimtr.complete.objectives")
+            content.add(Component.translatable("gui.dimtr.complete.end.objectives")
                     .withStyle(ChatFormatting.YELLOW));
-            content.add(Component.translatable("gui.dimtr.unlock.end")
+            content.add(Component.translatable("gui.dimtr.ultimate.challenge")
                     .withStyle(ChatFormatting.YELLOW));
         }
 
         content.add(Component.empty());
-        content.add(Component.translatable("gui.dimtr.unique.challenges")
+        content.add(Component.translatable("gui.dimtr.end.dimension.challenges")
                 .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
-        content.add(Component.translatable("gui.dimtr.challenge.wither")
+        content.add(Component.translatable("gui.dimtr.challenge.end.exploration")
                 .withStyle(ChatFormatting.GRAY));
-        content.add(Component.translatable("gui.dimtr.challenge.warden")
+        content.add(Component.translatable("gui.dimtr.challenge.powerful.bosses")
                 .withStyle(ChatFormatting.GRAY));
-        content.add(Component.translatable("gui.dimtr.challenge.nether")
-                .withStyle(ChatFormatting.GRAY));
-        content.add(Component.translatable("gui.dimtr.challenge.new.mobs")
+        content.add(Component.translatable("gui.dimtr.challenge.ultimate.rewards")
                 .withStyle(ChatFormatting.GRAY));
 
         return content;

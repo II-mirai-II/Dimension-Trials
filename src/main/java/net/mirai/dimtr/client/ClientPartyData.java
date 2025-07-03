@@ -160,80 +160,26 @@ public class ClientPartyData {
         return partyId != null;
     }
 
+    // Getters públicos para acessar campos privados
     public UUID getPartyId() { return partyId; }
     public String getPartyName() { return partyName; }
+    public int getMemberCount() { return memberCount; }
+    public double getRequirementMultiplier() { return requirementMultiplier; }    
+    // Getters adicionais para PartiesSection
+    public boolean isPartyPublic() { return isPublic; }
     public UUID getLeaderId() { return leaderId; }
     public List<UUID> getMembers() { return new ArrayList<>(members); }
-    public int getMemberCount() { return memberCount; }
-    public double getRequirementMultiplier() { return requirementMultiplier; }
-
-    // ✅ NOVO: Método para obter nome do membro com fallback para cache
-    public String getMemberName(UUID memberId) {
-        // Primeiro tentar resolver o nome em tempo real
-        Minecraft minecraft = Minecraft.getInstance();
-        
-        // Se for o próprio jogador
-        var currentPlayer = minecraft.player;
-        if (currentPlayer != null && memberId.equals(currentPlayer.getUUID())) {
-            return currentPlayer.getName().getString();
-        }
-        
-        // Tentar encontrar jogador online no mundo
-        if (minecraft.level != null) {
-            for (var levelPlayer : minecraft.level.players()) {
-                if (levelPlayer.getUUID().equals(memberId)) {
-                    String name = levelPlayer.getName().getString();
-                    // Atualizar cache
-                    memberNameCache.put(memberId, name);
-                    return name;
-                }
-            }
-        }
-        
-        // Tentar connection info
-        var connection = minecraft.getConnection();
-        if (connection != null) {
-            var playerInfo = connection.getPlayerInfo(memberId);
-            if (playerInfo != null) {
-                String name = playerInfo.getProfile().getName();
-                // Atualizar cache
-                memberNameCache.put(memberId, name);
-                return name;
-            }
-        }
-        
-        // Se não conseguiu resolver em tempo real, usar cache
-        String cachedName = memberNameCache.get(memberId);
-        if (cachedName != null && !cachedName.isEmpty()) {
-            return cachedName;
-        }
-        
-        // Último recurso: usar parte do UUID
-        return "Player-" + memberId.toString().substring(0, 8);
+    public String getMemberName(UUID memberId) { 
+        return memberNameCache.getOrDefault(memberId, "Unknown"); 
     }
-
-    public int getSharedMobKillCount(String mobType) {
-        return sharedMobKills.getOrDefault(mobType, 0);
-    }
-
-    public Map<String, Integer> getSharedMobKills() {
-        return new HashMap<>(sharedMobKills);
-    }
-
-    // Objetivos especiais
     public boolean isSharedElderGuardianKilled() { return sharedElderGuardianKilled; }
     public boolean isSharedRaidWon() { return sharedRaidWon; }
-    public boolean isSharedTrialVaultAdvancementEarned() { return sharedTrialVaultAdvancementEarned; }
-    public boolean isSharedVoluntaireExileAdvancementEarned() { return sharedVoluntaireExileAdvancementEarned; }
     public boolean isSharedWitherKilled() { return sharedWitherKilled; }
     public boolean isSharedWardenKilled() { return sharedWardenKilled; }
+    // Getters para fases compartilhadas
     public boolean isPhase1SharedCompleted() { return phase1SharedCompleted; }
     public boolean isPhase2SharedCompleted() { return phase2SharedCompleted; }
 
-    public boolean isPartyPublic() { 
-        return isPublic; 
-    }
-    
     /**
      * 🎯 NOVO: Método para notificar que o progresso da party foi atualizado
      * Força atualização do HUD do cliente
@@ -272,20 +218,28 @@ public class ClientPartyData {
      * Get all shared custom phase completion data
      */
     public Map<String, Boolean> getSharedCustomPhaseCompletion() {
-        return new HashMap<>(sharedCustomPhaseCompletion);
+        return Map.copyOf(sharedCustomPhaseCompletion);
     }
     
     /**
      * Get all shared custom mob kills data
      */
     public Map<String, Map<String, Integer>> getSharedCustomMobKills() {
-        return new HashMap<>(sharedCustomMobKills);
+        // Criar cópia profunda para manter imutabilidade
+        Map<String, Map<String, Integer>> result = new HashMap<>();
+        sharedCustomMobKills.forEach((phaseId, mobKills) -> 
+            result.put(phaseId, Map.copyOf(mobKills)));
+        return Map.copyOf(result);
     }
     
     /**
      * Get all shared custom objective completion data
      */
     public Map<String, Map<String, Boolean>> getSharedCustomObjectiveCompletion() {
-        return new HashMap<>(sharedCustomObjectiveCompletion);
+        // Criar cópia profunda para manter imutabilidade
+        Map<String, Map<String, Boolean>> result = new HashMap<>();
+        sharedCustomObjectiveCompletion.forEach((phaseId, objectives) -> 
+            result.put(phaseId, Map.copyOf(objectives)));
+        return Map.copyOf(result);
     }
 }
