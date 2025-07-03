@@ -38,6 +38,7 @@
 - **Robust Party Progression:** Fixed ProgressionCoordinator to always use party system when player is in party
 - **Client HUD Accuracy:** Fixed getMobKillCount to display shared party progress instead of individual counts
 - **Null-safe Operations:** Comprehensive error handling preventing crashes and improving stability
+- **Mod Compatibility:** Added compatibility support for MowziesMobs and Cataclysm when these mods are present
 
 ### 🎮 **Interface Polish (v1.3.1)**
 - **Fixed Instruction Positioning:** Resolved text overflow issues in HUD boundaries
