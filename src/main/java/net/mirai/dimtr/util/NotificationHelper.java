@@ -2,13 +2,16 @@ package net.mirai.dimtr.util;
 
 import net.mirai.dimtr.DimTrMod;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.core.particles.ParticleTypes;
 
 /**
  * Utility class for sending rich notifications to players.
@@ -255,202 +258,193 @@ public class NotificationHelper {
     public static void launchCelebrationFireworks(ServerPlayer player, int phaseNumber) {
         if (player == null || player.level() == null) return;
         
-        net.minecraft.world.level.Level level = player.level();
-        net.minecraft.core.BlockPos playerPos = player.blockPosition();
+        BlockPos playerPos = player.blockPosition();
         
         try {
             // Sons de celebração principais
-            level.playSound(null, playerPos, 
-                net.minecraft.sounds.SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 
-                net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 1.0F);
+            player.level().playSound(null, playerPos, 
+                SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 
+                SoundSource.MASTER, 1.0F, 1.0F);
                 
-            level.playSound(null, playerPos, 
-                net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, 
-                net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 0.75F);
+            player.level().playSound(null, playerPos, 
+                SoundEvents.PLAYER_LEVELUP, 
+                SoundSource.MASTER, 1.0F, 0.75F);
             
-            // Abordagem simples: criar fogos de artifício básicos e lançá-los
-            for (int i = 0; i < 8; i++) {
+            // Criar comandos para gerar os fogos de artifício (usando /summon)
+            // Isso garante que teremos os fogos visíveis com as cores certas
+            CommandSourceStack source = 
+                player.createCommandSourceStack().withPermission(4).withSuppressedOutput();
+                
+            MinecraftServer server = player.level().getServer();
+            if (server == null) return;
+            
+            // Gerar fogos aleatórios ao redor do jogador
+            for (int i = 0; i < 10; i++) {
                 final int index = i;
-                level.getServer().tell(new net.minecraft.server.TickTask(level.getServer().getTickCount() + index * 5, () -> {
+                // Atrasar cada foguete por alguns ticks para criar um efeito sequencial
+                server.tell(new net.minecraft.server.TickTask(server.getTickCount() + index * 4, () -> {
                     try {
-                        // Calcular posição aleatória ao redor do jogador
-                        double offsetX = (Math.random() - 0.5) * 8;
-                        double offsetZ = (Math.random() - 0.5) * 8;
+                        // Posição aleatória ao redor do jogador
+                        double offsetX = (Math.random() - 0.5) * 10;
+                        double offsetZ = (Math.random() - 0.5) * 10;
+                        double posX = player.getX() + offsetX;
+                        double posY = player.getY() + 1;
+                        double posZ = player.getZ() + offsetZ;
                         
-                        // Criar um foguete com explosão colorida
-                        net.minecraft.world.item.ItemStack rocket = new net.minecraft.world.item.ItemStack(
-                            net.minecraft.world.item.Items.FIREWORK_ROCKET);
-                            
-                        // Configurar o NBT do foguete
-                        net.minecraft.nbt.CompoundTag rocketTag = new net.minecraft.nbt.CompoundTag();
-                        net.minecraft.nbt.CompoundTag fireworksTag = new net.minecraft.nbt.CompoundTag();
-                        net.minecraft.nbt.ListTag explosionsTag = new net.minecraft.nbt.ListTag();
-                        net.minecraft.nbt.CompoundTag explosionTag = new net.minecraft.nbt.CompoundTag();
+                        // Comando base para criar foguetes
+                        String command = "";
                         
-                        // Configurar o tipo de explosão (0-4) e efeitos
-                        explosionTag.putByte("Type", (byte)(Math.random() * 5));
-                        explosionTag.putBoolean("Flicker", true);
-                        explosionTag.putBoolean("Trail", true);
-                        
-                        // Configurar as cores com base na fase
-                        int[] colors;
-                        int[] fadeColors;
-                        
+                        // Configurar cores com base na fase
                         switch (phaseNumber) {
                             case 1: // Fase 1 - Overworld (azul/ciano)
-                                colors = new int[]{43775, 16777215}; // Azul e branco
-                                fadeColors = new int[]{65535}; // Ciano
+                                if (Math.random() < 0.5) {
+                                    // Tipo de foguete de pequena explosão com cores da fase 1
+                                    command = String.format(
+                                        "summon minecraft:firework_rocket %.2f %.2f %.2f " +
+                                        "{FireworksItem:{id:\"minecraft:firework_rocket\",Count:1,tag:{Fireworks:{Flight:1,Explosions:[" +
+                                        "{Type:0,Flicker:1,Trail:1,Colors:[I;2651799,2437522],FadeColors:[I;4312372]}]}}}}",
+                                        posX, posY, posZ);
+                                } else {
+                                    // Tipo de foguete de explosão em formato de estrela com cores da fase 1
+                                    command = String.format(
+                                        "summon minecraft:firework_rocket %.2f %.2f %.2f " +
+                                        "{FireworksItem:{id:\"minecraft:firework_rocket\",Count:1,tag:{Fireworks:{Flight:1,Explosions:[" +
+                                        "{Type:1,Flicker:1,Trail:1,Colors:[I;3949738,4159204],FadeColors:[I;43775]}]}}}}",
+                                        posX, posY, posZ);
+                                }
                                 break;
+                                
                             case 2: // Fase 2 - Nether (vermelho/laranja)
-                                colors = new int[]{16711680, 16733440}; // Vermelho e laranja
-                                fadeColors = new int[]{16755200}; // Amarelo
+                                if (Math.random() < 0.5) {
+                                    // Tipo de foguete com cores da fase 2
+                                    command = String.format(
+                                        "summon minecraft:firework_rocket %.2f %.2f %.2f " +
+                                        "{FireworksItem:{id:\"minecraft:firework_rocket\",Count:1,tag:{Fireworks:{Flight:1,Explosions:[" +
+                                        "{Type:2,Flicker:1,Trail:1,Colors:[I;11743532,14586514],FadeColors:[I;16733525]}]}}}}",
+                                        posX, posY, posZ);
+                                } else {
+                                    // Variação de foguete com cores da fase 2
+                                    command = String.format(
+                                        "summon minecraft:firework_rocket %.2f %.2f %.2f " +
+                                        "{FireworksItem:{id:\"minecraft:firework_rocket\",Count:1,tag:{Fireworks:{Flight:1,Explosions:[" +
+                                        "{Type:4,Flicker:1,Trail:1,Colors:[I;16711680,16755200],FadeColors:[I;16733440]}]}}}}",
+                                        posX, posY, posZ);
+                                }
                                 break;
+                                
                             default: // Fase 3 - End (roxo/rosa)
-                                colors = new int[]{11141290, 16711935}; // Roxo e magenta
-                                fadeColors = new int[]{8388736}; // Violeta
+                                if (Math.random() < 0.5) {
+                                    // Tipo de foguete com cores da fase 3
+                                    command = String.format(
+                                        "summon minecraft:firework_rocket %.2f %.2f %.2f " +
+                                        "{FireworksItem:{id:\"minecraft:firework_rocket\",Count:1,tag:{Fireworks:{Flight:1,Explosions:[" +
+                                        "{Type:3,Flicker:1,Trail:1,Colors:[I;8991416,13061821],FadeColors:[I;8388736]}]}}}}",
+                                        posX, posY, posZ);
+                                } else {
+                                    // Variação de foguete com cores da fase 3
+                                    command = String.format(
+                                        "summon minecraft:firework_rocket %.2f %.2f %.2f " +
+                                        "{FireworksItem:{id:\"minecraft:firework_rocket\",Count:1,tag:{Fireworks:{Flight:1,Explosions:[" +
+                                        "{Type:4,Flicker:1,Trail:1,Colors:[I;11141290,16711935],FadeColors:[I;8323327]}]}}}}",
+                                        posX, posY, posZ);
+                                }
                                 break;
                         }
                         
-                        // Adicionar arrays de cores
-                        explosionTag.putIntArray("Colors", colors);
-                        explosionTag.putIntArray("FadeColors", fadeColors);
-                        
-                        // Construir o NBT completo
-                        explosionsTag.add(explosionTag);
-                        fireworksTag.put("Explosions", explosionsTag);
-                        fireworksTag.putByte("Flight", (byte)(1 + Math.random() * 2)); // Altura do vôo
-                        
-                        rocketTag.put("Fireworks", fireworksTag);
-                        rocket.setTag(rocketTag);
-                        
-                        // Criar a entidade do foguete
-                        net.minecraft.world.entity.projectile.FireworkRocketEntity firework = 
-                            new net.minecraft.world.entity.projectile.FireworkRocketEntity(
-                                level, 
-                                player.getX() + offsetX, 
-                                player.getY() + 1, 
-                                player.getZ() + offsetZ, 
-                                rocket);
-                        
-                        // Não podemos acessar o campo lifetime diretamente, 
-                        // mas o foguete terá um tempo de vida padrão
-                        
-                        // Adicionar a entidade ao mundo
-                        level.addFreshEntity(firework);
+                        // Executar o comando para criar o foguete
+                        server.getCommands().performPrefixedCommand(source, command);
                         
                         // Som de lançamento
-                        level.playSound(null, 
-                            player.getX() + offsetX, 
-                            player.getY() + 1, 
-                            player.getZ() + offsetZ, 
-                            net.minecraft.sounds.SoundEvents.FIREWORK_ROCKET_LAUNCH, 
-                            net.minecraft.sounds.SoundSource.AMBIENT, 
-                            1.0F, 0.8F + (float)(Math.random() * 0.4));
-                        
-                        // Efeito visual simples com partículas adicionais
-                        for (int j = 0; j < 20; j++) {
-                            double px = player.getX() + offsetX + (Math.random() - 0.5) * 2;
-                            double py = player.getY() + 1 + Math.random() * 2;
-                            double pz = player.getZ() + offsetZ + (Math.random() - 0.5) * 2;
+                        player.level().playSound(null, posX, posY, posZ,
+                            SoundEvents.FIREWORK_ROCKET_LAUNCH,
+                            SoundSource.MASTER,
+                            0.8F, 0.8F + (float)(Math.random() * 0.4F));
                             
+                        // Adicionar partículas extras
+                        for (int j = 0; j < 15; j++) {
+                            double px = posX + (Math.random() - 0.5) * 2;
+                            double py = posY + Math.random() * 2;
+                            double pz = posZ + (Math.random() - 0.5) * 2;
+                            
+                            // Partículas de acordo com a fase
                             if (phaseNumber == 1) {
-                                level.addParticle(
-                                    net.minecraft.core.particles.ParticleTypes.END_ROD,
+                                player.level().addParticle(
+                                    ParticleTypes.END_ROD,
                                     px, py, pz,
                                     (Math.random() - 0.5) * 0.1,
                                     Math.random() * 0.2,
                                     (Math.random() - 0.5) * 0.1);
                             } else if (phaseNumber == 2) {
-                                level.addParticle(
-                                    net.minecraft.core.particles.ParticleTypes.FLAME,
+                                player.level().addParticle(
+                                    ParticleTypes.FLAME,
                                     px, py, pz,
                                     (Math.random() - 0.5) * 0.1,
                                     Math.random() * 0.2,
                                     (Math.random() - 0.5) * 0.1);
                             } else {
-                                level.addParticle(
-                                    net.minecraft.core.particles.ParticleTypes.DRAGON_BREATH,
+                                player.level().addParticle(
+                                    ParticleTypes.DRAGON_BREATH,
                                     px, py, pz,
                                     (Math.random() - 0.5) * 0.1,
                                     Math.random() * 0.2,
                                     (Math.random() - 0.5) * 0.1);
                             }
                         }
-                        
                     } catch (Exception e) {
-                        DimTrMod.LOGGER.error("Erro ao lançar fogos de artifício: {}", e.getMessage());
+                        DimTrMod.LOGGER.error("Erro ao lançar foguete: {}", e.getMessage());
                     }
                 }));
             }
             
-            // Adicionar mais partículas para melhorar o efeito visual
-            for (int i = 0; i < 200; i++) {
-                final int index = i;
-                level.getServer().tell(new net.minecraft.server.TickTask(level.getServer().getTickCount() + index / 10, () -> {
-                    try {
-                        // Partículas mais próximas do jogador
-                        double offsetX = (Math.random() - 0.5) * 10;
-                        double offsetY = Math.random() * 5;
-                        double offsetZ = (Math.random() - 0.5) * 10;
-                        
-                        // Partículas temáticas conforme a fase
-                        switch (phaseNumber) {
-                            case 1: // Fase 1 - Overworld (azul/ciano)
-                                level.addParticle(
-                                    Math.random() > 0.5 ? 
-                                        net.minecraft.core.particles.ParticleTypes.END_ROD :
-                                        net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME,
-                                    player.getX() + offsetX,
-                                    player.getY() + offsetY,
-                                    player.getZ() + offsetZ,
-                                    (Math.random() - 0.5) * 0.05,
-                                    Math.random() * 0.05,
-                                    (Math.random() - 0.5) * 0.05);
-                                break;
-                            case 2: // Fase 2 - Nether (vermelho/laranja)
-                                level.addParticle(
-                                    Math.random() > 0.5 ? 
-                                        net.minecraft.core.particles.ParticleTypes.FLAME :
-                                        net.minecraft.core.particles.ParticleTypes.LAVA,
-                                    player.getX() + offsetX,
-                                    player.getY() + offsetY,
-                                    player.getZ() + offsetZ,
-                                    (Math.random() - 0.5) * 0.05,
-                                    Math.random() * 0.05,
-                                    (Math.random() - 0.5) * 0.05);
-                                break;
-                            default: // Fase 3 - End (roxo/rosa)
-                                level.addParticle(
-                                    Math.random() > 0.5 ? 
-                                        net.minecraft.core.particles.ParticleTypes.DRAGON_BREATH :
-                                        net.minecraft.core.particles.ParticleTypes.PORTAL,
-                                    player.getX() + offsetX,
-                                    player.getY() + offsetY,
-                                    player.getZ() + offsetZ,
-                                    (Math.random() - 0.5) * 0.05,
-                                    Math.random() * 0.05,
-                                    (Math.random() - 0.5) * 0.05);
-                                break;
-                        }
-                        
-                        // Adicionar alguns efeitos sonoros esparsos para melhorar o ambiente
-                        if (index % 40 == 0) {
-                            level.playSound(null, 
-                                player.getX() + offsetX, 
-                                player.getY() + offsetY, 
-                                player.getZ() + offsetZ,
-                                Math.random() > 0.5 ? 
-                                    net.minecraft.sounds.SoundEvents.FIREWORK_ROCKET_BLAST : 
-                                    net.minecraft.sounds.SoundEvents.FIREWORK_ROCKET_TWINKLE, 
-                                net.minecraft.sounds.SoundSource.AMBIENT, 
-                                0.5F, 0.8F + (float)(Math.random() * 0.4));
-                        }
-                        
-                    } catch (Exception e) {
-                        // Silenciar exceções de partículas
+            // Lançar um foguete grande especial no centro (após pequeno atraso)
+            server.tell(new net.minecraft.server.TickTask(server.getTickCount() + 25, () -> {
+                try {
+                    String specialCommand = "";
+                    
+                    // Foguete grande com múltiplas explosões baseado na fase
+                    switch (phaseNumber) {
+                        case 1: // Fase 1 - Grande foguete azul/ciano
+                            specialCommand = String.format(
+                                "summon minecraft:firework_rocket %.2f %.2f %.2f " +
+                                "{FireworksItem:{id:\"minecraft:firework_rocket\",Count:1,tag:{Fireworks:{Flight:2,Explosions:[" +
+                                "{Type:1,Flicker:1,Trail:1,Colors:[I;3949738,4159204],FadeColors:[I;43775]}," +
+                                "{Type:0,Flicker:1,Trail:1,Colors:[I;2651799,2437522],FadeColors:[I;4312372]}," +
+                                "{Type:4,Flicker:1,Trail:1,Colors:[I;16777215],FadeColors:[I;43690]}]}}}}",
+                                player.getX(), player.getY() + 1, player.getZ());
+                            break;
+                        case 2: // Fase 2 - Grande foguete vermelho/laranja
+                            specialCommand = String.format(
+                                "summon minecraft:firework_rocket %.2f %.2f %.2f " +
+                                "{FireworksItem:{id:\"minecraft:firework_rocket\",Count:1,tag:{Fireworks:{Flight:2,Explosions:[" +
+                                "{Type:1,Flicker:1,Trail:1,Colors:[I;11743532,16733525],FadeColors:[I;15566613]}," +
+                                "{Type:2,Flicker:1,Trail:1,Colors:[I;16711680,16755200],FadeColors:[I;16733440]}," +
+                                "{Type:3,Flicker:1,Trail:1,Colors:[I;16747520,16762880],FadeColors:[I;16737095]}]}}}}",
+                                player.getX(), player.getY() + 1, player.getZ());
+                            break;
+                        default: // Fase 3 - Grande foguete roxo/rosa
+                            specialCommand = String.format(
+                                "summon minecraft:firework_rocket %.2f %.2f %.2f " +
+                                "{FireworksItem:{id:\"minecraft:firework_rocket\",Count:1,tag:{Fireworks:{Flight:2,Explosions:[" +
+                                "{Type:1,Flicker:1,Trail:1,Colors:[I;8991416,13061821],FadeColors:[I;8388736]}," +
+                                "{Type:3,Flicker:1,Trail:1,Colors:[I;11141290,16711935],FadeColors:[I;8323327]}," +
+                                "{Type:4,Flicker:1,Trail:1,Colors:[I;12801229,13369599],FadeColors:[I;8339378]}]}}}}",
+                                player.getX(), player.getY() + 1, player.getZ());
+                            break;
                     }
-                }));
-            }
+                    
+                    // Executar comando para o foguete especial
+                    server.getCommands().performPrefixedCommand(source, specialCommand);
+                    
+                    // Som de lançamento especial
+                    player.level().playSound(null, 
+                        player.getX(), player.getY() + 1, player.getZ(),
+                        SoundEvents.FIREWORK_ROCKET_LARGE_BLAST,
+                        SoundSource.MASTER,
+                        1.2F, 0.7F);
+                } catch (Exception e) {
+                    DimTrMod.LOGGER.error("Erro ao lançar foguete especial: {}", e.getMessage());
+                }
+            }));
                 
         } catch (Exception e) {
             DimTrMod.LOGGER.error("Falha ao iniciar celebração: {}", e.getMessage());
