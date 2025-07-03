@@ -50,7 +50,8 @@ public interface HUDSection {
         PHASE2_MAIN(Constants.WINDOW_PHASE2_MAIN_TITLE, "🌌"),
         PHASE2_GOALS(Constants.WINDOW_PHASE2_GOALS_TITLE, "👹"),
         PHASE3_MAIN("Phase 3 - End Bosses", "🌟"),
-        PARTIES(Constants.WINDOW_PARTIES_TITLE, "👥");
+        PARTIES(Constants.WINDOW_PARTIES_TITLE, "👥"),
+        CUSTOM_PHASES("Fases Customizadas", "🛠️");
 
         private final String titleKey;
         private final String icon;

@@ -485,4 +485,18 @@ public class ClientProgressionData {
         }
         return true;
     }
+    
+    /**
+     * 🎯 NOVO: Verificar se há fases customizadas configuradas
+     */
+    public boolean hasCustomPhases() {
+        return !customPhaseCompletion.isEmpty();
+    }
+    
+    /**
+     * 🎯 NOVO: Obter mapa com todas as fases customizadas e seus status
+     */
+    public Map<String, Boolean> getCustomPhases() {
+        return new HashMap<>(customPhaseCompletion);
+    }
 }
