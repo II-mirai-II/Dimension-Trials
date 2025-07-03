@@ -181,6 +181,24 @@ public class IndividualProgressionCoordinator {
                 playerData.voluntaireExileAdvancementEarned;
         }
         
+        // NOVO: Verificar bosses externos se a integração estiver habilitada
+        if (net.mirai.dimtr.config.DimTrConfig.SERVER.enableExternalModIntegration.get()) {
+            // Obter bosses externos da fase 1
+            java.util.List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo> phase1Bosses = 
+                net.mirai.dimtr.integration.ExternalModIntegration.getBossesForPhase(1);
+            
+            // Verificar cada boss se é requerido
+            for (net.mirai.dimtr.integration.ExternalModIntegration.BossInfo boss : phase1Bosses) {
+                if (boss.required) {
+                    String bossKey = boss.entityId.replace(":", "_");
+                    if (!playerData.isCustomObjectiveComplete("external_bosses", bossKey)) {
+                        specialObjectivesComplete = false;
+                        break;
+                    }
+                }
+            }
+        }
+        
         // Verificar mob kills se habilitado
         if (net.mirai.dimtr.config.DimTrConfig.SERVER.enableMobKillsPhase1.get()) {
             boolean mobKillsComplete = checkPhase1MobKills(playerData);
@@ -198,6 +216,24 @@ public class IndividualProgressionCoordinator {
         boolean specialObjectivesComplete = 
             playerData.witherKilled && 
             playerData.wardenKilled;
+            
+        // NOVO: Verificar bosses externos se a integração estiver habilitada
+        if (net.mirai.dimtr.config.DimTrConfig.SERVER.enableExternalModIntegration.get()) {
+            // Obter bosses externos da fase 2
+            java.util.List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo> phase2Bosses = 
+                net.mirai.dimtr.integration.ExternalModIntegration.getBossesForPhase(2);
+            
+            // Verificar cada boss se é requerido
+            for (net.mirai.dimtr.integration.ExternalModIntegration.BossInfo boss : phase2Bosses) {
+                if (boss.required) {
+                    String bossKey = boss.entityId.replace(":", "_");
+                    if (!playerData.isCustomObjectiveComplete("external_bosses", bossKey)) {
+                        specialObjectivesComplete = false;
+                        break;
+                    }
+                }
+            }
+        }
         
         // Verificar mob kills se habilitado
         if (net.mirai.dimtr.config.DimTrConfig.SERVER.enableMobKillsPhase2.get()) {

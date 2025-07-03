@@ -387,6 +387,14 @@ public class ClientProgressionData {
         Map<String, Boolean> externalBosses = customObjectiveCompletion.getOrDefault("external_bosses", new HashMap<>());
         boolean killed = externalBosses.getOrDefault(key, false);
         
+        // Log opcional apenas para debug crítico (desabilitado)
+        /*
+        if (net.mirai.dimtr.DimTrMod.isDebugging()) {
+            net.mirai.dimtr.DimTrMod.LOGGER.trace("[CLIENT] Verificando boss externo: {} ({}) = {}", 
+                bossEntityId, key, killed);
+        }
+        */
+        
         return killed;
     }
     
@@ -395,14 +403,24 @@ public class ClientProgressionData {
      */
     public java.util.List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo> getExternalBossesForPhase(int phase) {
         long currentTime = System.currentTimeMillis();
+        // Debugging desabilitado para evitar spam
+        boolean debugEnabled = false;
         
         // Se o cache está válido, usar ele
         if (currentTime - lastCacheUpdate < CACHE_DURATION && bossesCache.containsKey(phase)) {
-            return new ArrayList<>(bossesCache.get(phase)); // Retornar cópia defensiva
+            List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo> cachedBosses = bossesCache.get(phase);
+            if (debugEnabled) {
+                net.mirai.dimtr.DimTrMod.LOGGER.trace("[CLIENT] Usando cache para bosses da fase {}. Total: {}", 
+                    phase, cachedBosses.size());
+            }
+            return new ArrayList<>(cachedBosses); // Retornar cópia defensiva
         }
         
         // Atualizar cache apenas se necessário
         if (currentTime - lastCacheUpdate >= CACHE_DURATION) {
+            if (debugEnabled) {
+                net.mirai.dimtr.DimTrMod.LOGGER.trace("[CLIENT] Limpando cache de bosses (expirado)");
+            }
             bossesCache.clear();
             lastCacheUpdate = currentTime;
         }
@@ -413,12 +431,27 @@ public class ClientProgressionData {
         
         if (bosses != null) {
             // Armazenar cópia para evitar modificações externas
-            bossesCache.put(phase, new ArrayList<>(bosses));
+            List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo> bossesToCache = new ArrayList<>(bosses);
+            bossesCache.put(phase, bossesToCache);
+            
+            if (debugEnabled) {
+                net.mirai.dimtr.DimTrMod.LOGGER.trace("[CLIENT] Atualizando cache para bosses da fase {}. Total: {}", 
+                    phase, bossesToCache.size());
+                for (var boss : bossesToCache) {
+                    boolean isKilled = isExternalBossKilled(boss.entityId);
+                    net.mirai.dimtr.DimTrMod.LOGGER.trace("[CLIENT] - Boss: {} (fase {}) - Derrotado: {}", 
+                        boss.displayName, boss.phase, isKilled);
+                }
+            }
+            
             return new ArrayList<>(bosses); // Retornar cópia defensiva
         } else {
             // Em caso de erro, retornar lista vazia
             List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo> emptyList = new ArrayList<>();
             bossesCache.put(phase, emptyList);
+            if (debugEnabled) {
+                net.mirai.dimtr.DimTrMod.LOGGER.warn("[CLIENT] Falha ao obter bosses da fase {}", phase);
+            }
             return emptyList;
         }
     }

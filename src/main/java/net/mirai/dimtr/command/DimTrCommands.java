@@ -280,13 +280,13 @@ public class DimTrCommands {
         ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
         PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
 
-        // Completar objetivos especiais
+        // Completar objetivos especiais da Fase 1
         playerData.elderGuardianKilled = true;
         playerData.raidWon = true;
         playerData.trialVaultAdvancementEarned = true;
         playerData.voluntaireExileAdvancementEarned = true;
 
-        // Completar todos os mob kills da Fase 1
+        // Completar mobs da Fase 1
         playerData.zombieKills = DimTrConfig.SERVER.reqZombieKills.get();
         playerData.skeletonKills = DimTrConfig.SERVER.reqSkeletonKills.get();
         playerData.strayKills = DimTrConfig.SERVER.reqStrayKills.get();
@@ -303,6 +303,21 @@ public class DimTrCommands {
         playerData.breezeKills = DimTrConfig.SERVER.reqBreezeKills.get();
         playerData.ravagerKills = DimTrConfig.SERVER.reqRavagerKills.get();
         playerData.evokerKills = DimTrConfig.SERVER.reqEvokerKills.get();
+        
+        // NOVO: Completar objetivos de mods externos da Fase 1
+        if (DimTrConfig.SERVER.enableExternalModIntegration.get()) {
+            // Verificar se há bosses externos para completar
+            java.util.List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo> phase1Bosses = 
+                net.mirai.dimtr.integration.ExternalModIntegration.getBossesForPhase(1);
+            
+            // Marcar todos os bosses externos da fase 1 como derrotados
+            for (net.mirai.dimtr.integration.ExternalModIntegration.BossInfo boss : phase1Bosses) {
+                String bossKey = boss.entityId.replace(":", "_");
+                playerData.setCustomObjectiveComplete("external_bosses", bossKey, true);
+                DimTrMod.LOGGER.info("Admin command: Marking external boss {} as defeated for player {}", 
+                    boss.displayName, playerName);
+            }
+        }
 
         // Forçar completude da Fase 1
         playerData.phase1Completed = true;
@@ -366,6 +381,21 @@ public class DimTrCommands {
         playerData.breezeKills = Math.max(playerData.breezeKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqBreezeKills.get()));
         playerData.ravagerKills = Math.max(playerData.ravagerKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqRavagerKills.get()));
         playerData.evokerKills = Math.max(playerData.evokerKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqEvokerKills.get()));
+
+        // NOVO: Completar objetivos de mods externos da Fase 2
+        if (DimTrConfig.SERVER.enableExternalModIntegration.get()) {
+            // Verificar se há bosses externos para completar
+            java.util.List<net.mirai.dimtr.integration.ExternalModIntegration.BossInfo> phase2Bosses = 
+                net.mirai.dimtr.integration.ExternalModIntegration.getBossesForPhase(2);
+            
+            // Marcar todos os bosses externos da fase 2 como derrotados
+            for (net.mirai.dimtr.integration.ExternalModIntegration.BossInfo boss : phase2Bosses) {
+                String bossKey = boss.entityId.replace(":", "_");
+                playerData.setCustomObjectiveComplete("external_bosses", bossKey, true);
+                DimTrMod.LOGGER.info("Admin command: Marking external boss {} as defeated for player {}", 
+                    boss.displayName, playerName);
+            }
+        }
 
         // Forçar completude da Fase 2
         playerData.phase2Completed = true;

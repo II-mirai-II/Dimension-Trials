@@ -45,12 +45,6 @@ public class XpMultiplierHandler {
             int originalXp = event.getDroppedExperience();
             int newXp = (int) Math.ceil(originalXp * multiplier);
             event.setDroppedExperience(newXp);
-
-            DimTrMod.LOGGER.debug("Applied {}x XP multiplier to {} (Original: {}, New: {})",
-                    String.format("%.2f", multiplier),
-                    entity.getType().getDescriptionId(),
-                    originalXp,
-                    newXp);
         }
     }
 }

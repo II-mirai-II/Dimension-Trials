@@ -158,7 +158,7 @@ public class ExternalModIntegration {
         }
         
         try {
-            DimTrMod.LOGGER.info("=== CLIENT-SIDE EXTERNAL MOD INTEGRATION ===");
+            DimTrMod.LOGGER.trace("=== CLIENT-SIDE EXTERNAL MOD INTEGRATION ===");
             
             // Clear previous data
             detectedBosses.clear();
@@ -168,7 +168,7 @@ public class ExternalModIntegration {
             boolean anyModFound = false;
             for (String modId : SUPPORTED_MODS.keySet()) {
                 boolean isLoaded = ModList.get().isLoaded(modId);
-                DimTrMod.LOGGER.info("🔍 [CLIENT] Checking mod '{}': loaded = {}", modId, isLoaded);
+                DimTrMod.LOGGER.trace("? [CLIENT] Checking mod '{}': loaded = {}", modId, isLoaded);
                 if (isLoaded) {
                     anyModFound = true;
                     processModIntegrationClientSide(modId);
@@ -176,9 +176,9 @@ public class ExternalModIntegration {
             }
             
             if (!anyModFound) {
-                DimTrMod.LOGGER.info("❌ [CLIENT] No supported external mods found");
+                DimTrMod.LOGGER.trace("❌ [CLIENT] No supported external mods found");
             } else {
-                DimTrMod.LOGGER.info("✅ [CLIENT] Client-side integration complete! {} bosses available for HUD", bossInfoMap.size());
+                DimTrMod.LOGGER.debug("? [CLIENT] Client-side integration complete! {} bosses available for HUD", bossInfoMap.size());
             }
             
             clientSideInitialized = true;
@@ -196,7 +196,7 @@ public class ExternalModIntegration {
             Set<String> bosses = SUPPORTED_MODS.get(modId);
             if (bosses == null) return;
             
-            DimTrMod.LOGGER.info("[CLIENT] Processing integration for mod: {} with {} bosses", modId, bosses.size());
+            DimTrMod.LOGGER.trace("[CLIENT] Processing integration for mod: {} with {} bosses", modId, bosses.size());
             
             // Add all bosses for client-side display
             for (String bossId : bosses) {
@@ -211,7 +211,7 @@ public class ExternalModIntegration {
                 BossInfo bossInfo = new BossInfo(bossId, displayName, description, phase, isRequired);
                 bossInfoMap.put(bossId, bossInfo);
                 
-                DimTrMod.LOGGER.info("[CLIENT] ✅ Added boss: {} (Phase {})", displayName, phase);
+                DimTrMod.LOGGER.trace("[CLIENT] ? Added boss: {} (Phase {})", displayName, phase);
             }
             
         } catch (Exception e) {
@@ -371,7 +371,7 @@ public class ExternalModIntegration {
         boolean shouldLog = false; // Definir como false para reduzir spam
         
         if (shouldLog) {
-            DimTrMod.LOGGER.debug("🔍 getBossesForPhase({}) called. Detected bosses: {}, BossInfoMap size: {}", 
+            DimTrMod.LOGGER.trace("🔍 getBossesForPhase({}) called. Detected bosses: {}, BossInfoMap size: {}", 
                 phase, detectedBosses.size(), bossInfoMap.size());
         }
         
@@ -387,7 +387,7 @@ public class ExternalModIntegration {
                 if (targetPhase == phase) {
                     phaseBosses.add(info);
                     if (shouldLog) {
-                        DimTrMod.LOGGER.debug("✅ Added boss {} to phase {} (original phase: {})", 
+                        DimTrMod.LOGGER.trace("✅ Added boss {} to phase {} (original phase: {})", 
                             info.displayName, phase, info.phase);
                     }
                 }
@@ -397,7 +397,7 @@ public class ExternalModIntegration {
         }
         
         if (shouldLog) {
-            DimTrMod.LOGGER.debug("🎯 Phase {} has {} bosses", phase, phaseBosses.size());
+            DimTrMod.LOGGER.trace("🎯 Phase {} has {} bosses", phase, phaseBosses.size());
         }
         return phaseBosses;
     }

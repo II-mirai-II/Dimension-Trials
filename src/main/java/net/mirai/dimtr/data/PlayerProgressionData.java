@@ -147,6 +147,20 @@ public class PlayerProgressionData {
         }
         tag.put("customMobKills", customMobKillsTag);
 
+        // NOVO: Adicionar log para depuração de persistência
+        if (customObjectiveCompletion.containsKey("external_bosses")) {
+            Map<String, Boolean> externalBosses = customObjectiveCompletion.get("external_bosses");
+            if (!externalBosses.isEmpty()) {
+                net.mirai.dimtr.DimTrMod.LOGGER.info("[PERSISTÊNCIA] Salvando {} bosses externos para jogador {}", 
+                    externalBosses.size(), playerId);
+                for (Map.Entry<String, Boolean> boss : externalBosses.entrySet()) {
+                    if (boss.getValue()) {
+                        net.mirai.dimtr.DimTrMod.LOGGER.debug("[PERSISTÊNCIA] - Boss {} = {}", boss.getKey(), boss.getValue());
+                    }
+                }
+            }
+        }
+
         return tag;
     }
 
@@ -204,11 +218,11 @@ public class PlayerProgressionData {
             CompoundTag customObjectivesTag = tag.getCompound("customObjectives");
             for (String key : customObjectivesTag.getAllKeys()) {
                 CompoundTag objectiveTag = customObjectivesTag.getCompound(key);
-                Map<String, Boolean> objectiveMap = new HashMap<>();
+                Map<String, Boolean> objectives = new HashMap<>();
                 for (String objKey : objectiveTag.getAllKeys()) {
-                    objectiveMap.put(objKey, objectiveTag.getBoolean(objKey));
+                    objectives.put(objKey, objectiveTag.getBoolean(objKey));
                 }
-                data.customObjectiveCompletion.put(key, objectiveMap);
+                data.customObjectiveCompletion.put(key, objectives);
             }
         }
 
@@ -217,11 +231,25 @@ public class PlayerProgressionData {
             CompoundTag customMobKillsTag = tag.getCompound("customMobKills");
             for (String key : customMobKillsTag.getAllKeys()) {
                 CompoundTag mobKillTag = customMobKillsTag.getCompound(key);
-                Map<String, Integer> mobKillMap = new HashMap<>();
+                Map<String, Integer> mobKills = new HashMap<>();
                 for (String mobKey : mobKillTag.getAllKeys()) {
-                    mobKillMap.put(mobKey, mobKillTag.getInt(mobKey));
+                    mobKills.put(mobKey, mobKillTag.getInt(mobKey));
                 }
-                data.customMobKills.put(key, mobKillMap);
+                data.customMobKills.put(key, mobKills);
+            }
+        }
+
+        // NOVO: Adicionar log para depuração de persistência
+        if (data.customObjectiveCompletion.containsKey("external_bosses")) {
+            Map<String, Boolean> externalBosses = data.customObjectiveCompletion.get("external_bosses");
+            if (!externalBosses.isEmpty()) {
+                net.mirai.dimtr.DimTrMod.LOGGER.info("[PERSISTÊNCIA] Carregados {} bosses externos para jogador {}", 
+                    externalBosses.size(), playerId);
+                for (Map.Entry<String, Boolean> boss : externalBosses.entrySet()) {
+                    if (boss.getValue()) {
+                        net.mirai.dimtr.DimTrMod.LOGGER.debug("[PERSISTÊNCIA] - Boss {} = {}", boss.getKey(), boss.getValue());
+                    }
+                }
             }
         }
 

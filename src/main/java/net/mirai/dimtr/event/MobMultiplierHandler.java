@@ -51,13 +51,6 @@ public class MobMultiplierHandler {
             // Marcar como processado
             persistentData.putBoolean(MULTIPLIER_APPLIED_TAG, true);
             persistentData.putDouble(MULTIPLIER_VALUE_TAG, multiplier);
-
-            DimTrMod.LOGGER.debug("Applied {}x multiplier to {} at position ({}, {}, {}) based on nearby players",
-                    String.format("%.2f", multiplier),
-                    livingEntity.getType().getDescriptionId(),
-                    (int)livingEntity.getX(),
-                    (int)livingEntity.getY(),
-                    (int)livingEntity.getZ());
         }
     }
 

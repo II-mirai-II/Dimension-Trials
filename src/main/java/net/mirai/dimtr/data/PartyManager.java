@@ -462,6 +462,29 @@ public class PartyManager extends SavedData {
         }
     }
 
+    /**
+     * Enviar dados da party para um jogador específico
+     * @param player O jogador para receber os dados da party
+     */
+    public void sendPartyToClient(ServerPlayer player) {
+        if (player == null || serverForContext == null) return;
+        
+        UUID playerId = player.getUUID();
+        if (isPlayerInParty(playerId)) {
+            UUID partyId = playerToParty.get(playerId);
+            PartyData party = parties.get(partyId);
+            
+            if (party != null) {
+                // Criar payload com dados da party
+                UpdatePartyToClientPayload payload = createPartyPayload(party);
+                PacketDistributor.sendToPlayer(player, payload);
+            }
+        } else {
+            // Se o jogador não está em uma party, enviar dados vazios para limpar o cliente
+            sendEmptyPartyDataToClient(player);
+        }
+    }
+
     private UpdatePartyToClientPayload createPartyPayload(PartyData party) {
         return new UpdatePartyToClientPayload(
                 party.getPartyId(),

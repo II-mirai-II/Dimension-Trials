@@ -42,7 +42,7 @@ public interface HUDSection {
     List<Component> generateContent(ClientProgressionData progress);
 
     /**
-     * Enum para tipos de seção
+     * Tipos de seção disponíveis na interface
      */
     enum SectionType {
         PHASE1_MAIN(Constants.WINDOW_PHASE1_MAIN_TITLE, "📊"),
@@ -50,9 +50,7 @@ public interface HUDSection {
         PHASE2_MAIN(Constants.WINDOW_PHASE2_MAIN_TITLE, "🌌"),
         PHASE2_GOALS(Constants.WINDOW_PHASE2_GOALS_TITLE, "👹"),
         PHASE3_MAIN("Phase 3 - End Bosses", "🌟"),
-        // 🔧 CORRIGIDO: Usar constante definida em Constants.java
-        PARTIES(Constants.WINDOW_PARTIES_TITLE, "👥"),
-        CUSTOM_PHASES("Custom Phases", "🔧");
+        PARTIES(Constants.WINDOW_PARTIES_TITLE, "👥");
 
         private final String titleKey;
         private final String icon;

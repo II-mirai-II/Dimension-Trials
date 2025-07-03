@@ -4,6 +4,7 @@ import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.command.DimTrCommands;
 import net.mirai.dimtr.command.PartyCommands;
 import net.mirai.dimtr.data.PartyManager;
+import net.mirai.dimtr.data.PartyData;
 import net.mirai.dimtr.data.ProgressionManager;
 import net.mirai.dimtr.data.ProgressionCoordinator;
 import net.mirai.dimtr.system.CustomPhaseSystem;
@@ -720,6 +721,11 @@ public class ModEventHandlers {
      * 🎯 NOVO: Processar morte de bosses de mods externos
      */
     private static void processExternalModBossKill(UUID playerId, LivingEntity killedEntity, ServerLevel serverLevel) {
+        // Verificar se o mod está ativado na config
+        if (!net.mirai.dimtr.config.DimTrConfig.SERVER.enableExternalModIntegration.get()) {
+            return;
+        }
+        
         // 🎯 CORREÇÃO CRÍTICA: Usar BuiltInRegistries para obter ResourceLocation correta
         ResourceLocation entityTypeLocation = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(killedEntity.getType());
         String entityId = entityTypeLocation != null ? entityTypeLocation.toString() : killedEntity.getType().toString();
@@ -748,16 +754,59 @@ public class ModEventHandlers {
         if (processed) {
             DimTrMod.LOGGER.info("✅ External boss {} processed successfully for player {}", 
                 displayName, playerId);
+            
+            // Garantir que os dados foram sincronizados corretamente
+            ServerPlayer player = serverLevel.getServer().getPlayerList().getPlayer(playerId);
+            if (player != null) {
+                // Enviar dados de progressão para o cliente
+                ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
+                progressionManager.sendToClient(player);
+                
+                // Se está em uma party, também enviar dados atualizados da party
+                PartyManager partyManager = PartyManager.get(serverLevel);
+                if (partyManager.isPlayerInParty(playerId)) {
+                    partyManager.sendPartyToClient(player);
+                    
+                    // Notificar outros membros da party
+                    PartyData party = partyManager.getPlayerParty(playerId);
+                    if (party != null) {
+                        for (UUID memberId : party.getMembers()) {
+                            if (!memberId.equals(playerId)) {
+                                ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
+                                if (member != null) {
+                                    // Informar outros membros sobre o progresso
+                                    member.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                                        "message.dimtr.boss_defeated_by_party_member", 
+                                        player.getGameProfile().getName(), displayName));
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Efeitos especiais para morte de boss
+                playBossDefeatEffects(serverLevel, player, displayName);
+            }
         } else {
             DimTrMod.LOGGER.warn("❌ External boss {} was NOT processed for player {} (already completed?)", 
                 displayName, playerId);
         }
     }
-
-    // ============================================================================
-    // 🆕 MÉTODOS AUXILIARES PARA INTEGRAÇÃO DOS NOVOS SISTEMAS
-    // ============================================================================
     
+    /**
+     * 🎆 Efeitos visuais para morte de boss
+     */
+    private static void playBossDefeatEffects(ServerLevel serverLevel, ServerPlayer player, String bossName) {
+        // Efeitos de partículas
+        serverLevel.sendParticles(ParticleTypes.TOTEM_OF_UNDYING,
+                player.getX(), player.getY() + 1, player.getZ(),
+                30, 0.5, 0.5, 0.5, 0.1);
+                
+        // Som de vitória
+        serverLevel.playSound(null, player.blockPosition(), SoundEvents.PLAYER_LEVELUP,
+                SoundSource.PLAYERS, 1.0F, 0.5F);
+    }
+
     /**
      * 🔍 Verificar se uma entidade é considerada um boss
      */
