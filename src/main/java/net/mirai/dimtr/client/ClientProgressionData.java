@@ -217,8 +217,8 @@ public class ClientProgressionData {
         mobKills.put("stray", strayKills);
         mobKills.put("husk", huskKills);
         mobKills.put("drowned", drownedKills);
-        mobKills.put("witherSkeleton", witherSkeletonKills);
-        mobKills.put("piglinBrute", piglinBruteKills);
+        mobKills.put("wither_skeleton", witherSkeletonKills);
+        mobKills.put("piglin_brute", piglinBruteKills);
         mobKills.put("hoglin", hoglinKills);
         mobKills.put("zoglin", zoglinKills);
         mobKills.put("ghast", ghastKills);

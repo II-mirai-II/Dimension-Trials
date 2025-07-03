@@ -183,10 +183,10 @@ public class ModEventHandlers {
         // Fase 1 - Mobs Comuns do Overworld
         if (entity instanceof Zombie && !(entity instanceof ZombieVillager) && !(entity instanceof Husk)) {
             return Constants.MOB_TYPE_ZOMBIE;
-        } else        if (entity instanceof ZombieVillager) {
+        } else if (entity instanceof ZombieVillager) {
             // ✅ REMOVIDO: Zombie villager não é mais contado como progresso
             return null;
-        }else if (entity instanceof Skeleton && !(entity instanceof Stray) && !(entity instanceof WitherSkeleton)) {
+        } else if (entity instanceof Skeleton && !(entity instanceof Stray) && !(entity instanceof WitherSkeleton)) {
             return Constants.MOB_TYPE_SKELETON;
         } else if (entity instanceof Stray) {
             return Constants.MOB_TYPE_STRAY;
@@ -226,8 +226,16 @@ public class ModEventHandlers {
         else if (entity instanceof Blaze) {
             return Constants.MOB_TYPE_BLAZE;
         } else if (entity instanceof WitherSkeleton) {
+            // 🔧 CORREÇÃO: Log para debug do processamento de WitherSkeleton
+            String entityId = entity.getType().toString().toLowerCase();
+            DimTrMod.LOGGER.debug("🦴 Processando WitherSkeleton: {} -> {}", 
+                entity.getClass().getSimpleName(), entityId);
             return Constants.MOB_TYPE_WITHER_SKELETON;
         } else if (entity instanceof PiglinBrute) {
+            // 🔧 CORREÇÃO: Log para debug do processamento de PiglinBrute
+            String entityId = entity.getType().toString().toLowerCase();
+            DimTrMod.LOGGER.debug("🐷 Processando PiglinBrute: {} -> {}", 
+                entity.getClass().getSimpleName(), entityId);
             return Constants.MOB_TYPE_PIGLIN_BRUTE;
         } else if (entity instanceof Hoglin) {
             return Constants.MOB_TYPE_HOGLIN;
@@ -252,6 +260,16 @@ public class ModEventHandlers {
             return Constants.MOB_TYPE_BOGGED;
         } else if (entityName.contains(Constants.MOB_TYPE_BREEZE)) {
             return Constants.MOB_TYPE_BREEZE;
+        }
+        
+        // 🔧 CORREÇÃO: Verificar por nomes de entidade para WitherSkeleton e PiglinBrute
+        // como fallback adicional
+        if (entityName.contains("wither_skeleton")) {
+            DimTrMod.LOGGER.debug("🦴 Detectado WitherSkeleton pelo nome: {}", entityName);
+            return Constants.MOB_TYPE_WITHER_SKELETON;
+        } else if (entityName.contains("piglin_brute")) {
+            DimTrMod.LOGGER.debug("🐷 Detectado PiglinBrute pelo nome: {}", entityName);
+            return Constants.MOB_TYPE_PIGLIN_BRUTE;
         }
 
         return null;

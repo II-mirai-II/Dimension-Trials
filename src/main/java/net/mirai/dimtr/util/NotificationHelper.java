@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.nbt.CompoundTag;
 
 /**
  * Utility class for sending rich notifications to players.
@@ -258,139 +259,202 @@ public class NotificationHelper {
         net.minecraft.core.BlockPos playerPos = player.blockPosition();
         
         try {
-            // Lançar fogos de artifício simples
-            for (int i = 0; i < 10; i++) {
+            // Sons de celebração principais
+            level.playSound(null, playerPos, 
+                net.minecraft.sounds.SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 
+                net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 1.0F);
+                
+            level.playSound(null, playerPos, 
+                net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, 
+                net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 0.75F);
+            
+            // Abordagem simples: criar fogos de artifício básicos e lançá-los
+            for (int i = 0; i < 8; i++) {
                 final int index = i;
-                // Usar tarefas programadas para distribuir o lançamento dos fogos ao longo do tempo
                 level.getServer().tell(new net.minecraft.server.TickTask(level.getServer().getTickCount() + index * 5, () -> {
                     try {
-                        double offsetX = (Math.random() - 0.5) * 6;
-                        double offsetZ = (Math.random() - 0.5) * 6;
+                        // Calcular posição aleatória ao redor do jogador
+                        double offsetX = (Math.random() - 0.5) * 8;
+                        double offsetZ = (Math.random() - 0.5) * 8;
                         
-                        // Criar foguete sem efeitos personalizados (para evitar problemas de NBT)
-                        net.minecraft.world.item.ItemStack firework = new net.minecraft.world.item.ItemStack(
-                            net.minecraft.world.item.Items.FIREWORK_ROCKET, 1);
+                        // Criar um foguete com explosão colorida
+                        net.minecraft.world.item.ItemStack rocket = new net.minecraft.world.item.ItemStack(
+                            net.minecraft.world.item.Items.FIREWORK_ROCKET);
+                            
+                        // Configurar o NBT do foguete
+                        net.minecraft.nbt.CompoundTag rocketTag = new net.minecraft.nbt.CompoundTag();
+                        net.minecraft.nbt.CompoundTag fireworksTag = new net.minecraft.nbt.CompoundTag();
+                        net.minecraft.nbt.ListTag explosionsTag = new net.minecraft.nbt.ListTag();
+                        net.minecraft.nbt.CompoundTag explosionTag = new net.minecraft.nbt.CompoundTag();
                         
-                        // Criar e lançar o foguete
-                        net.minecraft.world.entity.projectile.FireworkRocketEntity rocket = 
-                            new net.minecraft.world.entity.projectile.FireworkRocketEntity(
-                                level, 
-                                player.getX() + offsetX,
-                                player.getY() + 1,
-                                player.getZ() + offsetZ,
-                                firework);
+                        // Configurar o tipo de explosão (0-4) e efeitos
+                        explosionTag.putByte("Type", (byte)(Math.random() * 5));
+                        explosionTag.putBoolean("Flicker", true);
+                        explosionTag.putBoolean("Trail", true);
                         
-                        level.addFreshEntity(rocket);
+                        // Configurar as cores com base na fase
+                        int[] colors;
+                        int[] fadeColors;
                         
-                        // Sons e efeitos para compensar a falta de explosões personalizadas
-                        level.playSound(null, 
-                            player.getX() + offsetX,
-                            player.getY() + 1,
-                            player.getZ() + offsetZ,
-                            net.minecraft.sounds.SoundEvents.FIREWORK_ROCKET_LAUNCH, 
-                            net.minecraft.sounds.SoundSource.AMBIENT, 
-                            1.0F, 1.0F);
-                    } catch (Exception e) {
-                        DimTrMod.LOGGER.error("Error during firework launch: {}", e.getMessage());
-                    }
-                }));
-            }
-            
-            // Adicionar muitas partículas coloridas para melhorar o efeito visual
-            for (int i = 0; i < 300; i++) {
-                final int index = i;
-                level.getServer().tell(new net.minecraft.server.TickTask(level.getServer().getTickCount() + (index / 8), () -> {
-                    try {
-                        double offsetX = (Math.random() - 0.5) * 10;
-                        double offsetY = Math.random() * 6;
-                        double offsetZ = (Math.random() - 0.5) * 10;
-                        
-                        // Diferentes partículas baseadas na fase
                         switch (phaseNumber) {
                             case 1: // Fase 1 - Overworld (azul/ciano)
-                                if (index % 3 == 0) {
-                                    level.addParticle(net.minecraft.core.particles.ParticleTypes.END_ROD,
-                                        player.getX() + offsetX,
-                                        player.getY() + 2 + offsetY,
-                                        player.getZ() + offsetZ,
-                                        0, 0, 0);
-                                } else {
-                                    level.addParticle(net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME,
-                                        player.getX() + offsetX,
-                                        player.getY() + 2 + offsetY,
-                                        player.getZ() + offsetZ,
-                                        (Math.random() - 0.5) * 0.1, 
-                                        Math.random() * 0.1, 
-                                        (Math.random() - 0.5) * 0.1);
-                                }
+                                colors = new int[]{43775, 16777215}; // Azul e branco
+                                fadeColors = new int[]{65535}; // Ciano
                                 break;
                             case 2: // Fase 2 - Nether (vermelho/laranja)
-                                if (index % 3 == 0) {
-                                    level.addParticle(net.minecraft.core.particles.ParticleTypes.LAVA,
-                                        player.getX() + offsetX,
-                                        player.getY() + 2 + offsetY,
-                                        player.getZ() + offsetZ,
-                                        0, 0, 0);
-                                } else {
-                                    level.addParticle(net.minecraft.core.particles.ParticleTypes.FLAME,
-                                        player.getX() + offsetX,
-                                        player.getY() + 2 + offsetY,
-                                        player.getZ() + offsetZ,
-                                        (Math.random() - 0.5) * 0.1, 
-                                        Math.random() * 0.1, 
-                                        (Math.random() - 0.5) * 0.1);
-                                }
+                                colors = new int[]{16711680, 16733440}; // Vermelho e laranja
+                                fadeColors = new int[]{16755200}; // Amarelo
                                 break;
                             default: // Fase 3 - End (roxo/rosa)
-                                if (index % 3 == 0) {
-                                    level.addParticle(net.minecraft.core.particles.ParticleTypes.PORTAL,
-                                        player.getX() + offsetX,
-                                        player.getY() + 2 + offsetY,
-                                        player.getZ() + offsetZ,
-                                        0, 0, 0);
-                                } else {
-                                    level.addParticle(net.minecraft.core.particles.ParticleTypes.DRAGON_BREATH,
-                                        player.getX() + offsetX,
-                                        player.getY() + 2 + offsetY,
-                                        player.getZ() + offsetZ,
-                                        (Math.random() - 0.5) * 0.1, 
-                                        Math.random() * 0.1, 
-                                        (Math.random() - 0.5) * 0.1);
-                                }
+                                colors = new int[]{11141290, 16711935}; // Roxo e magenta
+                                fadeColors = new int[]{8388736}; // Violeta
+                                break;
                         }
                         
-                        // Adicionar alguns efeitos sonoros aleatoriamente
-                        if (index % 30 == 0) {
-                            level.playSound(null, 
-                                playerPos.getX() + offsetX * 0.5, 
-                                playerPos.getY() + offsetY * 0.5, 
-                                playerPos.getZ() + offsetZ * 0.5,
-                                net.minecraft.sounds.SoundEvents.FIREWORK_ROCKET_BLAST, 
-                                net.minecraft.sounds.SoundSource.AMBIENT, 
-                                0.7F, 1.0F);
+                        // Adicionar arrays de cores
+                        explosionTag.putIntArray("Colors", colors);
+                        explosionTag.putIntArray("FadeColors", fadeColors);
+                        
+                        // Construir o NBT completo
+                        explosionsTag.add(explosionTag);
+                        fireworksTag.put("Explosions", explosionsTag);
+                        fireworksTag.putByte("Flight", (byte)(1 + Math.random() * 2)); // Altura do vôo
+                        
+                        rocketTag.put("Fireworks", fireworksTag);
+                        rocket.setTag(rocketTag);
+                        
+                        // Criar a entidade do foguete
+                        net.minecraft.world.entity.projectile.FireworkRocketEntity firework = 
+                            new net.minecraft.world.entity.projectile.FireworkRocketEntity(
+                                level, 
+                                player.getX() + offsetX, 
+                                player.getY() + 1, 
+                                player.getZ() + offsetZ, 
+                                rocket);
+                        
+                        // Não podemos acessar o campo lifetime diretamente, 
+                        // mas o foguete terá um tempo de vida padrão
+                        
+                        // Adicionar a entidade ao mundo
+                        level.addFreshEntity(firework);
+                        
+                        // Som de lançamento
+                        level.playSound(null, 
+                            player.getX() + offsetX, 
+                            player.getY() + 1, 
+                            player.getZ() + offsetZ, 
+                            net.minecraft.sounds.SoundEvents.FIREWORK_ROCKET_LAUNCH, 
+                            net.minecraft.sounds.SoundSource.AMBIENT, 
+                            1.0F, 0.8F + (float)(Math.random() * 0.4));
+                        
+                        // Efeito visual simples com partículas adicionais
+                        for (int j = 0; j < 20; j++) {
+                            double px = player.getX() + offsetX + (Math.random() - 0.5) * 2;
+                            double py = player.getY() + 1 + Math.random() * 2;
+                            double pz = player.getZ() + offsetZ + (Math.random() - 0.5) * 2;
+                            
+                            if (phaseNumber == 1) {
+                                level.addParticle(
+                                    net.minecraft.core.particles.ParticleTypes.END_ROD,
+                                    px, py, pz,
+                                    (Math.random() - 0.5) * 0.1,
+                                    Math.random() * 0.2,
+                                    (Math.random() - 0.5) * 0.1);
+                            } else if (phaseNumber == 2) {
+                                level.addParticle(
+                                    net.minecraft.core.particles.ParticleTypes.FLAME,
+                                    px, py, pz,
+                                    (Math.random() - 0.5) * 0.1,
+                                    Math.random() * 0.2,
+                                    (Math.random() - 0.5) * 0.1);
+                            } else {
+                                level.addParticle(
+                                    net.minecraft.core.particles.ParticleTypes.DRAGON_BREATH,
+                                    px, py, pz,
+                                    (Math.random() - 0.5) * 0.1,
+                                    Math.random() * 0.2,
+                                    (Math.random() - 0.5) * 0.1);
+                            }
                         }
                         
-                        if (index % 60 == 0) {
-                            level.playSound(null, 
-                                playerPos, 
-                                net.minecraft.sounds.SoundEvents.FIREWORK_ROCKET_TWINKLE, 
-                                net.minecraft.sounds.SoundSource.AMBIENT, 
-                                0.5F, 1.0F);
-                        }
                     } catch (Exception e) {
-                        // Silenciar exceções de partículas para não spammar log
+                        DimTrMod.LOGGER.error("Erro ao lançar fogos de artifício: {}", e.getMessage());
                     }
                 }));
             }
             
-            // Sons de celebração principais
-            level.playSound(null, playerPos, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 
-                SoundSource.PLAYERS, 1.0F, 1.0F);
-            level.playSound(null, playerPos, SoundEvents.PLAYER_LEVELUP, 
-                SoundSource.PLAYERS, 1.0F, 0.75F);
+            // Adicionar mais partículas para melhorar o efeito visual
+            for (int i = 0; i < 200; i++) {
+                final int index = i;
+                level.getServer().tell(new net.minecraft.server.TickTask(level.getServer().getTickCount() + index / 10, () -> {
+                    try {
+                        // Partículas mais próximas do jogador
+                        double offsetX = (Math.random() - 0.5) * 10;
+                        double offsetY = Math.random() * 5;
+                        double offsetZ = (Math.random() - 0.5) * 10;
+                        
+                        // Partículas temáticas conforme a fase
+                        switch (phaseNumber) {
+                            case 1: // Fase 1 - Overworld (azul/ciano)
+                                level.addParticle(
+                                    Math.random() > 0.5 ? 
+                                        net.minecraft.core.particles.ParticleTypes.END_ROD :
+                                        net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME,
+                                    player.getX() + offsetX,
+                                    player.getY() + offsetY,
+                                    player.getZ() + offsetZ,
+                                    (Math.random() - 0.5) * 0.05,
+                                    Math.random() * 0.05,
+                                    (Math.random() - 0.5) * 0.05);
+                                break;
+                            case 2: // Fase 2 - Nether (vermelho/laranja)
+                                level.addParticle(
+                                    Math.random() > 0.5 ? 
+                                        net.minecraft.core.particles.ParticleTypes.FLAME :
+                                        net.minecraft.core.particles.ParticleTypes.LAVA,
+                                    player.getX() + offsetX,
+                                    player.getY() + offsetY,
+                                    player.getZ() + offsetZ,
+                                    (Math.random() - 0.5) * 0.05,
+                                    Math.random() * 0.05,
+                                    (Math.random() - 0.5) * 0.05);
+                                break;
+                            default: // Fase 3 - End (roxo/rosa)
+                                level.addParticle(
+                                    Math.random() > 0.5 ? 
+                                        net.minecraft.core.particles.ParticleTypes.DRAGON_BREATH :
+                                        net.minecraft.core.particles.ParticleTypes.PORTAL,
+                                    player.getX() + offsetX,
+                                    player.getY() + offsetY,
+                                    player.getZ() + offsetZ,
+                                    (Math.random() - 0.5) * 0.05,
+                                    Math.random() * 0.05,
+                                    (Math.random() - 0.5) * 0.05);
+                                break;
+                        }
+                        
+                        // Adicionar alguns efeitos sonoros esparsos para melhorar o ambiente
+                        if (index % 40 == 0) {
+                            level.playSound(null, 
+                                player.getX() + offsetX, 
+                                player.getY() + offsetY, 
+                                player.getZ() + offsetZ,
+                                Math.random() > 0.5 ? 
+                                    net.minecraft.sounds.SoundEvents.FIREWORK_ROCKET_BLAST : 
+                                    net.minecraft.sounds.SoundEvents.FIREWORK_ROCKET_TWINKLE, 
+                                net.minecraft.sounds.SoundSource.AMBIENT, 
+                                0.5F, 0.8F + (float)(Math.random() * 0.4));
+                        }
+                        
+                    } catch (Exception e) {
+                        // Silenciar exceções de partículas
+                    }
+                }));
+            }
                 
         } catch (Exception e) {
-            DimTrMod.LOGGER.error("Failed to launch celebration fireworks: {}", e.getMessage());
+            DimTrMod.LOGGER.error("Falha ao iniciar celebração: {}", e.getMessage());
+            e.printStackTrace();
         }
     }
 }
