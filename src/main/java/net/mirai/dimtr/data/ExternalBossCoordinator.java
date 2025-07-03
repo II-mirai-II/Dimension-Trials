@@ -68,7 +68,7 @@ public class ExternalBossCoordinator {
             }
             
             // 🎯 SEGUNDO: Processar individualmente se não foi processado por party
-            return processIndividualExternalBoss(playerId, bossEntityId, objectiveKey, phase, progressionManager);
+            return processIndividualExternalBoss(playerId, bossEntityId, objectiveKey, phase, progressionManager, serverLevel);
             
         } finally {
             PROCESSING_LOCK.unlock();
@@ -105,6 +105,13 @@ public class ExternalBossCoordinator {
         // Notificar todos os membros da party
         notifyPartyMembersOfBossKill(party, bossEntityId, serverLevel);
         
+        // Sincronizar imediatamente após matar boss externo
+        ServerPlayer serverPlayer = serverLevel.getServer().getPlayerList().getPlayer(playerId);
+        if (serverPlayer != null) {
+            progressionManager.sendToClient(serverPlayer);
+            DimTrMod.LOGGER.info("[DEBUG][SERVER] Sincronização direta via ProgressionManager.sendToClient para player: {}", playerId);
+        }
+        
         DimTrMod.LOGGER.info("🎉 Boss externo {} derrotado por party do jogador {} - Fase {} atualizada", 
                 bossEntityId, playerId, phase);
         return true;
@@ -114,7 +121,7 @@ public class ExternalBossCoordinator {
      * Processar boss externo para jogador individual
      */
     private static boolean processIndividualExternalBoss(UUID playerId, String bossEntityId, String objectiveKey, 
-                                                       int phase, ProgressionManager progressionManager) {
+                                                       int phase, ProgressionManager progressionManager, ServerLevel serverLevel) {
         
         PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
         
@@ -138,6 +145,13 @@ public class ExternalBossCoordinator {
         
         // 🚨 SINCRONIZAÇÃO IMEDIATA para eventos críticos
         SyncManager.forceSync(playerId);
+        
+        // Sincronizar imediatamente após matar boss externo
+        ServerPlayer serverPlayer = serverLevel.getServer().getPlayerList().getPlayer(playerId);
+        if (serverPlayer != null) {
+            progressionManager.sendToClient(serverPlayer);
+            DimTrMod.LOGGER.info("[DEBUG][SERVER] Sincronização direta via ProgressionManager.sendToClient para player: {}", playerId);
+        }
         
         DimTrMod.LOGGER.info("🎉 Boss externo {} derrotado por jogador individual {} - Fase {} atualizada", 
                 bossEntityId, playerId, phase);

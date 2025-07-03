@@ -387,12 +387,6 @@ public class ClientProgressionData {
         Map<String, Boolean> externalBosses = customObjectiveCompletion.getOrDefault("external_bosses", new HashMap<>());
         boolean killed = externalBosses.getOrDefault(key, false);
         
-        // Debug logging - só logar uma vez por startup ou quando há dados válidos
-        if (!externalBosses.isEmpty()) {
-            DimTrMod.LOGGER.debug("🔍 DEBUG: Checking boss {} (key: {}) = {}", bossEntityId, key, killed);
-            DimTrMod.LOGGER.debug("🔍 DEBUG: Available external bosses: {}", externalBosses.keySet());
-        }
-        
         return killed;
     }
     
