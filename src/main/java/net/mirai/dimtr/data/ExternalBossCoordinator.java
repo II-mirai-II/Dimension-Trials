@@ -3,7 +3,6 @@ package net.mirai.dimtr.data;
 import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.config.DimTrConfig;
 import net.mirai.dimtr.integration.ExternalModIntegration;
-import net.mirai.dimtr.sync.SyncManager;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -313,14 +312,29 @@ public class ExternalBossCoordinator {
      * Notificar membros da party sobre morte de boss
      */
     private static void notifyPartyMembersOfBossKill(PartyData party, String bossEntityId, ServerLevel serverLevel) {
+        java.util.List<ServerPlayer> onlineMembers = new java.util.ArrayList<>();
+        
         for (UUID memberId : party.getMembers()) {
             ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
-            if (member != null) {
-                // TODO: Implementar sistema de notificação de bosses
-                // Por enquanto, usar log
-                DimTrMod.LOGGER.info("📢 Notificando membro {} da party sobre boss {} derrotado", 
-                    member.getGameProfile().getName(), bossEntityId);
+            if (member != null && member.level() != null) {
+                onlineMembers.add(member);
+                
+                // Enviar mensagem de celebração para kill de boss
+                member.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    String.format("⚔️ [PARTY] External Boss '%s' Defeated! ⚔️", bossEntityId))
+                    .withStyle(net.minecraft.ChatFormatting.RED));
             }
+        }
+        
+        // 🎇 Celebração menor para boss kills (não fase completa)
+        if (!onlineMembers.isEmpty()) {
+            // Usar celebração individual para cada membro (menos intensa que party full)
+            for (ServerPlayer member : onlineMembers) {
+                net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(member, 1);
+            }
+            
+            DimTrMod.LOGGER.info("⚔️ [EXTERNAL BOSS] {} defeated! Celebration launched for {} party members", 
+                bossEntityId, onlineMembers.size());
         }
     }
     
@@ -328,14 +342,25 @@ public class ExternalBossCoordinator {
      * Notificar party sobre completion de fase
      */
     private static void notifyPartyPhaseCompletion(PartyData party, int phase, ServerLevel serverLevel) {
+        java.util.List<ServerPlayer> onlineMembers = new java.util.ArrayList<>();
+        
         for (UUID memberId : party.getMembers()) {
             ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
-            if (member != null) {
-                // TODO: Implementar sistema de notificação de fases
-                // Por enquanto, usar log
-                DimTrMod.LOGGER.info("🎉 Notificando membro {} da party sobre conclusão da Fase {}", 
-                    member.getGameProfile().getName(), phase);
+            if (member != null && member.level() != null) {
+                onlineMembers.add(member);
+                
+                // Enviar mensagem de celebração de fase
+                member.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    String.format("� [PARTY] Phase %d Complete with External Bosses! 🎊", phase))
+                    .withStyle(net.minecraft.ChatFormatting.GOLD));
             }
+        }
+        
+        // 🎊 Celebração épica de party para conclusão de fase 
+        if (!onlineMembers.isEmpty()) {
+            net.mirai.dimtr.util.NotificationHelper.launchPartyCelebrationFireworks(onlineMembers, phase);
+            DimTrMod.LOGGER.info("🎉 [EXTERNAL BOSS PHASE] Phase {} completed! Epic party celebration launched for {} members", 
+                phase, onlineMembers.size());
         }
     }
     

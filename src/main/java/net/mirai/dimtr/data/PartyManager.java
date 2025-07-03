@@ -1,5 +1,6 @@
 package net.mirai.dimtr.data;
 
+import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.network.UpdatePartyToClientPayload;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -319,13 +320,20 @@ public class PartyManager extends SavedData {
             if (!wasPhase1Complete && party.isPhase1Complete()) {
                 party.setPhase1SharedCompleted(true);
                 
-                // Lançar fogos de artifício para todos os membros da party
+                // 🎊 Lançar celebração de party épica para todos os membros
                 if (serverForContext != null) {
+                    java.util.List<ServerPlayer> onlineMembers = new java.util.ArrayList<>();
                     for (UUID memberId : party.getMembers()) {
                         ServerPlayer member = serverForContext.getPlayerList().getPlayer(memberId);
-                        if (member != null) {
-                            net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(member, 1);
+                        if (member != null && member.level() != null) {
+                            onlineMembers.add(member);
                         }
+                    }
+                    
+                    if (!onlineMembers.isEmpty()) {
+                        net.mirai.dimtr.util.NotificationHelper.launchPartyCelebrationFireworks(onlineMembers, 1);
+                        DimTrMod.LOGGER.info("🎉 [PARTY] Phase 1 completed! Launched party celebration for {} members", 
+                            onlineMembers.size());
                     }
                 }
             }
@@ -334,13 +342,20 @@ public class PartyManager extends SavedData {
             if (!wasPhase2Complete && party.isPhase2Complete()) {
                 party.setPhase2SharedCompleted(true);
                 
-                // Lançar fogos de artifício para todos os membros da party
+                // 🎊 Lançar celebração de party épica para todos os membros
                 if (serverForContext != null) {
+                    java.util.List<ServerPlayer> onlineMembers = new java.util.ArrayList<>();
                     for (UUID memberId : party.getMembers()) {
                         ServerPlayer member = serverForContext.getPlayerList().getPlayer(memberId);
-                        if (member != null) {
-                            net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(member, 2);
+                        if (member != null && member.level() != null) {
+                            onlineMembers.add(member);
                         }
+                    }
+                    
+                    if (!onlineMembers.isEmpty()) {
+                        net.mirai.dimtr.util.NotificationHelper.launchPartyCelebrationFireworks(onlineMembers, 2);
+                        DimTrMod.LOGGER.info("🎉 [PARTY] Phase 2 completed! Launched party celebration for {} members", 
+                            onlineMembers.size());
                     }
                 }
             }

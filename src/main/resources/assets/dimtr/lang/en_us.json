@@ -797,11 +797,11 @@
   "gui.dimtr.phase3.disabled": "Phase 3 is disabled in config",
   "gui.dimtr.phase3.no.bosses": "No Phase 3 bosses detected",
   "gui.dimtr.phase3.complete.ultimate": "🎉 Ultimate challenge completed!",
-  "gui.dimtr.complete.end.objectives": "Complete End boss objectives to finish the ultimate challenge",
-  "gui.dimtr.ultimate.challenge": "This is the ultimate test of your abilities",
-  "gui.dimtr.end.dimension.challenges": "🌟 End Dimension Challenges",
-  "gui.dimtr.challenge.end.exploration": "• Explore vast End cities and ships",
-  "gui.dimtr.challenge.powerful.bosses": "• Defeat the most powerful mod bosses",
-  "gui.dimtr.challenge.ultimate.rewards": "• Claim ultimate rewards and achievements",
+  "gui.dimtr.complete.end.objectives": "Complete End objectives",
+  "gui.dimtr.ultimate.challenge": "Ultimate test of abilities",
+  "gui.dimtr.end.dimension.challenges": "🌟 End Challenges",
+  "gui.dimtr.challenge.end.exploration": "• Explore End cities",
+  "gui.dimtr.challenge.powerful.bosses": "• Defeat powerful bosses",
+  "gui.dimtr.challenge.ultimate.rewards": "• Claim ultimate rewards",
   "gui.dimtr.summary.phase3_main.desc": "Ultimate End dimension boss challenges"
 }

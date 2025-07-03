@@ -59,7 +59,7 @@ public class CustomPhaseCoordinator {
             }
             
             // 🎯 SEGUNDO: Processar individualmente se não foi processado por party
-            return processIndividualCustomObjective(playerId, phaseId, objectiveId, progressionManager);
+            return processIndividualCustomObjective(playerId, phaseId, objectiveId, progressionManager, serverLevel);
             
         } finally {
             PROCESSING_LOCK.unlock();
@@ -95,7 +95,7 @@ public class CustomPhaseCoordinator {
             }
             
             // 🎯 SEGUNDO: Processar individualmente se não foi processado por party
-            return processIndividualCustomMobKill(playerId, phaseId, mobType, progressionManager);
+            return processIndividualCustomMobKill(playerId, phaseId, mobType, progressionManager, serverLevel);
             
         } finally {
             PROCESSING_LOCK.unlock();
@@ -179,7 +179,7 @@ public class CustomPhaseCoordinator {
      * Processar objetivo customizado individualmente
      */
     private static boolean processIndividualCustomObjective(UUID playerId, String phaseId, String objectiveId, 
-                                                          ProgressionManager progressionManager) {
+                                                          ProgressionManager progressionManager, ServerLevel serverLevel) {
         
         PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
         
@@ -199,7 +199,7 @@ public class CustomPhaseCoordinator {
         }
         
         // Verificar se a fase está completa agora
-        checkAndCompleteCustomPhaseIndividual(playerData, phaseId);
+        checkAndCompleteCustomPhaseIndividual(playerData, phaseId, serverLevel);
         
         SyncManager.scheduleFullSync(playerId);
         
@@ -240,7 +240,7 @@ public class CustomPhaseCoordinator {
      * Processar kill de mob customizado individualmente
      */
     private static boolean processIndividualCustomMobKill(UUID playerId, String phaseId, String mobType, 
-                                                        ProgressionManager progressionManager) {
+                                                        ProgressionManager progressionManager, ServerLevel serverLevel) {
         
         PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
         playerData.incrementCustomMobKill(phaseId, mobType);
@@ -252,7 +252,7 @@ public class CustomPhaseCoordinator {
         }
         
         // Verificar se a fase está completa agora
-        checkAndCompleteCustomPhaseIndividual(playerData, phaseId);
+        checkAndCompleteCustomPhaseIndividual(playerData, phaseId, serverLevel);
         
         SyncManager.scheduleProgressionSync(playerId);
         
@@ -327,7 +327,7 @@ public class CustomPhaseCoordinator {
     /**
      * Verificar e completar fase customizada individual
      */
-    private static void checkAndCompleteCustomPhaseIndividual(PlayerProgressionData playerData, String phaseId) {
+    private static void checkAndCompleteCustomPhaseIndividual(PlayerProgressionData playerData, String phaseId, ServerLevel serverLevel) {
         if (playerData.isCustomPhaseComplete(phaseId)) {
             return; // Já completa
         }
@@ -381,6 +381,19 @@ public class CustomPhaseCoordinator {
         if (allRequirementsMet) {
             playerData.setCustomPhaseComplete(phaseId, true);
             
+            // 🎊 Celebração individual para fase customizada
+            UUID playerId = playerData.getPlayerId();
+            ServerPlayer player = serverLevel.getServer().getPlayerList().getPlayer(playerId);
+            if (player != null) {
+                // Mensagem de celebração
+                player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    String.format("🌟 Custom Phase '%s' Complete! 🌟", customPhase.name))
+                    .withStyle(net.minecraft.ChatFormatting.GOLD));
+                
+                // Lançar fogos de artifício individuais
+                net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(player, 1); // Custom phases usam phase 1 como base
+            }
+            
             DimTrMod.LOGGER.info("🎉 [INDIVIDUAL] Fase customizada {} completa para jogador {}", 
                 customPhase.name, playerData.getPlayerId());
         }
@@ -390,14 +403,26 @@ public class CustomPhaseCoordinator {
      * Notificar party sobre completion de fase customizada
      */
     private static void notifyPartyPhaseCompletion(PartyData party, String phaseName, String phaseId, ServerLevel serverLevel) {
+        java.util.List<ServerPlayer> onlineMembers = new java.util.ArrayList<>();
+        
+        // Coletar membros online da party
         for (UUID memberId : party.getMembers()) {
             ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
-            if (member != null) {
-                // TODO: Implementar sistema de notificação customizado
-                // Por enquanto, usar log
-                DimTrMod.LOGGER.info("🎉 Notificando membro {} da party sobre conclusão da fase customizada {}", 
-                    member.getGameProfile().getName(), phaseName);
+            if (member != null && member.level() != null) {
+                onlineMembers.add(member);
+                
+                // Enviar mensagem de celebração
+                member.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    String.format("🎉 [PARTY] Custom Phase '%s' Complete! 🎉", phaseName))
+                    .withStyle(net.minecraft.ChatFormatting.GOLD));
             }
+        }
+        
+        // 🎊 Lançar celebração épica de party para fase customizada
+        if (!onlineMembers.isEmpty()) {
+            net.mirai.dimtr.util.NotificationHelper.launchPartyCelebrationFireworks(onlineMembers, 1); // Custom phases usam phase 1 como base
+            DimTrMod.LOGGER.info("� [CUSTOM PHASE] Launched party celebration for {} members completing phase: {}", 
+                onlineMembers.size(), phaseName);
         }
     }
     

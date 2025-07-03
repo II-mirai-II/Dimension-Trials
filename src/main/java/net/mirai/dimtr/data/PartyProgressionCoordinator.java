@@ -130,19 +130,48 @@ public class PartyProgressionCoordinator {
         // Verificar Phase 1
         if (!party.isPhase1SharedCompleted() && isPhase1CompleteForParty(party)) {
             party.setPhase1SharedCompleted(true);
-            DimTrMod.LOGGER.info("Phase 1 completed for party {}", party.getLeaderId());
+            DimTrMod.LOGGER.info("🎉 Phase 1 completed for party {}", party.getLeaderId());
+            
+            // 🎆 NOVO: Lançar fogos de artifício para todos os membros da party
+            launchPartyFireworks(party, 1, serverLevel);
             
             // Notificar todos os membros
-            notifyPartyMembers(party, "Phase 1 Complete!", serverLevel);
+            notifyPartyMembers(party, "🎊 Phase 1 Complete! Nether Access Unlocked! 🎊", serverLevel);
         }
         
         // Verificar Phase 2
         if (!party.isPhase2SharedCompleted() && isPhase2CompleteForParty(party)) {
             party.setPhase2SharedCompleted(true);
-            DimTrMod.LOGGER.info("Phase 2 completed for party {}", party.getLeaderId());
+            DimTrMod.LOGGER.info("🎉 Phase 2 completed for party {}", party.getLeaderId());
+            
+            // 🎆 NOVO: Lançar fogos de artifício para todos os membros da party
+            launchPartyFireworks(party, 2, serverLevel);
             
             // Notificar todos os membros
-            notifyPartyMembers(party, "Phase 2 Complete!", serverLevel);
+            notifyPartyMembers(party, "🌟 Phase 2 Complete! The End Access Unlocked! 🌟", serverLevel);
+        }
+    }
+    
+    /**
+     * 🎆 Lançar fogos de artifício para toda a party
+     */
+    private static void launchPartyFireworks(PartyData party, int phaseNumber, ServerLevel serverLevel) {
+        java.util.List<ServerPlayer> onlineMembers = new java.util.ArrayList<>();
+        
+        // Coletar membros online
+        for (UUID memberId : party.getMembers()) {
+            ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
+            if (member != null && member.level() != null) {
+                onlineMembers.add(member);
+            }
+        }
+        
+        if (!onlineMembers.isEmpty()) {
+            // Usar o novo sistema de celebração de party
+            net.mirai.dimtr.util.NotificationHelper.launchPartyCelebrationFireworks(onlineMembers, phaseNumber);
+            
+            DimTrMod.LOGGER.info("🎆 Launched celebration fireworks for {} party members (Phase {})", 
+                onlineMembers.size(), phaseNumber);
         }
     }
     

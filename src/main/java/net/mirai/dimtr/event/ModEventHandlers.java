@@ -9,7 +9,6 @@ import net.mirai.dimtr.data.ProgressionManager;
 import net.mirai.dimtr.data.ProgressionCoordinator;
 import net.mirai.dimtr.system.CustomPhaseSystem;
 import net.mirai.dimtr.system.BossKillValidator;
-import net.mirai.dimtr.system.ProgressTransferService;
 import net.mirai.dimtr.integration.ExternalModIntegration;
 import net.mirai.dimtr.util.Constants;
 import net.mirai.dimtr.util.BlockPosPool;
@@ -812,17 +811,31 @@ public class ModEventHandlers {
     }
     
     /**
-     * 🎆 Efeitos visuais para morte de boss
+     * 🎆 Efeitos visuais épicos para morte de boss
      */
     private static void playBossDefeatEffects(ServerLevel serverLevel, ServerPlayer player, String bossName) {
-        // Efeitos de partículas
+        // 🎊 Usar o novo sistema de celebração para boss kills
+        net.mirai.dimtr.util.NotificationHelper.launchCelebrationFireworks(player, 2); // Boss kills usam nível 2
+        
+        // 🏆 Mensagem épica
+        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+            String.format("⚔️ BOSS DEFEATED: %s ⚔️", bossName))
+            .withStyle(net.minecraft.ChatFormatting.RED, net.minecraft.ChatFormatting.BOLD));
+        
+        // Efeitos de partículas extras
         serverLevel.sendParticles(ParticleTypes.TOTEM_OF_UNDYING,
                 player.getX(), player.getY() + 1, player.getZ(),
-                30, 0.5, 0.5, 0.5, 0.1);
+                50, 1.0, 1.0, 1.0, 0.2);
                 
-        // Som de vitória
+        // Sons de vitória épicos
         serverLevel.playSound(null, player.blockPosition(), SoundEvents.PLAYER_LEVELUP,
-                SoundSource.PLAYERS, 1.0F, 0.5F);
+                SoundSource.PLAYERS, 1.5F, 0.5F);
+                
+        serverLevel.playSound(null, player.blockPosition(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
+                SoundSource.PLAYERS, 1.2F, 1.0F);
+                
+        DimTrMod.LOGGER.info("⚔️ Boss defeat celebration launched for {}: {}", 
+            player.getGameProfile().getName(), bossName);
     }
 
     /**

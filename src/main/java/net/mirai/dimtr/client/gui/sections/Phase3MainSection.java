@@ -97,8 +97,6 @@ public class Phase3MainSection implements HUDSection {
         } else {
             content.add(Component.translatable("gui.dimtr.complete.end.objectives")
                     .withStyle(ChatFormatting.YELLOW));
-            content.add(Component.translatable("gui.dimtr.ultimate.challenge")
-                    .withStyle(ChatFormatting.YELLOW));
         }
 
         content.add(Component.empty());
