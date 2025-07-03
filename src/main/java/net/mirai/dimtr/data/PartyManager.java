@@ -2,6 +2,7 @@ package net.mirai.dimtr.data;
 
 import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.network.UpdatePartyToClientPayload;
+import net.mirai.dimtr.network.UpdateProgressionToClientPayload;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -210,11 +211,11 @@ public class PartyManager extends SavedData {
                 }
                 
                 // 🔧 CORREÇÃO CRÍTICA: Sincronizar todos os membros da party após entrada
-                ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
                 for (UUID memberId : targetParty.getMembers()) {
                     ServerPlayer member = serverForContext.getPlayerList().getPlayer(memberId);
                     if (member != null) {
-                        progressionManager.sendToClient(member);
+                        // ✅ CORREÇÃO: Enviar dados de progressão DA PARTY
+                        sendPartyProgressionToClient(member);
                     }
                 }
             }
@@ -263,11 +264,11 @@ public class PartyManager extends SavedData {
             if (leavingPlayer != null) {
                 sendEmptyPartyDataToClient(leavingPlayer);
                 
-                // Sincronizar dados de progressão individual atualizados
+                // ✅ CORREÇÃO: Enviar dados de progressão INDIVIDUAL atualizados
                 ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
                 if (overworldLevel != null) {
                     ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
-                    progressionManager.sendToClient(leavingPlayer);
+                    progressionManager.sendToClient(leavingPlayer); // OK aqui, pois saiu da party
                 }
             }
         }
@@ -282,14 +283,11 @@ public class PartyManager extends SavedData {
         } else {
             // 🔧 CORREÇÃO CRÍTICA: Sincronizar com os membros restantes da party após saída
             if (serverForContext != null) {
-                ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
-                if (overworldLevel != null) {
-                    ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
-                    for (UUID memberId : party.getMembers()) {
-                        ServerPlayer member = serverForContext.getPlayerList().getPlayer(memberId);
-                        if (member != null) {
-                            progressionManager.sendToClient(member);
-                        }
+                // ✅ CORREÇÃO: Sincronizar membros restantes com dados DA PARTY
+                for (UUID memberId : party.getMembers()) {
+                    ServerPlayer member = serverForContext.getPlayerList().getPlayer(memberId);
+                    if (member != null) {
+                        sendPartyProgressionToClient(member);
                     }
                 }
             }
@@ -526,6 +524,113 @@ public class PartyManager extends SavedData {
             // Se o jogador não está em uma party, enviar dados vazios para limpar o cliente
             sendEmptyPartyDataToClient(player);
         }
+    }
+
+    /**
+     * 🔧 CORREÇÃO CRÍTICA: Enviar dados de progressão da party para o cliente
+     * Este método deve ser usado em vez de ProgressionManager.sendToClient() quando o jogador está em party
+     */
+    public void sendPartyProgressionToClient(ServerPlayer player) {
+        if (player == null || serverForContext == null) return;
+        
+        UUID playerId = player.getUUID();
+        if (isPlayerInParty(playerId)) {
+            UUID partyId = playerToParty.get(playerId);
+            PartyData party = parties.get(partyId);
+            
+            if (party != null) {
+                // Criar payload com dados de progressão DA PARTY
+                UpdateProgressionToClientPayload partyProgressPayload = createPartyProgressionPayload(party);
+                PacketDistributor.sendToPlayer(player, partyProgressPayload);
+                
+                DimTrMod.LOGGER.debug("📡 Sent party progression data to client: {} (party: {})", 
+                    player.getGameProfile().getName(), party.getName());
+            }
+        }
+    }
+
+    /**
+     * Criar payload de progressão a partir dos dados da party
+     */
+    private UpdateProgressionToClientPayload createPartyProgressionPayload(PartyData party) {
+        // Usar os dados COMPARTILHADOS da party ao invés dos dados individuais
+        return new UpdateProgressionToClientPayload(
+            // Objetivos da party
+            party.isSharedElderGuardianKilled(),
+            party.isSharedRaidWon(),
+            false, // ravagerKilled - não usado
+            false, // evokerKilled - não usado
+            party.isSharedTrialVaultAdvancementEarned(),
+            party.isSharedVoluntaireExileAdvancementEarned(),
+            party.isPhase1SharedCompleted(),
+            party.isSharedWitherKilled(),
+            party.isSharedWardenKilled(),
+            party.isPhase2SharedCompleted(),
+            
+            // Contadores de mobs da party - Fase 1
+            party.getSharedMobKills().getOrDefault("zombie", 0),
+            0, // zombieVillagerKills - sempre 0
+            party.getSharedMobKills().getOrDefault("skeleton", 0),
+            party.getSharedMobKills().getOrDefault("stray", 0),
+            party.getSharedMobKills().getOrDefault("husk", 0),
+            party.getSharedMobKills().getOrDefault("spider", 0),
+            party.getSharedMobKills().getOrDefault("creeper", 0),
+            party.getSharedMobKills().getOrDefault("drowned", 0),
+            party.getSharedMobKills().getOrDefault("enderman", 0),
+            party.getSharedMobKills().getOrDefault("witch", 0),
+            party.getSharedMobKills().getOrDefault("pillager", 0),
+            party.getSharedMobKills().getOrDefault("captain", 0),
+            party.getSharedMobKills().getOrDefault("vindicator", 0),
+            party.getSharedMobKills().getOrDefault("bogged", 0),
+            party.getSharedMobKills().getOrDefault("breeze", 0),
+            party.getSharedMobKills().getOrDefault("ravager", 0),
+            party.getSharedMobKills().getOrDefault("evoker", 0),
+            
+            // Contadores de mobs da party - Fase 2
+            party.getSharedMobKills().getOrDefault("blaze", 0),
+            party.getSharedMobKills().getOrDefault("wither_skeleton", 0),
+            party.getSharedMobKills().getOrDefault("piglin_brute", 0),
+            party.getSharedMobKills().getOrDefault("hoglin", 0),
+            party.getSharedMobKills().getOrDefault("zoglin", 0),
+            party.getSharedMobKills().getOrDefault("ghast", 0),
+            0, // endermiteKills - sempre 0
+            party.getSharedMobKills().getOrDefault("piglin", 0),
+            
+            // Requisitos de mobs (mesmo valores para todos)
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqZombieKills.get(),
+            0, // reqZombieVillagerKills - sempre 0
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqSkeletonKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqStrayKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqHuskKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqSpiderKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqCreeperKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqDrownedKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqEndermanKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqWitchKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqPillagerKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqCaptainKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqVindicatorKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqBoggedKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqBreezeKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqRavagerKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqEvokerKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqBlazeKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqWitherSkeletonKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqPiglinBruteKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqHoglinKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqZoglinKills.get(),
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqGhastKills.get(),
+            0, // reqEndermiteKills - sempre 0
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqPiglinKills.get(),
+            
+            // Configurações
+            net.mirai.dimtr.config.DimTrConfig.SERVER.reqVoluntaryExile.get(),
+            
+            // Dados de custom phases da party
+            party.getSharedCustomPhaseCompletion(),
+            party.getSharedCustomMobKills(),
+            party.getSharedCustomObjectiveCompletion()
+        );
     }
 
     private UpdatePartyToClientPayload createPartyPayload(PartyData party) {

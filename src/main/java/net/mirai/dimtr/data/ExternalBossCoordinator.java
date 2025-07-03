@@ -77,6 +77,8 @@ public class ExternalBossCoordinator {
     /**
      * Sincronizar todos os membros da party após alteração de boss externo
      * Garante que todos recebam dados atualizados instantaneamente
+     * 
+     * ✅ CORREÇÃO: Envia dados de progressão DA PARTY, não individuais
      */
     private static void syncAllPartyMembers(PartyData party, ServerLevel serverLevel, ProgressionManager progressionManager) {
         PartyManager partyManager = PartyManager.get(serverLevel);
@@ -84,8 +86,8 @@ public class ExternalBossCoordinator {
         for (UUID memberId : party.getMembers()) {
             ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
             if (member != null) {
-                // Sincronizar dados de progressão da party
-                progressionManager.sendToClient(member);
+                // ✅ CORREÇÃO CRÍTICA: Enviar dados de progressão DA PARTY
+                partyManager.sendPartyProgressionToClient(member);
                 // Sincronizar dados da party (membros, etc.)
                 partyManager.sendPartyToClient(member);
             }

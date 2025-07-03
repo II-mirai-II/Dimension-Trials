@@ -424,29 +424,30 @@ public class PartyProgressionCoordinator {
      * 🔧 CORREÇÃO CRÍTICA: Sincronizar TODOS os membros de uma party imediatamente
      * Este método garante que quando qualquer membro da party mata um mob ou completa
      * um objetivo, TODOS os membros recebem a atualização instantaneamente.
+     * 
+     * ✅ CORREÇÃO: Agora envia dados DE PROGRESSÃO DA PARTY, não dados individuais
      */
     private static void syncAllPartyMembers(PartyData party, ServerLevel serverLevel) {
         if (party == null || party.getMembers().isEmpty()) {
             return;
         }
         
-        ProgressionManager progressionManager = ProgressionManager.get(serverLevel);
         PartyManager partyManager = PartyManager.get(serverLevel);
         
         for (UUID memberId : party.getMembers()) {
             ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
             if (member != null) {
-                // Sincronizar dados de progressão individual
-                progressionManager.sendToClient(member);
+                // ✅ CORREÇÃO CRÍTICA: Enviar dados de PROGRESSÃO DA PARTY
+                partyManager.sendPartyProgressionToClient(member);
                 
-                // Sincronizar dados de party
+                // Sincronizar dados de party (membros, etc.)
                 partyManager.sendPartyToClient(member);
                 
-                DimTrMod.LOGGER.debug("📡 Synced party member: {} ({})", 
+                DimTrMod.LOGGER.debug("📡 Synced party member with PARTY progression: {} ({})", 
                     memberId, member.getGameProfile().getName());
             }
         }
         
-        DimTrMod.LOGGER.debug("✅ Synced all {} party members", party.getMembers().size());
+        DimTrMod.LOGGER.debug("✅ Synced all {} party members with PARTY progression data", party.getMembers().size());
     }
 }
