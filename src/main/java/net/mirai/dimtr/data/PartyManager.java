@@ -188,21 +188,34 @@ public class PartyManager extends SavedData {
 
         playerToParty.put(playerId, targetParty.getPartyId());
         
-        // 🎯 CORREÇÃO: Transferir progresso individual do jogador para a party
+        // 🔧 CORREÇÃO CRÍTICA: Usar ProgressTransferService para transferência robusta
         if (serverForContext != null) {
             ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
             if (overworldLevel != null) {
+                try {
+                    // Transferir progresso individual para party usando o serviço especializado
+                    boolean transferSuccess = net.mirai.dimtr.system.ProgressTransferService.transferFromIndividualToParty(
+                        playerId, 
+                        net.mirai.dimtr.system.ProgressTransferService.TransferConfig.getDefault(),
+                        "Player joined party: " + targetParty.getName());
+                    
+                    if (transferSuccess) {
+                        DimTrMod.LOGGER.info("✅ Successfully transferred individual progress to party for player {}", playerId);
+                    } else {
+                        DimTrMod.LOGGER.warn("⚠️ Failed to transfer progress to party for player {} (player may not have been in individual mode)", playerId);
+                    }
+                } catch (Exception e) {
+                    DimTrMod.LOGGER.error("❌ Exception during progress transfer to party for player {}: {}", playerId, e.getMessage());
+                    // Continuar mesmo se a transferência falhar - o jogador ainda pode entrar na party
+                }
+                
+                // 🔧 CORREÇÃO CRÍTICA: Sincronizar todos os membros da party após entrada
                 ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
-                if (progressionManager != null) {
-                    // Obter progresso individual do jogador
-                    Map<String, Integer> playerProgress = progressionManager.getPlayerMobKills(playerId);
-                    PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
-                    
-                    // Transferir progresso de mobs
-                    targetParty.transferIndividualProgress(playerId, playerProgress);
-                    
-                    // Transferir objetivos especiais
-                    transferSpecialObjectives(targetParty, playerData);
+                for (UUID memberId : targetParty.getMembers()) {
+                    ServerPlayer member = serverForContext.getPlayerList().getPlayer(memberId);
+                    if (member != null) {
+                        progressionManager.sendToClient(member);
+                    }
                 }
             }
         }
@@ -227,34 +240,37 @@ public class PartyManager extends SavedData {
             return LeavePartyResult.NOT_IN_PARTY;
         }
 
-        // ✅ CORREÇÃO: Sincronizar com o jogador que está saindo ANTES de remover
+        // 🔧 CORREÇÃO CRÍTICA: Usar ProgressTransferService para transferência robusta de volta ao individual
         if (serverForContext != null) {
+            try {
+                boolean transferSuccess = net.mirai.dimtr.system.ProgressTransferService.transferFromPartyToIndividual(
+                    playerId,
+                    net.mirai.dimtr.system.ProgressTransferService.TransferConfig.getDefault(),
+                    "Player left party: " + party.getName());
+                
+                if (transferSuccess) {
+                    DimTrMod.LOGGER.info("✅ Successfully transferred party progress to individual for player {}", playerId);
+                } else {
+                    DimTrMod.LOGGER.warn("⚠️ Failed to transfer progress from party to individual for player {} (player may not have been in party mode)", playerId);
+                }
+            } catch (Exception e) {
+                DimTrMod.LOGGER.error("❌ Exception during progress transfer from party for player {}: {}", playerId, e.getMessage());
+                // Continuar mesmo se a transferência falhar - o jogador ainda pode sair da party
+            }
+            
+            // 🔧 CORREÇÃO CRÍTICA: Enviar dados vazios para limpar o HUD do cliente
             ServerPlayer leavingPlayer = serverForContext.getPlayerList().getPlayer(playerId);
             if (leavingPlayer != null) {
-                // Enviar dados vazios para limpar o HUD do cliente
                 sendEmptyPartyDataToClient(leavingPlayer);
-            }
-        }
-
-        // 🎯 CORREÇÃO: Remover contribuições individuais e restaurar progresso completo
-        Map<String, Integer> playerContributions = party.removeIndividualContributions(playerId);
-        
-        // Restaurar progresso individual do jogador (mob kills)
-        if (serverForContext != null && !playerContributions.isEmpty()) {
-            ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
-            if (overworldLevel != null) {
-                ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
-                if (progressionManager != null) {
-                    progressionManager.restorePlayerMobKills(playerId, playerContributions);
+                
+                // Sincronizar dados de progressão individual atualizados
+                ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
+                if (overworldLevel != null) {
+                    ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
+                    progressionManager.sendToClient(leavingPlayer);
                 }
             }
         }
-        
-        // 🎯 NOVO: Restaurar objetivos especiais do jogador
-        restoreSpecialObjectivesToPlayer(playerId, party);
-
-        // 🎯 NOVO: Transferir objetivos especiais de volta ao jogador que sai
-        restoreSpecialObjectivesToPlayer(playerId, party);
 
         // Remover jogador da party
         party.removeMember(playerId);
@@ -264,7 +280,19 @@ public class PartyManager extends SavedData {
         if (party.getMemberCount() == 0) {
             parties.remove(partyId);
         } else {
-            // Sincronizar com os membros restantes da party
+            // 🔧 CORREÇÃO CRÍTICA: Sincronizar com os membros restantes da party após saída
+            if (serverForContext != null) {
+                ServerLevel overworldLevel = serverForContext.getLevel(Level.OVERWORLD);
+                if (overworldLevel != null) {
+                    ProgressionManager progressionManager = ProgressionManager.get(overworldLevel);
+                    for (UUID memberId : party.getMembers()) {
+                        ServerPlayer member = serverForContext.getPlayerList().getPlayer(memberId);
+                        if (member != null) {
+                            progressionManager.sendToClient(member);
+                        }
+                    }
+                }
+            }
             syncPartyToMembers(partyId);
         }
 

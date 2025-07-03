@@ -390,25 +390,43 @@ public record UpdateProgressionToClientPayload(
     public static void handle(UpdateProgressionToClientPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             try {
-                // CORREÇÃO: Adicionar validação básica do payload
+                // 🔧 CORREÇÃO CRÍTICA: Adicionar validação robusta do payload
                 if (payload == null) {
-                    net.mirai.dimtr.DimTrMod.LOGGER.error("Received null progression payload!");
+                    net.mirai.dimtr.DimTrMod.LOGGER.error("❌ Received null progression payload!");
                     return;
                 }
                 
-                // Validar valores razoáveis para contadores
-                if (payload.zombieKills < 0 || payload.zombieKills > 10000 ||
-                    payload.skeletonKills < 0 || payload.skeletonKills > 10000) {
-                    net.mirai.dimtr.DimTrMod.LOGGER.error("Invalid kill counts in progression payload!");
+                // Validar valores razoáveis para contadores de mobs
+                if (payload.zombieKills < 0 || payload.zombieKills > 100000 ||
+                    payload.skeletonKills < 0 || payload.skeletonKills > 100000 ||
+                    payload.creeperKills < 0 || payload.creeperKills > 100000) {
+                    net.mirai.dimtr.DimTrMod.LOGGER.error("❌ Invalid kill counts in progression payload! Zombie: {}, Skeleton: {}, Creeper: {}", 
+                        payload.zombieKills, payload.skeletonKills, payload.creeperKills);
                     return;
                 }
                 
+                // Validar requisitos razoáveis
+                if (payload.reqZombieKills < 0 || payload.reqZombieKills > 10000 ||
+                    payload.reqSkeletonKills < 0 || payload.reqSkeletonKills > 10000) {
+                    net.mirai.dimtr.DimTrMod.LOGGER.error("❌ Invalid requirements in progression payload! ReqZombie: {}, ReqSkeleton: {}", 
+                        payload.reqZombieKills, payload.reqSkeletonKills);
+                    return;
+                }
+                
+                // 🔧 CORREÇÃO CRÍTICA: Atualizar dados e log de debug para acompanhar sincronização
                 ClientProgressionData.INSTANCE.updateData(payload);
+                
+                net.mirai.dimtr.DimTrMod.LOGGER.debug("✅ Updated ClientProgressionData - Zombie: {}/{}, Skeleton: {}/{}, Phase1: {}, Phase2: {}", 
+                    payload.zombieKills, payload.reqZombieKills,
+                    payload.skeletonKills, payload.reqSkeletonKills,
+                    payload.phase1Completed, payload.phase2Completed);
+                    
             } catch (Exception e) {
-                // Log erro usando logger apropriado ao invés de System.err/printStackTrace
-                net.mirai.dimtr.DimTrMod.LOGGER.error("Failed to update ClientProgressionData: {}", e.getMessage());
+                // Log erro usando logger apropriado
+                net.mirai.dimtr.DimTrMod.LOGGER.error("❌ Failed to update ClientProgressionData: {}", e.getMessage());
                 if (payload != null) {
-                    net.mirai.dimtr.DimTrMod.LOGGER.error("Payload data: {}", payload.toString());
+                    net.mirai.dimtr.DimTrMod.LOGGER.error("Payload summary - ElderGuardian: {}, Raid: {}, Phase1: {}, Phase2: {}, ZombieKills: {}", 
+                        payload.elderGuardianKilled, payload.raidWon, payload.phase1Completed, payload.phase2Completed, payload.zombieKills);
                 }
                 net.mirai.dimtr.DimTrMod.LOGGER.error("Exception details:", e);
             }

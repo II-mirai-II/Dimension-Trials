@@ -3,6 +3,7 @@ package net.mirai.dimtr.data;
 import net.mirai.dimtr.DimTrMod;
 import net.mirai.dimtr.util.Constants;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.UUID;
 
@@ -23,10 +24,22 @@ public class IndividualProgressionCoordinator {
             PlayerProgressionData playerData = progressionManager.getPlayerData(playerId);
             
             // Incrementar kill individual
-            playerData.incrementMobKill(mobType);
+            boolean wasIncremented = playerData.incrementMobKill(mobType);
+            if (!wasIncremented) {
+                return false; // Mob type não é válido ou já no máximo
+            }
+            
+            // 🔧 CORREÇÃO CRÍTICA: Marcar como dirty E enviar atualizações para o cliente
             progressionManager.setDirty();
             
-            DimTrMod.LOGGER.debug("Individual mob kill processed: {} killed {}", playerId, mobType);
+            // 🔧 CORREÇÃO CRÍTICA: Enviar atualização imediata para o cliente
+            ServerPlayer player = serverLevel.getServer().getPlayerList().getPlayer(playerId);
+            if (player != null) {
+                progressionManager.sendToClient(player);
+            }
+            
+            DimTrMod.LOGGER.debug("✅ Individual mob kill processed and synced: {} killed {} ({})", 
+                playerId, mobType, playerData.getMobKillCount(mobType));
             
             // Verificar se alguma fase foi completada
             checkPhaseCompletionForPlayer(playerData, progressionManager, serverLevel);
@@ -89,9 +102,16 @@ public class IndividualProgressionCoordinator {
             }
             
             if (wasNewlyCompleted) {
+                // 🔧 CORREÇÃO CRÍTICA: Marcar como dirty E enviar atualizações para o cliente
                 progressionManager.setDirty();
                 
-                DimTrMod.LOGGER.info("Individual objective completed: {} for player {}", 
+                // 🔧 CORREÇÃO CRÍTICA: Enviar atualização imediata para o cliente
+                ServerPlayer player = serverLevel.getServer().getPlayerList().getPlayer(playerId);
+                if (player != null) {
+                    progressionManager.sendToClient(player);
+                }
+                
+                DimTrMod.LOGGER.info("✅ Individual objective completed and synced: {} for player {}", 
                     objectiveType, playerId);
                 
                 // Verificar se alguma fase foi completada

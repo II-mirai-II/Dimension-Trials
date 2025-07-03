@@ -75,6 +75,24 @@ public class ExternalBossCoordinator {
     }
     
     /**
+     * Sincronizar todos os membros da party após alteração de boss externo
+     * Garante que todos recebam dados atualizados instantaneamente
+     */
+    private static void syncAllPartyMembers(PartyData party, ServerLevel serverLevel, ProgressionManager progressionManager) {
+        PartyManager partyManager = PartyManager.get(serverLevel);
+        
+        for (UUID memberId : party.getMembers()) {
+            ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
+            if (member != null) {
+                // Sincronizar dados de progressão da party
+                progressionManager.sendToClient(member);
+                // Sincronizar dados da party (membros, etc.)
+                partyManager.sendPartyToClient(member);
+            }
+        }
+    }
+
+    /**
      * Processar boss externo para party
      */
     private static boolean processPartyExternalBoss(PartyData party, UUID playerId, String bossEntityId, 
@@ -95,14 +113,8 @@ public class ExternalBossCoordinator {
         notifyPartyMembersOfBossKill(party, bossEntityId, serverLevel);
         checkPhaseCompletionWithExternalBosses(party, phase, serverLevel);
         
-        // Sincronizar party com TODOS os membros da party
-        for (UUID memberId : party.getMembers()) {
-            ServerPlayer member = serverLevel.getServer().getPlayerList().getPlayer(memberId);
-            if (member != null) {
-                progressionManager.sendToClient(member); // Enviar dados de progressão para o cliente
-                PartyManager.get(serverLevel).sendPartyToClient(member); // Enviar dados da party para o cliente
-            }
-        }
+        // ✅ CORREÇÃO: Usar método centralizado de sincronização
+        syncAllPartyMembers(party, serverLevel, progressionManager);
         
         // Log para depuração
         DimTrMod.LOGGER.info("🎯 Boss externo {} derrotado por party {} - Fase {} - Marcado em objetivos externos",
@@ -127,7 +139,7 @@ public class ExternalBossCoordinator {
         // Forçar salvamento dos dados
         progressionManager.setDirty();
         
-        // Enviar imediatamente para o cliente
+        // ✅ CORREÇÃO: Enviar sincronização imediata ao cliente
         ServerPlayer serverPlayer = serverLevel.getServer().getPlayerList().getPlayer(playerId);
         if (serverPlayer != null) {
             progressionManager.sendToClient(serverPlayer);
