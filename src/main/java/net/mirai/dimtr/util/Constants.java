@@ -225,6 +225,19 @@ public class Constants {
     // Creative Tab
     public static final String CREATIVE_TAB_TITLE = "itemGroup.dimtr.main";
 
+    // NOVO: Logs e Mensagens de Debug para Admin Commands
+    public static final String DEBUG_ADMIN_SETTING_MOB_COUNT = "Admin command: Setting {} to {}/{} for player {}";
+    public static final String DEBUG_ADMIN_MARKING_BOSS = "Admin command: Marking external boss {} as defeated for player {}";
+    
+    // NOVO: Nomes de Mobs Específicos (para internacionalização)
+    public static final String MOB_WITHER_SKELETON = "entity.minecraft.wither_skeleton";
+    public static final String MOB_PIGLIN_BRUTE = "entity.minecraft.piglin_brute";
+    public static final String MOB_BLAZE = "entity.minecraft.blaze";
+    public static final String MOB_HOGLIN = "entity.minecraft.hoglin";
+    public static final String MOB_ZOGLIN = "entity.minecraft.zoglin";
+    public static final String MOB_GHAST = "entity.minecraft.ghast";
+    public static final String MOB_PIGLIN = "entity.minecraft.piglin";
+
     // NOVO: Configurações (adicionar constantes que faltavam)
     public static final String CONFIG_ENABLE_PHASE1 = "config.dimtr.server.enablePhase1";
     public static final String CONFIG_ENABLE_PHASE2 = "config.dimtr.server.enablePhase2";

@@ -355,14 +355,23 @@ public class DimTrCommands {
         playerData.witherKilled = true;
         playerData.wardenKilled = true;
 
-        // Completar mobs do Nether
-        playerData.blazeKills = DimTrConfig.SERVER.reqBlazeKills.get();
-        playerData.witherSkeletonKills = DimTrConfig.SERVER.reqWitherSkeletonKills.get();
-        playerData.piglinBruteKills = DimTrConfig.SERVER.reqPiglinBruteKills.get();
-        playerData.hoglinKills = DimTrConfig.SERVER.reqHoglinKills.get();
-        playerData.zoglinKills = DimTrConfig.SERVER.reqZoglinKills.get();
-        playerData.ghastKills = DimTrConfig.SERVER.reqGhastKills.get();
-        playerData.piglinKills = DimTrConfig.SERVER.reqPiglinKills.get();
+        // Completar mobs do Nether - ASSEGURAR QUE OS VALORES ESTÃO SENDO DEFINIDOS CORRETAMENTE
+        int reqWitherSkeletons = DimTrConfig.SERVER.reqWitherSkeletonKills.get();
+        int reqPiglinBrutes = DimTrConfig.SERVER.reqPiglinBruteKills.get();
+        
+        playerData.blazeKills = Math.max(playerData.blazeKills, DimTrConfig.SERVER.reqBlazeKills.get());
+        playerData.witherSkeletonKills = Math.max(playerData.witherSkeletonKills, reqWitherSkeletons);
+        playerData.piglinBruteKills = Math.max(playerData.piglinBruteKills, reqPiglinBrutes);
+        playerData.hoglinKills = Math.max(playerData.hoglinKills, DimTrConfig.SERVER.reqHoglinKills.get());
+        playerData.zoglinKills = Math.max(playerData.zoglinKills, DimTrConfig.SERVER.reqZoglinKills.get());
+        playerData.ghastKills = Math.max(playerData.ghastKills, DimTrConfig.SERVER.reqGhastKills.get());
+        playerData.piglinKills = Math.max(playerData.piglinKills, DimTrConfig.SERVER.reqPiglinKills.get());
+        
+        // Utilizar constantes para mensagens de log
+        DimTrMod.LOGGER.info(Constants.DEBUG_ADMIN_SETTING_MOB_COUNT, 
+            Constants.MOB_WITHER_SKELETON, playerData.witherSkeletonKills, reqWitherSkeletons, playerName);
+        DimTrMod.LOGGER.info(Constants.DEBUG_ADMIN_SETTING_MOB_COUNT, 
+            Constants.MOB_PIGLIN_BRUTE, playerData.piglinBruteKills, reqPiglinBrutes, playerName);
 
         // Completar requisitos aumentados do Overworld (125%)
         playerData.zombieKills = Math.max(playerData.zombieKills, getPhase2OverworldRequirement(DimTrConfig.SERVER.reqZombieKills.get()));
@@ -392,7 +401,8 @@ public class DimTrCommands {
             for (net.mirai.dimtr.integration.ExternalModIntegration.BossInfo boss : phase2Bosses) {
                 String bossKey = boss.entityId.replace(":", "_");
                 playerData.setCustomObjectiveComplete("external_bosses", bossKey, true);
-                DimTrMod.LOGGER.info("Admin command: Marking external boss {} as defeated for player {}", 
+                // Utilizar constante para mensagem de log
+                DimTrMod.LOGGER.info(Constants.DEBUG_ADMIN_MARKING_BOSS, 
                     boss.displayName, playerName);
             }
         }
