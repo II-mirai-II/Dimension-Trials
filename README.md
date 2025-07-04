@@ -19,8 +19,16 @@
 ⚙️ **Server-Friendly** - Highly configurable for any playstyle or server size  
 💾 **Data Safety** - Backup & recovery system prevents progress loss
 ✨ **XP Multipliers** - Earn bonus XP as you progress through phases
+❓**NEW in v1.3:** Automatic integration with 2 popular mods, Multiplayer/Solo Progression system and much more!
 
-**❓NEW in v1.3:** Automatic integration with 2 popular mods, Multiplayer/Solo Progression system and much more!
+---
+
+## 📚 **Learn More**
+
+- **[👥 Party System Guide](PARTY_SYSTEM.md)** - Complete cooperative gameplay guide
+- **[🎨 Custom Requirements](CUSTOM_REQUIREMENTS.md)** - Create unlimited custom phases
+- **[⚙️ Configuration](CONFIGURATION.md)** - Complete setup and customization guide
+- **[📋 Full Changelog v1.3](Changelog%20v1.3.md)** - All new features and improvements
 
 ---
 
@@ -157,15 +165,6 @@ enablePartySystem = true     # Essential cooperative play
 /dimtr backup create             # Create manual data backup
 /dimtr backup restore <id>       # Restore from backup
 ```
-
----
-
-## 📚 **Learn More**
-
-- **[👥 Party System Guide](PARTY_SYSTEM.md)** - Complete cooperative gameplay guide
-- **[🎨 Custom Requirements](CUSTOM_REQUIREMENTS.md)** - Create unlimited custom phases
-- **[⚙️ Configuration](CONFIGURATION.md)** - Complete setup and customization guide
-- **[📋 Full Changelog v1.3](Changelog%20v1.3.md)** - All new features and improvements
 
 ---
 
